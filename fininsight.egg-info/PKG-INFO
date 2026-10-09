@@ -1,0 +1,64 @@
+Metadata-Version: 2.4
+Name: fininsight
+Version: 0.1.0
+Summary: India-focused financial intelligence platform
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: fastapi
+Requires-Dist: uvicorn[standard]
+Requires-Dist: pydantic>=2
+Requires-Dist: pydantic-settings>=2
+Requires-Dist: pyyaml
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: httpx; extra == "dev"
+Requires-Dist: ruff; extra == "dev"
+Requires-Dist: mypy; extra == "dev"
+Requires-Dist: types-PyYAML; extra == "dev"
+Dynamic: license-file
+
+# fininsight
+
+Financial intelligence platform backend scaffold.
+
+## Setup
+
+Keep the repo outside OneDrive-synced folders once real keys exist.
+
+### Prerequisites
+
+- Python 3.11+
+- Git
+
+### Installation
+
+```bash
+make install
+```
+
+Configure pre-commit hooks:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Copy the environment template:
+
+```bash
+cp .env.example .env
+```
+
+### Verification
+
+Run the test suite:
+
+```bash
+make test
+```
+
+Run lint and type checks:
+
+```bash
+make lint
+```

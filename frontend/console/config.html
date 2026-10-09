@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>FinInsight Ops Console - Configuration</title>
+  <link rel="stylesheet" href="/console/assets/console.css">
+</head>
+<body>
+  <header>
+    <div class="brand">FININSIGHT OPS CONSOLE</div>
+    <nav>
+      <a href="/console/">STATUS</a>
+      <a href="/console/config.html" class="active">CONFIG</a>
+    </nav>
+  </header>
+
+  <div class="meta-bar">
+    <div>CONFIGURATION & PARAMETERS</div>
+    <div>LAST UPDATED: <span id="last-updated">-</span></div>
+  </div>
+
+  <div id="config-error" class="error-box"></div>
+
+  <div class="panel">
+    <div class="panel-title">RUNTIME ENABLED GROUPS</div>
+    <div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-main);">
+      ENABLED: <span id="enabled-groups-list">-</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">ENVIRONMENT VARIABLES REGISTRY</div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>GROUP</th>
+          <th>VARIABLE NAME</th>
+          <th>REQUIRED WHEN ENABLED</th>
+          <th>STATUS</th>
+        </tr>
+      </thead>
+      <tbody id="env-table-body">
+        <tr>
+          <td colspan="4">Loading registry...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">ACTIVE PARAMETERS REGISTER</div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>NAME</th>
+          <th>TYPE</th>
+          <th>DEFAULT</th>
+          <th>MIN</th>
+          <th>MAX</th>
+          <th>UNIT</th>
+          <th>OVERRIDE ALLOWED</th>
+        </tr>
+      </thead>
+      <tbody id="params-table-body">
+        <tr>
+          <td colspan="7">Loading parameters...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script src="/console/assets/console.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      startPolling("config");
+    });
+  </script>
+</body>
+</html>

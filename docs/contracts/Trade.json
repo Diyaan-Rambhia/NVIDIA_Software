@@ -1,0 +1,89 @@
+{
+  "additionalProperties": false,
+  "description": "Single trade per PROJECT.md \u00a74.8, \u00a77.3, and FR-F3-001.",
+  "properties": {
+    "charges": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Charges"
+    },
+    "date": {
+      "title": "Date",
+      "type": "string"
+    },
+    "exchange": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Exchange"
+    },
+    "fees": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Fees"
+    },
+    "price": {
+      "exclusiveMinimum": 0,
+      "title": "Price",
+      "type": "number"
+    },
+    "quantity": {
+      "exclusiveMinimum": 0,
+      "title": "Quantity",
+      "type": "number"
+    },
+    "segment": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Segment"
+    },
+    "side": {
+      "enum": [
+        "BUY",
+        "SELL"
+      ],
+      "title": "Side",
+      "type": "string"
+    },
+    "symbol": {
+      "title": "Symbol",
+      "type": "string"
+    }
+  },
+  "required": [
+    "date",
+    "symbol",
+    "side",
+    "quantity",
+    "price"
+  ],
+  "title": "Trade",
+  "type": "object"
+}

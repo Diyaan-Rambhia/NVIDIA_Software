@@ -1,0 +1,31 @@
+episodes:
+  ilfs_crisis:
+    name: "IL&FS Crisis"
+    start: null
+    end: null
+    status: pending_confirmation
+  yes_bank_moratorium:
+    name: "Yes Bank Moratorium"
+    start: null
+    end: null
+    status: pending_confirmation
+  dhfl_default:
+    name: "DHFL Default"
+    start: null
+    end: null
+    status: pending_confirmation
+  franklin_debt_freeze:
+    name: "Franklin Templeton Debt Freeze"
+    start: null
+    end: null
+    status: pending_confirmation
+  adani_hindenburg:
+    name: "Adani Group Hindenburg Report"
+    start: null
+    end: null
+    status: pending_confirmation
+  covid_market_shock:
+    name: "COVID Market Shock"
+    start: null
+    end: null
+    status: pending_confirmation

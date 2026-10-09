@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>FinInsight Ops Console - Status</title>
+  <link rel="stylesheet" href="/console/assets/console.css">
+</head>
+<body>
+  <header>
+    <div class="brand">FININSIGHT OPS CONSOLE</div>
+    <nav>
+      <a href="/console/" class="active">STATUS</a>
+      <a href="/console/config.html">CONFIG</a>
+    </nav>
+  </header>
+
+  <div class="meta-bar">
+    <div>SYSTEM STATUS & DIAGNOSTICS</div>
+    <div>LAST UPDATED: <span id="last-updated">-</span></div>
+  </div>
+
+  <div id="index-error" class="error-box"></div>
+
+  <div class="panel">
+    <div class="panel-title">CORE HEALTH PROBES</div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>PROBE</th>
+          <th>STATUS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>LIVENESS (/health)</td>
+          <td id="health-badge"><span class="badge badge-warn">CHECKING</span></td>
+        </tr>
+        <tr>
+          <td>READINESS (/ready)</td>
+          <td id="ready-badge"><span class="badge badge-warn">CHECKING</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">READINESS CHECKS BREAKDOWN</div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>CHECK</th>
+          <th>VALUE</th>
+        </tr>
+      </thead>
+      <tbody id="checks-table-body">
+        <tr>
+          <td>config_loaded</td>
+          <td>-</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">RUNTIME ENVIRONMENT (/ops/status)</div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>FIELD</th>
+          <th>VALUE</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>APP_ENV</td>
+          <td id="status-env">-</td>
+        </tr>
+        <tr>
+          <td>CODE_VERSION</td>
+          <td id="status-version">-</td>
+        </tr>
+        <tr>
+          <td>PYTHON_VERSION</td>
+          <td id="status-python">-</td>
+        </tr>
+        <tr>
+          <td>UPTIME</td>
+          <td id="status-uptime">-</td>
+        </tr>
+        <tr>
+          <td>ENABLED_GROUPS</td>
+          <td id="status-groups">-</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script src="/console/assets/console.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      startPolling("index");
+    });
+  </script>
+</body>
+</html>

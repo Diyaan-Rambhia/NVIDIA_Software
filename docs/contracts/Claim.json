@@ -1,0 +1,56 @@
+{
+  "additionalProperties": false,
+  "description": "Claim extracted from filing text per PROJECT.md \u00a74.4, \u00a77.3, and FR-F2-002.",
+  "properties": {
+    "basis": {
+      "enum": [
+        "reported",
+        "adjusted",
+        "constant-currency",
+        "unspecified"
+      ],
+      "title": "Basis",
+      "type": "string"
+    },
+    "descriptor": {
+      "title": "Descriptor",
+      "type": "string"
+    },
+    "direction": {
+      "title": "Direction",
+      "type": "string"
+    },
+    "end": {
+      "title": "End",
+      "type": "integer"
+    },
+    "metric": {
+      "title": "Metric",
+      "type": "string"
+    },
+    "period": {
+      "title": "Period",
+      "type": "string"
+    },
+    "quote": {
+      "title": "Quote",
+      "type": "string"
+    },
+    "start": {
+      "title": "Start",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "metric",
+    "descriptor",
+    "direction",
+    "quote",
+    "start",
+    "end",
+    "period",
+    "basis"
+  ],
+  "title": "Claim",
+  "type": "object"
+}

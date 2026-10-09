@@ -1,0 +1,155 @@
+parameters:
+  W:
+    type: int
+    default: 60
+    min: 20
+    max: 500
+    override_allowed: true
+    unit: "trading days"
+  lambda:
+    type: float
+    default: 0.94
+    min: 0.80
+    max: 0.99
+    override_allowed: true
+    unit: "decay factor"
+  B:
+    type: int
+    default: 250
+    min: 60
+    max: 1000
+    override_allowed: true
+    unit: "trading days"
+  G:
+    type: int
+    default: 20
+    min: 0
+    max: 250
+    override_allowed: true
+    unit: "trading days"
+  C:
+    type: int
+    default: 20
+    min: 5
+    max: 250
+    override_allowed: true
+    unit: "trading days"
+  T:
+    type: int
+    default: 250
+    min: 60
+    max: 1000
+    override_allowed: true
+    unit: "trading days"
+  AR_short:
+    type: int
+    default: 15
+    min: 5
+    max: 60
+    override_allowed: true
+    unit: "trading days"
+  AR_long:
+    type: int
+    default: 250
+    min: 60
+    max: 1000
+    override_allowed: true
+    unit: "trading days"
+  k_fraction:
+    type: float
+    default: 0.20
+    min: 0.10
+    max: 0.50
+    override_allowed: true
+    unit: "fraction of N"
+  block_len:
+    type: int
+    default: 10
+    min: 2
+    max: 60
+    override_allowed: true
+    unit: "trading days"
+  n_boot:
+    type: int
+    default: 1000
+    min: 200
+    max: 5000
+    override_allowed: true
+    unit: "iterations"
+  alpha:
+    type: float
+    default: 0.05
+    min: 0.001
+    max: 0.20
+    override_allowed: true
+    unit: "significance level"
+  fdr_q:
+    type: float
+    default: 0.10
+    min: 0.01
+    max: 0.25
+    override_allowed: true
+    unit: "false discovery rate"
+  us_series_lag_days:
+    type: int
+    default: 1
+    min: 0
+    max: 2
+    override_allowed: false
+    unit: "calendar days"
+  s1_share:
+    type: float
+    default: 0.20
+    min: 0.05
+    max: 0.80
+    override_allowed: true
+    unit: "fraction of peers"
+  s2_z:
+    type: float
+    default: 1.0
+    min: 0.5
+    max: 4.0
+    override_allowed: true
+    unit: "z-score threshold"
+  s3_shift:
+    type: float
+    default: 0.15
+    min: 0.05
+    max: 0.50
+    override_allowed: true
+    unit: "probability mass shift"
+  signals_required:
+    type: int
+    default: 2
+    min: 1
+    max: 3
+    override_allowed: true
+    unit: "count of signals"
+  runup_window_days:
+    type: int
+    default: 20
+    min: 5
+    max: 120
+    override_allowed: true
+    unit: "trading days"
+  runup_percentile:
+    type: float
+    default: 90.0
+    min: 75.0
+    max: 99.0
+    override_allowed: true
+    unit: "percentile"
+  min_trades_for_stats:
+    type: int
+    default: 10
+    min: 5
+    max: 50
+    override_allowed: true
+    unit: "trade count"
+  disposition_min_sales:
+    type: int
+    default: 5
+    min: 3
+    max: 30
+    override_allowed: true
+    unit: "sale count"

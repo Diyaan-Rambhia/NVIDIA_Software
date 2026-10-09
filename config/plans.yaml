@@ -1,0 +1,62 @@
+plans:
+  retail_free:
+    segment: retail
+    purchasable: true
+    price_inr_per_month: 0
+    features:
+      feature1_contagion:
+        access: limited
+        quota_per_month: 10
+      feature2_filings:
+        access: limited
+        quota_per_month: 5
+      feature3_forensic:
+        access: locked
+        unlocks_with: retail_paid
+  retail_paid:
+    segment: retail
+    purchasable: true
+    price_inr_per_month: 499
+    features:
+      feature1_contagion:
+        access: full
+      feature2_filings:
+        access: full
+      feature3_forensic:
+        access: full
+  institutional_free:
+    segment: institutional
+    purchasable: true
+    price_inr_per_month: 0
+    features:
+      feature1_contagion:
+        access: limited
+        quota_per_month: 50
+      feature2_filings:
+        access: limited
+        quota_per_month: 25
+      feature3_forensic:
+        access: locked
+        unlocks_with: institutional_paid
+  institutional_paid:
+    segment: institutional
+    purchasable: true
+    price_inr_per_month: 4999
+    features:
+      feature1_contagion:
+        access: full
+      feature2_filings:
+        access: full
+      feature3_forensic:
+        access: full
+  judge_all:
+    segment: internal
+    purchasable: false
+    price_inr_per_month: null
+    features:
+      feature1_contagion:
+        access: full
+      feature2_filings:
+        access: full
+      feature3_forensic:
+        access: full

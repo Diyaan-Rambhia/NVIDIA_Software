@@ -1,0 +1,29 @@
+{
+  "additionalProperties": false,
+  "description": "Inner error payload per FR-OBS-003 and \u00a74.10.",
+  "properties": {
+    "code": {
+      "title": "Code",
+      "type": "string"
+    },
+    "message": {
+      "title": "Message",
+      "type": "string"
+    },
+    "request_id": {
+      "title": "Request Id",
+      "type": "string"
+    },
+    "upstream": {
+      "default": null,
+      "title": "Upstream"
+    }
+  },
+  "required": [
+    "code",
+    "message",
+    "request_id"
+  ],
+  "title": "ErrorDetail",
+  "type": "object"
+}

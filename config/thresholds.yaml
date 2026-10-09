@@ -1,0 +1,21 @@
+strong_growth_yoy_default: 0.08
+strong_growth_yoy_sectors:
+  fmcg: 0.06
+  it_services: 0.08
+  autos: 0.10
+  capital_goods: 0.12
+  metals: 0.10
+  energy: 0.08
+  telecom: 0.08
+  consumer_durables: 0.10
+  other: 0.08
+
+stated_number_tolerance_pp: 0.5
+direction_tolerance: 0.005
+margin_tolerance_bps: 20
+ocf_conversion_floor: 0.5
+inventory_vs_revenue_gap_pp: 15.0
+dso_increase_days: 10
+understatement_gap_pp: 10.0
+max_flags_per_document: 5
+precision_target: 0.80

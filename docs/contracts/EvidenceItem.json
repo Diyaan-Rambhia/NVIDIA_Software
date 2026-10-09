@@ -1,0 +1,44 @@
+{
+  "additionalProperties": false,
+  "description": "Single item in EvidencePack per PROJECT.md \u00a75.8.",
+  "properties": {
+    "description": {
+      "title": "Description",
+      "type": "string"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "pair_shift",
+        "ar",
+        "pc1_loading",
+        "macro_assoc"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "source": {
+      "title": "Source",
+      "type": "string"
+    },
+    "values": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "title": "Values",
+      "type": "object"
+    }
+  },
+  "required": [
+    "id",
+    "kind",
+    "description",
+    "values",
+    "source"
+  ],
+  "title": "EvidenceItem",
+  "type": "object"
+}

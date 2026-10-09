@@ -1,0 +1,30 @@
+{
+  "additionalProperties": false,
+  "description": "Baseline and current date windows per PROJECT.md \u00a75.8.",
+  "properties": {
+    "baseline": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 2,
+      "minItems": 2,
+      "title": "Baseline",
+      "type": "array"
+    },
+    "current": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 2,
+      "minItems": 2,
+      "title": "Current",
+      "type": "array"
+    }
+  },
+  "required": [
+    "baseline",
+    "current"
+  ],
+  "title": "WindowRange",
+  "type": "object"
+}

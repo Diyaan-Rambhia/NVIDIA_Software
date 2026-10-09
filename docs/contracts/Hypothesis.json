@@ -1,0 +1,46 @@
+{
+  "additionalProperties": false,
+  "description": "Hypothesis structure per PROJECT.md \u00a75.9, \u00a77.3, \u00a79, and FR-F1-011.",
+  "properties": {
+    "evidence_supporting": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Evidence Supporting",
+      "type": "array"
+    },
+    "evidence_weakening": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence Weakening",
+      "type": "array"
+    },
+    "mechanism_class": {
+      "title": "Mechanism Class",
+      "type": "string"
+    },
+    "plausible_mechanism": {
+      "title": "Plausible Mechanism",
+      "type": "string"
+    },
+    "retrieved_urls": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Retrieved Urls",
+      "type": "array"
+    }
+  },
+  "required": [
+    "mechanism_class",
+    "evidence_supporting",
+    "evidence_weakening",
+    "retrieved_urls",
+    "plausible_mechanism"
+  ],
+  "title": "Hypothesis",
+  "type": "object"
+}

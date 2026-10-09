@@ -1,0 +1,89 @@
+sectors:
+  fmcg:
+    - HINDUNILVR
+    - ITC
+    - NESTLEIND
+    - BRITANNIA
+    - DABUR
+    - MARICO
+    - GODREJCP
+    - COLPAL
+    - TATACONSUM
+    - VBL
+  it_services:
+    - TCS
+    - INFY
+    - HCLTECH
+    - WIPRO
+    - LTIM
+    - TECHM
+    - PERSISTENT
+    - COFORGE
+    - MPHASIS
+    - LTTS
+  autos:
+    - TATAMOTORS
+    - MARUTI
+    - M&M
+    - BAJAJ-AUTO
+    - EICHERMOT
+    - HEROMOTOCO
+    - TVSMOTOR
+    - ASHOKLEY
+    - BHARATFORG
+    - BALKRISIND
+  capital_goods:
+    - LT
+    - SIEMENS
+    - ABB
+    - BEL
+    - BHEL
+    - HAL
+    - CUMMINSIND
+    - THERMAX
+    - AIAENG
+    - SUZLON
+  metals:
+    - TATASTEEL
+    - JSWSTEEL
+    - HINDALCO
+    - JINDALSTEL
+    - VEDL
+    - COALINDIA
+    - NMDC
+    - SAIL
+    - NATIONALUM
+    - APLAPOLLO
+  energy:
+    - RELIANCE
+    - ONGC
+    - NTPC
+    - POWERGRID
+    - BPCL
+    - IOC
+    - GAIL
+    - ADANIGREEN
+    - TATAPOWER
+    - OIL
+  telecom:
+    - BHARTIARTL
+    - IDEA
+    - INDUSTOWER
+    - TATACOMM
+    - HFCL
+    - ROUTE
+    - TEJASNET
+    - RAILTEL
+    - TTML
+    - STLTECH
+  consumer_durables:
+    - TITAN
+    - HAVELLS
+    - VOLTAS
+    - DIXON
+    - CROMPTON
+    - WHIRLPOOL
+    - BLUESTARCO
+    - BATAINDIA
+    - RAJESHEXPO
+    - AMBER

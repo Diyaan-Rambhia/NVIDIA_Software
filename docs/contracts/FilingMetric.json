@@ -1,0 +1,81 @@
+{
+  "additionalProperties": false,
+  "description": "Normalized filing metric per PROJECT.md \u00a77.2 and \u00a77.3.",
+  "properties": {
+    "basis": {
+      "enum": [
+        "standalone",
+        "consolidated"
+      ],
+      "title": "Basis",
+      "type": "string"
+    },
+    "company": {
+      "title": "Company",
+      "type": "string"
+    },
+    "derived": {
+      "title": "Derived",
+      "type": "boolean"
+    },
+    "fiscal_period": {
+      "title": "Fiscal Period",
+      "type": "string"
+    },
+    "isin": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Isin"
+    },
+    "metric": {
+      "title": "Metric",
+      "type": "string"
+    },
+    "period_end_date": {
+      "title": "Period End Date",
+      "type": "string"
+    },
+    "retrieval_time": {
+      "title": "Retrieval Time",
+      "type": "string"
+    },
+    "source_filing_reference": {
+      "title": "Source Filing Reference",
+      "type": "string"
+    },
+    "symbol": {
+      "title": "Symbol",
+      "type": "string"
+    },
+    "unit": {
+      "title": "Unit",
+      "type": "string"
+    },
+    "value": {
+      "title": "Value",
+      "type": "number"
+    }
+  },
+  "required": [
+    "company",
+    "symbol",
+    "fiscal_period",
+    "period_end_date",
+    "basis",
+    "metric",
+    "value",
+    "unit",
+    "source_filing_reference",
+    "derived",
+    "retrieval_time"
+  ],
+  "title": "FilingMetric",
+  "type": "object"
+}
