@@ -153,3 +153,69 @@ parameters:
     max: 30
     override_allowed: true
     unit: "sale count"
+  chunk_size:
+    type: int
+    default: 1200
+    min: 200
+    max: 5000
+    override_allowed: true
+    unit: "characters"
+  chunk_overlap:
+    type: int
+    default: 150
+    min: 0
+    max: 500
+    override_allowed: true
+    unit: "characters"
+  return_frequency:
+    type: str
+    default: "daily"
+    override_allowed: false
+    unit: "cadence"
+  annualisation_factor:
+    type: int
+    default: 252
+    min: 1
+    max: 366
+    override_allowed: true
+    unit: "periods per year"
+  risk_free_series:
+    type: str
+    default: "91-day T-bill yield (source decided in X1)"
+    override_allowed: false
+    unit: "series identifier"
+  xirr_bracket_low:
+    type: float
+    default: -0.99
+    min: -0.999
+    max: 0.0
+    override_allowed: true
+    unit: "rate lower bound"
+  xirr_bracket_high:
+    type: float
+    default: 10.0
+    min: 1.0
+    max: 100.0
+    override_allowed: true
+    unit: "rate upper bound"
+  xirr_tol:
+    type: float
+    default: 0.000000001
+    min: 0.000000000001
+    max: 0.001
+    override_allowed: true
+    unit: "solver tolerance"
+  xirr_max_iter:
+    type: int
+    default: 200
+    min: 50
+    max: 1000
+    override_allowed: true
+    unit: "iterations"
+  xirr_grid_points:
+    type: int
+    default: 1000
+    min: 100
+    max: 10000
+    override_allowed: true
+    unit: "grid points"

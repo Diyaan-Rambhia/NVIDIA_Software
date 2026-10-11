@@ -14,6 +14,9 @@ dependencies = [
     "pydantic>=2",
     "pydantic-settings>=2",
     "pyyaml",
+    "numpy",
+    "scipy",
+    "scikit-learn",
 ]
 
 [project.optional-dependencies]

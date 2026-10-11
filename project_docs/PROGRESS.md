@@ -51,37 +51,37 @@ X7, X8, X9 → X10 (agent) → X11 (payments) → X12 (precompute, deploy, submi
 
 ## A1: Entitlement logic (pure rules)
 
-- [ ] **A1.1 `config/plans.yaml` and loader** with `retail_free`, `retail_paid`, `institutional_free`, `institutional_paid`, `judge_all`, segments, features, quotas, and provisional monthly price fields (D-09). *Accept:* schema-validated at startup.
-- [ ] **A1.2 Entitlement decision function** (FR-ENT-002..005): given a profile and a feature, return allowed / limited / upgrade_available (402) / segment_restricted (403) with payloads. *Accept (known-answer):* the full matrix of 5 plans × 3 features gives the expected results; F1 for retail is always 403; F1 for `institutional_free` is 402; F2 for any institutional plan is limited at retail-free quotas, never full.
-- [ ] **A1.3 Quota arithmetic and reset-time calculation** (FR-QUO-001/002). *Accept:* known-answer tests including the day boundary in UTC.
-- [ ] **A1.4 `judge_all` rules** (FR-ENT-008, FR-QUO-004): not purchasable; never produced by a payment path. *Accept:* a test proves no payment-derived plan equals `judge_all`.
+- [x] **A1.1 `config/plans.yaml` and loader** with `retail_free`, `retail_paid`, `institutional_free`, `institutional_paid`, `judge_all`, segments, features, quotas, and provisional monthly price fields (D-09). *Accept:* schema-validated at startup.
+- [x] **A1.2 Entitlement decision function** (FR-ENT-002..005): given a profile and a feature, return allowed / limited / upgrade_available (402) / segment_restricted (403) with payloads. *Accept (known-answer):* the full matrix of 5 plans × 3 features gives the expected results; F1 for retail is always 403; F1 for `institutional_free` is 402; F2 for any institutional plan is limited at retail-free quotas, never full.
+- [x] **A1.3 Quota arithmetic and reset-time calculation** (FR-QUO-001/002). *Accept:* known-answer tests including the day boundary in UTC.
+- [x] **A1.4 `judge_all` rules** (FR-ENT-008, FR-QUO-004): not purchasable; never produced by a payment path. *Accept:* a test proves no payment-derived plan equals `judge_all`.
 
 **Gate A1:** matrix test suite green.
 
 ## A2: Pure algorithm library (known-answer checks only)
 
-- [ ] **A2.1 Returns and Indian-calendar alignment utilities.**
-- [ ] **A2.2 Covariance and correlation estimators** (rolling, EWMA, Ledoit-Wolf via scikit-learn), with all windows taken from parameters. *Accept:* no lookahead by construction; parameter bounds enforced.
-- [ ] **A2.3 Forbes-Rigobon adjustment** (§5.3). *Accept:* hand-computed example; identity when δ ≤ 0.
-- [ ] **A2.4 Spearman wrapper.**
-- [ ] **A2.5 Absorption ratio and standardized shift** (§5.5). *Accept:* identity gives k/N; rank-one gives 1.
-- [ ] **A2.6 Moving-block bootstrap** with recorded seed. *Accept:* same seed reproduces the same output. (Statistical behavior verified on real data in X5.)
-- [ ] **A2.7 XIRR** with Brent solver and an explicit "no root" result. *Accept:* −100 then +110 a year later gives 10%.
-- [ ] **A2.8 Process-metric formulas:** HHI, turnover, disposition effect (PGR/PLR), max drawdown. *Accept:* hand-computed examples.
-- [ ] **A2.9 Institutional metric formulas:** beta, alpha, tracking error, information ratio (definitions pending advisor; implement from `config`). *Accept:* hand-computed examples.
-- [ ] **A2.10 Derived filing metrics:** YoY, QoQ, margins, DSO, OCF conversion, Q4 derivation from cumulative figures. *Accept:* arithmetic known-answers.
-- [ ] **A2.11 Fiscal-period utilities:** parse "Q1 FY27"-style labels to period-end dates and back. *Accept:* known-answer table.
-- [ ] **A2.12 Text utilities:** chunker with stable offsets; verbatim-quote check. *Accept:* offset round-trip on literal strings.
-- [ ] **A2.13 Rule engine** for R1-R7 reading `config/lexicon.yaml` and `config/thresholds.yaml`. *Accept:* rule evaluations on hand-written metric/claim pairs.
+- [x] **A2.1 Returns and Indian-calendar alignment utilities.**
+- [x] **A2.2 Covariance and correlation estimators** (rolling, EWMA, Ledoit-Wolf via scikit-learn), with all windows taken from parameters. *Accept:* no lookahead by construction; parameter bounds enforced.
+- [x] **A2.3 Forbes-Rigobon adjustment** (§5.3). *Accept:* hand-computed example; identity when δ ≤ 0.
+- [x] **A2.4 Spearman wrapper.**
+- [x] **A2.5 Absorption ratio and standardized shift** (§5.5). *Accept:* identity gives k/N; rank-one gives 1.
+- [x] **A2.6 Moving-block bootstrap** with recorded seed. *Accept:* same seed reproduces the same output. (Statistical behavior verified on real data in X5.)
+- [x] **A2.7 XIRR** with Brent solver and an explicit "no root" result. *Accept:* −100 then +110 a year later gives 10%.
+- [x] **A2.8 Process-metric formulas:** HHI, turnover, disposition effect (PGR/PLR), max drawdown. *Accept:* hand-computed examples.
+- [x] **A2.9 Institutional metric formulas:** beta, alpha, tracking error, information ratio (definitions pending advisor; implement from `config`). *Accept:* hand-computed examples.
+- [x] **A2.10 Derived filing metrics:** YoY, QoQ, margins, DSO, OCF conversion, Q4 derivation from cumulative figures. *Accept:* arithmetic known-answers.
+- [x] **A2.11 Fiscal-period utilities:** parse "Q1 FY27"-style labels to period-end dates and back. *Accept:* known-answer table.
+- [x] **A2.12 Text utilities:** chunker with stable offsets; verbatim-quote check. *Accept:* offset round-trip on literal strings.
+- [x] **A2.13 Rule engine** for R1-R7 reading `config/lexicon.yaml` and `config/thresholds.yaml`. *Accept:* rule evaluations on hand-written metric/claim pairs.
 
 **Gate A2:** library lint- and type-clean; no network access anywhere in the batch.
 
 ## A3: Infrastructure logic (no external services)
 
-- [ ] **A3.1 Response-cache key and on-disk cache,** bypassable with `NO_CACHE`.
-- [ ] **A3.2 Budget guard logic** (FR-LLM-009): pure function over a spend total and a cap. *Accept:* known-answer.
-- [ ] **A3.3 Cost-report calculations** (FR-CAC-004) from ledger-shaped rows. *Accept:* known-answer.
-- [ ] **A3.4 Dockerfile and startup check;** the image never contains secrets.
+- [x] **A3.1 Response-cache key and on-disk cache,** bypassable with `NO_CACHE`.
+- [x] **A3.2 Budget guard logic** (FR-LLM-009): pure function over a spend total and a cap. *Accept:* known-answer.
+- [x] **A3.3 Cost-report calculations** (FR-CAC-004) from ledger-shaped rows. *Accept:* known-answer.
+- [x] **A3.4 Dockerfile and startup check;** the image never contains secrets.
 
 **Gate A3 (end of Phase A):** `make test` green; nothing in the repo contacts an external service.
 
@@ -255,3 +255,5 @@ X1 (accounts, keys, feasibility decisions, real logs, advisor engagement), X5.3 
 | 4 | A0.3 | n/a | Environment variable template .env.example verified against Appendix A. |
 | 5 | A0.2 | n/a | Environment registry, settings loader, validation by enabled groups, and secret redaction filter implemented and tested with real temp files. |
 | 6 | A0.2 | n/a | Audit fixes: traceback and argument redaction, strict runtime.yaml validation without fallback, and core defaults not required when group enabled. |
+| 7 | A1 | n/a | Pure entitlement and quota decision logic implemented, plans.yaml aligned to PROJECT.md §4.3 with daily quotas and configurable UTC reset rule, known-answer test matrix green. |
+| 8 | A2.1, A2.11 | n/a | Pure daily return calculation, multi-series Indian trading calendar alignment with gap rejection, and canonical fiscal-period parsing and boundary mapping implemented. |

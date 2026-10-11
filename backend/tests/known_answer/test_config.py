@@ -27,6 +27,22 @@ def test_load_all_config_success() -> None:
     """Verify that all six real config files load through load_all_config()."""
     config = load_all_config(Path("config"))
     assert "W" in config.parameters.parameters
+    assert "chunk_size" in config.parameters.parameters
+    assert config.parameters.parameters["chunk_size"].default == 1200
+    assert "chunk_overlap" in config.parameters.parameters
+    assert config.parameters.parameters["chunk_overlap"].default == 150
+    assert "annualisation_factor" in config.parameters.parameters
+    assert config.parameters.parameters["annualisation_factor"].default == 252
+    assert "return_frequency" in config.parameters.parameters
+    assert config.parameters.parameters["return_frequency"].default == "daily"
+    assert "risk_free_series" in config.parameters.parameters
+    assert "xirr_bracket_low" in config.parameters.parameters
+    assert config.parameters.parameters["xirr_bracket_low"].default == -0.99
+    assert "xirr_bracket_high" in config.parameters.parameters
+    assert config.parameters.parameters["xirr_bracket_high"].default == 10.0
+    assert "xirr_tol" in config.parameters.parameters
+    assert "xirr_max_iter" in config.parameters.parameters
+    assert "xirr_grid_points" in config.parameters.parameters
     assert config.thresholds.strong_growth_yoy_default == 0.08
     assert "retail_free" in config.plans.plans
     assert "judge_all" in config.plans.plans
@@ -74,8 +90,8 @@ def test_reject_locked_without_unlocks_with(tmp_path: Path) -> None:
                 "purchasable": True,
                 "price_inr_per_month": 0,
                 "features": {
-                    "feature1_contagion": {"access": "limited", "quota_per_month": 10},
-                    "feature2_filings": {"access": "limited", "quota_per_month": 5},
+                    "feature1_contagion": {"access": "limited", "quota_per_day": 10},
+                    "feature2_filings": {"access": "limited", "quota_per_day": 5},
                     "feature3_forensic": {"access": "locked"},  # missing unlocks_with
                 },
             },
@@ -110,8 +126,8 @@ def test_reject_locked_naming_plan_in_other_segment(tmp_path: Path) -> None:
                 "purchasable": True,
                 "price_inr_per_month": 0,
                 "features": {
-                    "feature1_contagion": {"access": "limited", "quota_per_month": 10},
-                    "feature2_filings": {"access": "limited", "quota_per_month": 5},
+                    "feature1_contagion": {"access": "limited", "quota_per_day": 10},
+                    "feature2_filings": {"access": "limited", "quota_per_day": 5},
                     "feature3_forensic": {
                         "access": "locked",
                         "unlocks_with": "institutional_paid",  # Cross-segment
@@ -160,8 +176,8 @@ def test_reject_none_access_with_unlocks_with(tmp_path: Path) -> None:
                 "purchasable": True,
                 "price_inr_per_month": 0,
                 "features": {
-                    "feature1_contagion": {"access": "limited", "quota_per_month": 10},
-                    "feature2_filings": {"access": "limited", "quota_per_month": 5},
+                    "feature1_contagion": {"access": "limited", "quota_per_day": 10},
+                    "feature2_filings": {"access": "limited", "quota_per_day": 5},
                     "feature3_forensic": {"access": "none", "unlocks_with": "retail_paid"},
                 },
             },
@@ -330,7 +346,7 @@ def test_reject_non_positive_quota(tmp_path: Path) -> None:
                 "purchasable": False,
                 "price_inr_per_month": None,
                 "features": {
-                    "feature1_contagion": {"access": "limited", "quota_per_month": 0},
+                    "feature1_contagion": {"access": "limited", "quota_per_day": 0},
                     "feature2_filings": {"access": "full"},
                     "feature3_forensic": {"access": "full"},
                 },
@@ -343,7 +359,7 @@ def test_reject_non_positive_quota(tmp_path: Path) -> None:
         load_config_file(temp_file, PlansConfig)
     err = str(exc_info.value)
     assert "plans.yaml" in err
-    assert "quota_per_month" in err
+    assert "quota_per_day" in err
 
 
 def test_reject_pharma_and_health_identifiers(tmp_path: Path) -> None:

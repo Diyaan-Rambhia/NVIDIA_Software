@@ -96,7 +96,7 @@ class FeatureRule(StrictBaseModel):
     """Feature access configuration in a plan."""
 
     access: PlanAccess
-    quota_per_month: int | None = None
+    quota_per_day: int | Literal["pending"] | None = None
     unlocks_with: str | None = None
 
     @model_validator(mode="after")
@@ -109,11 +109,13 @@ class FeatureRule(StrictBaseModel):
                 raise ValueError(f"Feature access '{self.access}' forbids 'unlocks_with'")
 
         if self.access == "limited":
-            if self.quota_per_month is None or self.quota_per_month <= 0:
-                raise ValueError("Feature access 'limited' requires positive 'quota_per_month'")
+            if self.quota_per_day is None:
+                raise ValueError("Feature access 'limited' requires 'quota_per_day'")
+            if isinstance(self.quota_per_day, int) and self.quota_per_day <= 0:
+                raise ValueError("Feature access 'limited' requires positive 'quota_per_day'")
         else:
-            if self.quota_per_month is not None:
-                raise ValueError(f"Feature access '{self.access}' forbids 'quota_per_month'")
+            if self.quota_per_day is not None:
+                raise ValueError(f"Feature access '{self.access}' forbids 'quota_per_day'")
 
         return self
 
@@ -148,6 +150,7 @@ class PlanEntry(StrictBaseModel):
 class PlansConfig(StrictBaseModel):
     """Root model for config/plans.yaml."""
 
+    reset_rule: str = "utc_calendar_day"
     plans: dict[str, PlanEntry]
 
     @model_validator(mode="after")
@@ -164,7 +167,7 @@ class PlansConfig(StrictBaseModel):
         if judge and judge.purchasable:
             raise ValueError("judge_all is an internal plan and must not be purchasable")
 
-        # 3. Validate unlocks_with references existing plan in the same segment
+        # 3. Validate unlocks_with references existing purchasable plan in the same segment
         for plan_name, plan in self.plans.items():
             for feat_name, feat in plan.features.items():
                 if feat.access == "locked" and feat.unlocks_with:
@@ -180,6 +183,21 @@ class PlansConfig(StrictBaseModel):
                             f"Plan '{plan_name}' ({plan.segment}) feature '{feat_name}' "
                             f"unlocks_with plan '{target}' from different segment "
                             f"'{target_plan.segment}'"
+                        )
+                    if not target_plan.purchasable:
+                        raise ValueError(
+                            f"Plan '{plan_name}' feature '{feat_name}' unlocks_with "
+                            f"non-purchasable plan '{target}'"
+                        )
+
+        # 4. Quota pending marker is only permitted for institutional_paid feature3_forensic
+        for plan_name, plan in self.plans.items():
+            for feat_name, feat in plan.features.items():
+                if feat.quota_per_day == "pending":
+                    if plan_name != "institutional_paid" or feat_name != "feature3_forensic":
+                        raise ValueError(
+                            "Quota pending marker is only permitted for institutional_paid "
+                            f"feature3_forensic, found on '{plan_name}.{feat_name}'"
                         )
 
         return self

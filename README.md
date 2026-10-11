@@ -81,3 +81,14 @@ Check environment variable configuration:
 ```bash
 make check-env
 ```
+
+## Provisional parameters, not reviewed by a finance professional
+
+Educational only. The following values are provisional working parameters pending formal financial advisor review (DECISIONS.md D-26):
+1. **Absorption ratio component count:** `k_fraction` 0.20 in `config/parameters.yaml` (`k` derived as `max(1, ceil(N * 0.20))`).
+2. **Institutional performance metrics:** Daily return frequency, annualisation factor 252, and risk-free series "91-day T-bill yield (source decided in X1)".
+3. **XIRR solver configuration:** Bracket `[-0.99, 10.0]`, tolerance `1e-9`, max iterations 200, grid points 1000.
+4. **Quotas:** `institutional_paid` Feature 3 daily quota set to 5 (5x the `institutional_free` daily quota).
+5. **Sector growth thresholds:** Conservative YoY strong-growth baseline floors in `config/thresholds.yaml` (FMCG 6%, IT services 8%, Autos 10%, Capital goods 12%, Metals 10%, Energy 8%, Telecom 8%, Consumer durables 10%, Other 8%), with provisional threshold labelling applied to candidate flags.
+
+Note: Per-model LLM token prices remain pending and are not assigned provisional values.
