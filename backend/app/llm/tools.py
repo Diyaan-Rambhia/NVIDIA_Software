@@ -48,7 +48,7 @@ def execute_tool_loop(
 
         choice = resp.get("choices", [{}])[0]
         msg = choice.get("message", {})
-        tool_calls = msg.get("tool_calls", [])
+        tool_calls = msg.get("tool_calls") or []
 
         history.append(msg)
 

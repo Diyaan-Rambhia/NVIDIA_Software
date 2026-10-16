@@ -30,6 +30,13 @@ export default function AgentPage() {
   const [nemotronError, setNemotronError] = useState<string | null>(null);
   const [nemotronStatus, setNemotronStatus] = useState<number | null>(null);
 
+  // Tavily Search states
+  const [tavilyQuery, setTavilyQuery] = useState("");
+  const [tavilySearching, setTavilySearching] = useState(false);
+  const [tavilyResults, setTavilyResults] = useState<Array<{ title: string; url: string; content: string }> | null>(null);
+  const [tavilyError, setTavilyError] = useState<string | null>(null);
+  const [tavilyStatus, setTavilyStatus] = useState<number | null>(null);
+
   const handleAgentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
@@ -98,6 +105,38 @@ export default function AgentPage() {
       }
     } finally {
       setNemotronCalling(false);
+    }
+  };
+
+  const handleTavilySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!tavilyQuery.trim()) return;
+
+    setTavilySearching(true);
+    setTavilyError(null);
+    setTavilyStatus(null);
+    setTavilyResults(null);
+
+    try {
+      const res = await apiFetch<{
+        status: string;
+        query: string;
+        results: Array<{ title: string; url: string; content: string }>;
+      }>("/llm/tavily_search", {
+        method: "POST",
+        body: JSON.stringify({ query: tavilyQuery.trim() }),
+      });
+      setTavilyResults(res.results);
+    } catch (err: unknown) {
+      if (err instanceof ApiError) {
+        setTavilyStatus(err.status);
+        setTavilyError(err.parsed.message);
+      } else {
+        setTavilyStatus(503);
+        setTavilyError("Tavily search failed: service unreachable.");
+      }
+    } finally {
+      setTavilySearching(false);
     }
   };
 
@@ -315,6 +354,86 @@ export default function AgentPage() {
                 disabled={nemotronCalling}
               >
                 {nemotronCalling ? "Calling Runtime..." : "Send Runtime Call"}
+              </button>
+            </form>
+          </section>
+
+          {/* Live Tavily Macro Search Probe */}
+          <section className={styles.nemotronCard}>
+            <div className={styles.nemotronHeader}>
+              <span className={styles.nemotronBadge} data-mono>EXTERNAL SEARCH ENGINE</span>
+              <h3>Tavily Macro Search</h3>
+            </div>
+            <p className={styles.nemotronLead}>
+              Live news search powering macro factor attribution and systemic contagion hypotheses.
+            </p>
+
+            {tavilyError && (
+              <StatusBanner
+                status={tavilyStatus}
+                message={tavilyError}
+                type="warn"
+              />
+            )}
+
+            {tavilyResults && (
+              <div className={styles.nemotronSuccess}>
+                <div className={styles.modelMeta} data-mono>
+                  RETRIEVED {tavilyResults.length} MACRO ARTICLES
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "8px" }}>
+                  {tavilyResults.map((r, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        padding: "8px",
+                        background: "rgba(255, 255, 255, 0.03)",
+                        border: "1px solid rgba(255, 255, 255, 0.08)",
+                        borderRadius: "4px",
+                      }}
+                    >
+                      <a
+                        href={r.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          color: "var(--color-accent)",
+                          fontWeight: 600,
+                          fontSize: "12px",
+                          textDecoration: "underline",
+                        }}
+                      >
+                        {r.title}
+                      </a>
+                      <p style={{ fontSize: "11px", color: "var(--color-muted)", marginTop: "4px", lineHeight: 1.4 }}>
+                        {r.content}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={handleTavilySubmit} className={styles.form}>
+              <div className={styles.field}>
+                <label htmlFor="tavily-query">Search Query</label>
+                <input
+                  id="tavily-query"
+                  type="text"
+                  value={tavilyQuery}
+                  onChange={(e) => setTavilyQuery(e.target.value)}
+                  placeholder="e.g. Reserve Bank of India repo rate decision"
+                  required
+                  disabled={tavilySearching}
+                />
+              </div>
+
+              <button
+                type="submit"
+                className={styles.nemotronBtn}
+                disabled={tavilySearching}
+              >
+                {tavilySearching ? "Searching Tavily..." : "Search Macro News"}
               </button>
             </form>
           </section>

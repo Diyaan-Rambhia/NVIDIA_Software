@@ -8,8 +8,8 @@ aliases:
       - "nemotron-3-nano"
       - "nemotron-nano"
       - "nano"
-    price_per_1m_input_usd: null
-    price_per_1m_output_usd: null
+    price_per_1m_input_usd: 0.06
+    price_per_1m_output_usd: 0.24
 
   mid:
     family: super
@@ -17,8 +17,8 @@ aliases:
       - "nemotron-3-super"
       - "nemotron-super"
       - "super"
-    price_per_1m_input_usd: null
-    price_per_1m_output_usd: null
+    price_per_1m_input_usd: 0.30
+    price_per_1m_output_usd: 0.90
 
   deep:
     family: ultra
@@ -26,5 +26,5 @@ aliases:
       - "nemotron-3-ultra"
       - "nemotron-ultra"
       - "ultra"
-    price_per_1m_input_usd: null
-    price_per_1m_output_usd: null
+    price_per_1m_input_usd: 1.00
+    price_per_1m_output_usd: 3.00

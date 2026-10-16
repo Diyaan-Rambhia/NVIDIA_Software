@@ -82,7 +82,7 @@ class LLMClient:
             return cached
 
         # 2. Check budget guard with conservative estimate
-        estimated_in = sum(len(m.get("content", "")) for m in messages) // 4 + 100
+        estimated_in = sum(len(m.get("content") or "") for m in messages) // 4 + 100
         estimated_out = max_tokens or 1000
         projected_cost = calculate_cost_usd(estimated_in, estimated_out, pricing[0], pricing[1])
 
@@ -110,7 +110,7 @@ class LLMClient:
         if response_format is not None:
             payload_dict["response_format"] = response_format
 
-        read_timeout = 120 if alias == "deep" else 30
+        read_timeout = 120 if alias == "deep" else 60
         req_data = json.dumps(payload_dict).encode("utf-8")
 
         # Retry loop: up to 2 retries on 429 and 5xx only with exponential backoff
@@ -161,7 +161,7 @@ class LLMClient:
         # 4. Extract content and assert advice guard
         choice = resp_data.get("choices", [{}])[0]
         msg = choice.get("message", {})
-        content = msg.get("content") or ""
+        content = msg.get("content") or msg.get("reasoning_content") or ""
         assert_no_financial_advice(content)
 
         # 5. Extract actual tokens and record in ledger

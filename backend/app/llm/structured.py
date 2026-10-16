@@ -44,7 +44,8 @@ def complete_structured(
         )
 
         choice = resp.get("choices", [{}])[0]
-        content_raw = choice.get("message", {}).get("content", "").strip()
+        msg = choice.get("message", {})
+        content_raw = (msg.get("content") or msg.get("reasoning_content") or "").strip()
 
         try:
             return schema_model.model_validate_json(content_raw)

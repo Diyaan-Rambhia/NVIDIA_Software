@@ -60,12 +60,13 @@ def run_spike() -> None:
             resp = client.complete(
                 alias=alias,
                 messages=[{"role": "user", "content": "Respond with the word PONG."}],
-                max_tokens=20,
+                max_tokens=100,
             )
             msg = resp.get("choices", [{}])[0].get("message", {})
-            if "pong" in msg.get("content", "").lower():
+            content_str = (msg.get("content") or msg.get("reasoning_content") or "").lower()
+            if "pong" in content_str:
                 hello_ok = True
-            if "reasoning_content" in msg or "<think>" in msg.get("content", ""):
+            if "reasoning_content" in msg or "<think>" in (msg.get("content") or ""):
                 reasoning_detected = "detected"
         except Exception as exc:
             logger.warning("Hello probe failed for %s: %s", alias, exc)

@@ -76,11 +76,8 @@ async def call_nemotron_runtime(
         )
 
     try:
-        registry = ModelRegistry.from_token_factory(
-            base_url=base_url,
-            api_key=api_key,
-            cache_ttl_seconds=3600,
-        )
+        registry = ModelRegistry(settings=settings)
+        registry.initialize()
     except Exception as exc:
         raise HTTPException(
             status_code=502,
@@ -98,7 +95,13 @@ async def call_nemotron_runtime(
             messages=[{"role": "user", "content": req.prompt}],
             user_id=None,
         )
-        content = resp["choices"][0]["message"]["content"]
+        msg = resp.get("choices", [{}])[0].get("message", {})
+        content = (
+            msg.get("content")
+            or msg.get("reasoning_content")
+            or msg.get("text")
+            or "[Completed without text content]"
+        )
         model_id = registry.get_model_id(req.alias)
         return NemotronCallResponse(
             status="success",
@@ -117,3 +120,97 @@ async def call_nemotron_runtime(
             status_code=500,
             detail={"code": "llm_call_failed", "message": str(exc)},
         ) from exc
+
+
+class TavilySearchRequest(BaseModel):
+    """Payload for executing a live search request to Tavily."""
+
+    query: str = Field(..., min_length=1, max_length=500, description="Macro search query")
+
+
+class TavilySearchResult(BaseModel):
+    """Single Tavily search result."""
+
+    title: str
+    url: str
+    content: str
+
+
+class TavilySearchResponse(BaseModel):
+    """Container for Tavily search results."""
+
+    status: str
+    query: str
+    results: list[TavilySearchResult]
+
+
+@router.post("/tavily_search", response_model=TavilySearchResponse)
+async def search_tavily(
+    req: TavilySearchRequest,
+    request: Request,
+    user: Annotated[UserClaims, Depends(_require_entitlement)],
+) -> TavilySearchResponse:
+    """Execute live macro news search via Tavily API with budget & entitlement checks."""
+    import json
+    import urllib.request
+    from urllib.error import HTTPError
+
+    settings = getattr(request.app.state, "settings", None) or load_settings()
+    api_key = settings.get_var_value("TAVILY_API_KEY")
+    if not api_key:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "tavily_key_missing",
+                "message": "TAVILY_API_KEY is not configured in environment.",
+            },
+        )
+
+    url = "https://api.tavily.com/search"
+    payload = {
+        "api_key": api_key,
+        "query": req.query,
+        "search_depth": "basic",
+        "max_results": 4,
+    }
+    req_obj = urllib.request.Request(
+        url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json", "Accept": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req_obj, timeout=15) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            raw_results = data.get("results", [])
+            results = [
+                TavilySearchResult(
+                    title=r.get("title", ""),
+                    url=r.get("url", ""),
+                    content=r.get("content", ""),
+                )
+                for r in raw_results
+            ]
+            return TavilySearchResponse(
+                status="success",
+                query=req.query,
+                results=results,
+            )
+    except HTTPError as exc:
+        err_body = exc.read().decode("utf-8", errors="replace")
+        raise HTTPException(
+            status_code=502,
+            detail={
+                "code": "tavily_upstream_error",
+                "message": f"Tavily returned HTTP {exc.code}: {err_body}",
+            },
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail={
+                "code": "tavily_call_failed",
+                "message": f"Tavily connection failed: {exc}",
+            },
+        ) from exc
+
