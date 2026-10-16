@@ -257,12 +257,16 @@ def q4_derivation(
     q4_val = float(full_year_value - nine_month_value)
 
     # Revenue-type figures cannot be negative
-    if metric_type.strip().lower() in (
-        "revenue",
-        "revenue_from_operations",
-        "income",
-        "sales",
-    ) and q4_val < 0.0:
+    if (
+        metric_type.strip().lower()
+        in (
+            "revenue",
+            "revenue_from_operations",
+            "income",
+            "sales",
+        )
+        and q4_val < 0.0
+    ):
         raise ParameterError(
             field="q4_value",
             value=q4_val,

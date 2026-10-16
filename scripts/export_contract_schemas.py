@@ -6,18 +6,26 @@ from pathlib import Path
 from pydantic import BaseModel
 
 from backend.app.contracts import (
+    AgentStep,
     Claim,
+    ColumnMapping,
+    CorrelationScan,
+    DecisionReview,
     ErrorDetail,
     ErrorEnvelope,
     EvidenceItem,
     EvidencePack,
     FilingMetric,
     Hypothesis,
+    Inconsistency,
+    Portfolio,
     Trade,
+    TradeLog,
     WindowRange,
 )
 
 CONTRACT_MODELS: dict[str, type[BaseModel]] = {
+    "AgentStep": AgentStep,
     "ErrorDetail": ErrorDetail,
     "ErrorEnvelope": ErrorEnvelope,
     "WindowRange": WindowRange,
@@ -26,7 +34,13 @@ CONTRACT_MODELS: dict[str, type[BaseModel]] = {
     "Hypothesis": Hypothesis,
     "Claim": Claim,
     "FilingMetric": FilingMetric,
+    "Inconsistency": Inconsistency,
     "Trade": Trade,
+    "CorrelationScan": CorrelationScan,
+    "ColumnMapping": ColumnMapping,
+    "TradeLog": TradeLog,
+    "Portfolio": Portfolio,
+    "DecisionReview": DecisionReview,
 }
 
 

@@ -1,0 +1,30 @@
+# Model aliases and token pricing per million tokens
+# Status: pending user pricing confirmation
+
+aliases:
+  fast:
+    family: nano
+    preferred_substrings:
+      - "nemotron-3-nano"
+      - "nemotron-nano"
+      - "nano"
+    price_per_1m_input_usd: null
+    price_per_1m_output_usd: null
+
+  mid:
+    family: super
+    preferred_substrings:
+      - "nemotron-3-super"
+      - "nemotron-super"
+      - "super"
+    price_per_1m_input_usd: null
+    price_per_1m_output_usd: null
+
+  deep:
+    family: ultra
+    preferred_substrings:
+      - "nemotron-3-ultra"
+      - "nemotron-ultra"
+      - "ultra"
+    price_per_1m_input_usd: null
+    price_per_1m_output_usd: null

@@ -76,9 +76,7 @@ def decide(
     feat_rule = plan_entry.features[feature]
 
     if feat_rule.quota_per_day == "pending":
-        raise ValueError(
-            f"Plan '{plan}' feature '{feature}': quota pending advisor confirmation"
-        )
+        raise ValueError(f"Plan '{plan}' feature '{feature}': quota pending advisor confirmation")
 
     if feat_rule.access == "full":
         return EntitlementDecision(
@@ -123,10 +121,7 @@ def decide(
             raise ValueError(
                 f"Plan '{plan}' feature '{feature}' configured as locked but lacks unlocks_with"
             )
-        reason = (
-            f"Feature '{feature}' is locked on plan '{plan}'. "
-            f"Upgrade to '{target}' to unlock."
-        )
+        reason = f"Feature '{feature}' is locked on plan '{plan}'. Upgrade to '{target}' to unlock."
         return EntitlementDecision(
             allowed=False,
             decision="denied",

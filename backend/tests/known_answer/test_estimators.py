@@ -237,13 +237,15 @@ def test_spearman_monotonic_relationship() -> None:
 
 def test_spearman_matrix_evaluation() -> None:
     """Spearman correlation on 2D matrix returns pairwise correlation matrix."""
-    x = np.array([
-        [1.0, 10.0],
-        [2.0, 9.0],
-        [3.0, 8.0],
-        [4.0, 7.0],
-        [5.0, 6.0],
-    ])
+    x = np.array(
+        [
+            [1.0, 10.0],
+            [2.0, 9.0],
+            [3.0, 8.0],
+            [4.0, 7.0],
+            [5.0, 6.0],
+        ]
+    )
     corr = spearman_correlation(x)
     assert isinstance(corr, np.ndarray)
     assert corr.shape == (2, 2)

@@ -191,7 +191,265 @@
     - `other` (0.08): Standard broad-market baseline of 8% nominal growth for unclassified non-financial companies.
   - 6. Token prices: Left pending in configuration; no token prices invented.
 
+### D-27: Feasibility evaluation of external data sources (X1 feasibility)
+- **Status:** Accepted
+- **Context:** PROJECT.md §6.5 data register and PROGRESS.md X1.4-X1.6 require live connectivity checks and feasibility assessments of candidate Indian and macro data sources using throwaway scripts under `scripts/feasibility/`.
+- **Decision & Source Verdicts:**
+  1. **NSE/BSE direct downloads:** Unusable. Direct requests to NSE endpoints are rejected with 403/503 by Akamai WAF without browser session cookies, and BSE APIs return 403; terms not read, blocked only by 403.
+  2. **NSE Indices downloads (niftyindices.com):** Unusable. The website returns HTTP 200 for presentation pages but programmatic data download endpoints redirect to HTML forms requiring ASP.NET session state and interactive viewstate tokens; terms not read, blocked only by 403.
+  3. **yfinance NSE/BSE tickers:** Usable (development/research only, high risk for production). Real queries to Yahoo Finance chart endpoints return full daily OHLCV and split/dividend adjusted prices for NSE/BSE equities (`.NS`, `.BO`), Nifty 50 (`^NSEI`), Sensex (`^BSESN`), and India VIX (`^CRSLDX`). However, this relies on an unofficial endpoint that Yahoo terms of service prohibit for commercial/automated usage and is subject to unannounced rate limits and schema breakage.
+  4. **RBI / FBIL:** Unusable. Both the Reserve Bank of India DBIE portal and FBIL benchmark portals run client-side JavaScript Single Page Applications protected by Google reCAPTCHA. Neither service provides an open public REST API for programmatic ingestion.
+  5. **FRED:** Usable (needs key). FRED provides an official REST API with permissive developer terms. Series `INTGSBINM193N` contains Indian Government Bonds yield (not a 3-month or 91-day rate), alongside US Treasury yields and global macro series. Requires `FRED_API_KEY` in environment configuration (marked "needs key" when absent).
+  6. **NSDL / NSE institutional flow data:** Unusable. NSE provides only a single-day snapshot via `/api/fiidiiTradeReact` without historical time series endpoints; terms not read, blocked only by 403. NSDL publishes flow reports as periodic web/Excel files with no public REST API.
+  7. **NSE/BSE results XBRL:** Usable (via NSE corporate filings archive). Real Ind AS XBRL filings are retrievable from NSE XML archives (`nsearchives.nseindia.com`). Successfully verified on non-financial company V.S.T. Tillers Tractors Limited (`VSTTILLERS`) for a quarterly reporting period, extracting Revenue from Operations, Profit Before Tax, Profit After Tax, and EPS. BSE API endpoint returns 403.
+  8. **Company transcripts & announcements:** Unusable as a structured API (partially usable via unstructured PDF extraction). Corporate announcements are reachable on NSE, including conference call outcomes mandated under SEBI LODR Regulation 30, but documents are hosted exclusively as unstructured PDF attachments without native text/JSON transcript feeds.
 
+### D-28: Price data scope - yfinance only (unofficial, demo only)
+- **Status:** Accepted
+- **Context:** Connectivity tests confirmed direct exchange and index-provider endpoints fail or block programmatic access without sessions.
+- **Decision:** Restrict price and benchmark data ingestion exclusively to yfinance for development and demo mode. Marked as unofficial and high-risk for commercial production.
 
+### D-29: Institutional flow data scope - omission from macro factor attribution
+- **Status:** Accepted
+- **Context:** NSDL publishes reports as periodic manual files without an open REST API, and NSE institutional flow endpoints provide only single-day snapshots without historical series.
+- **Decision:** Exclude institutional flow data (FII/DII / FPI) from Feature 1 macro factor attribution.
 
+### D-30: Feature 2 quarterly XBRL scope - limited to revenue and profit checks
+- **Status:** Accepted
+- **Context:** Verification across five non-financial companies across distinct sectors confirmed quarterly Ind AS XBRL filings submitted under Regulation 33 contain only Profit & Loss figures (revenue, profit before tax, profit after tax, EPS); balance sheet receivables and operating cash flow statements are absent in quarterly filings.
+- **Decision:** Scope Feature 2 quarterly automated filing consistency verification exclusively to revenue and profit metrics. Other filing consistency rules (such as cash quality and working capital) evaluate to not-applicable on quarterly filings.
 
+### D-31: Feature 2 commentary text source - claims sourced from announcement PDFs
+- **Status:** Accepted
+- **Context:** No structured API exists for corporate earnings call transcripts or investor presentations; documents are published exclusively as unstructured PDF attachments under NSE corporate announcements.
+- **Decision:** Ingest management commentary claims by extracting text from downloaded corporate announcement PDF attachments rather than expecting structured transcript feeds.
+
+### D-32: Risk-free rate configuration - required config entry with null value
+- **Status:** Accepted
+- **Context:** Real-time Indian risk-free rate series (FBIL / RBI) lack public REST APIs, and FRED INTGSBINM193N reflects historical government bonds rather than active 3-month Treasury bills.
+- **Decision:** Define `risk_free` as a required configuration entry in `config/parameters.yaml` with provisional status, null value, and required `source` and `as_of` fields. Any code attempting to consume the risk-free rate while its value is null must raise `ParameterError`.
+
+### D-33: Broker API price source evaluation (Zerodha, Upstox, Angel One, Fyers)
+- **Status:** Accepted
+- **Context:** Docs-only evaluation of official Indian retail broker APIs as alternative candidates for NSE equity and index daily price data per PROJECT.md §6.5.
+- **Decision & Source Verdicts:**
+  1. **Zerodha Kite Connect:** Not a candidate. Paid subscription (costs ₹500/month, violating zero-budget policy), requires a personal KYC trading account, and terms prohibit public display or redistribution of market data ("live market data obtained via Kite Connect cannot be displayed to the public at large", https://kite.trade/terms).
+  2. **Upstox API:** Candidate for manual research extraction only; not a candidate for autonomous production service. Free (₹0 subscription), provides historical daily candle data spanning multiple decades for NSE equities and indices, but requires personal KYC broker account credentials with daily OAuth token refreshes.
+  3. **Angel One SmartAPI:** Candidate for manual research extraction only; not a candidate for autonomous production service. Free (₹0 subscription), provides multi-year historical daily candle data for NSE equities and indices, but requires personal KYC broker account credentials and mandatory static IP binding for requests.
+  4. **Fyers API:** Candidate for manual research extraction only; not a candidate for autonomous production service. Free (₹0 subscription), provides multi-year historical daily candle data for NSE equities and indices, but requires personal KYC broker account credentials with daily authentication.
+
+### D-34: Separation of SUPABASE_PASSWORD from DATABASE_URL in environment registry
+- **Status:** Accepted
+- **Context:** Supabase database administration, CLI migrations, direct postgres connections, and pooler mode switches (such as Session pooler on port 5432 versus Transaction pooler on port 6543) require the raw database password as a distinct credential. Relying exclusively on `DATABASE_URL` introduces fragility when dynamically constructing connection strings, as parsing and URL-decoding passwords containing special characters from a composite URI string is prone to failure.
+- **Decision:** Add `SUPABASE_PASSWORD` as a standalone required secret variable in the `supabase` group of the environment registry without a default value, maintained alongside `DATABASE_URL`.
+
+### D-35: Risk-free rate configuration entry and RBI 91-day T-bill benchmark
+- **Status:** Accepted
+- **Context:** The risk-free rate required by Feature 3 institutional metrics was previously pending a confirmed Indian money market source. An unconfirmed figure of 5.49% without a verified primary source was rejected per the real-data policy.
+- **Decision:** Set the `risk_free` configuration entry in `config/parameters.yaml` to `value: 5.7281`, `unit: "percent per annum"`, `status: "provisional, no advisor review"`, `source: "RBI 91-day T-bill auction cut-off yield (Treasury Bills: Full Auction Result, press release 2026-2027/1326)"`, and `as_of: "14 October 2026 auction"`. Note that 5.2624 from the August auction is replaced, and that the weighted average yield 5.6964 was not used in favor of the cut-off yield. The configured yield must be replaced with the latest auction cut-off from the RBI press release as new auction results are published. The `as_of` field is an explicit provenance exception to the no-dates rule to record auction vintage. The `unit` field is mandatory; application code must convert the percent figure to decimal (5.7281 -> 0.057281) explicitly and raise `ParameterError` if the unit is missing or unknown. Consuming code continues to raise `ParameterError` if the value is null. Every analytical result that uses the risk-free rate must include value, unit, source, and as_of in its recorded parameters.
+
+### D-36: PostgreSQL database driver dependency selection (psycopg)
+- **Status:** Accepted
+- **Context:** Database connectivity to Supabase PostgreSQL for migrations, connection health checks, and data operations requires a native PostgreSQL driver in Python per PROJECT.md §7.1 and PROGRESS.md X2.1.
+- **Decision:** Add `psycopg[binary]>=3.2.0` as a production dependency in `pyproject.toml`. Psycopg 3 provides modern Python type hint support, binary protocol performance, connection pooling, client-side binding parameters, and SSL configuration required for remote Supabase connections.
+
+### D-37: Plans database table duplication of plans.yaml
+- **Status:** Accepted
+- **Context:** In migration 001_initial_schema.sql, the `plans` reference table seed values (plan names, segments, and prices) were hand-copied from `config/plans.yaml`.
+- **Decision:** Flag that `plans` in Postgres currently duplicates `config/plans.yaml` via static SQL seed inserts. Per verification constraints, do not redesign now; keep `plans.yaml` as the canonical analytical definition and retain the existing relational table for foreign key integrity on `profiles.plan`.
+
+### D-38: Deferral of subscriptions and payments mutation to X11
+- **Status:** Accepted
+- **Context:** Tables `public.subscriptions` and `public.payments` were created in the initial schema per PROJECT.md §7.1. Payment gateway integration and recurring billing lifecycles belong to batch X11.
+- **Decision:** Confirm that `subscriptions` and `payments` remain empty in Supabase and that their RLS policies restrict all mutations exclusively to `service_role`. Runtime payment processing and state transitions are deferred to batch X11.
+
+### D-39: Deferral of Google OAuth due to card requirement
+- **Status:** Accepted
+- **Context:** Google OAuth client configuration requires setting up a Google Cloud project with billing verification which is unavailable without a card.
+- **Decision:** Google OAuth is out of scope for authentication. Leave the `oauth` group disabled in configuration, do not write Google OAuth integration code, rely solely on Supabase email signup with email verification, and record "Google login not implemented" in documentation.
+
+### D-40: JWT signature verification via Supabase JWKS public keys (ES256)
+- **Status:** chosen, no advisor review, provisional
+- **Context:** Live testing against the Supabase project demonstrated that issued access tokens use asymmetric ECDSA ES256 signatures with key IDs (`kid`) rather than shared secret HS256 signatures.
+- **Decision:** Verify incoming JWTs using the project's public keys fetched and cached from the Supabase JWKS endpoint (`/auth/v1/.well-known/jwks.json`), with standard fallback support for HS256 if configured.
+
+### D-41: Email verification enforcement returning 403 email_not_verified
+- **Status:** chosen, no advisor review, provisional
+- **Context:** PROJECT.md FR-AUTH-002 mandates that unverified accounts cannot access analytical features.
+- **Decision:** Valid tokens for accounts where email is unverified return HTTP 403 with error code `email_not_verified`. Missing, invalid, or expired tokens return HTTP 401 via `ErrorEnvelope`. If the email verification field is absent from both token and database user record, raise an explicit error rather than assuming verified status.
+
+### D-42: Admin authorization read strictly from app_metadata
+- **Status:** chosen, no advisor review, provisional
+- **Context:** Authorization privilege checks require clear separation between user-controlled profile fields and provider-managed roles.
+- **Decision:** Read administrator status strictly from `app_metadata.role == 'admin'`, never from `user_metadata`. Admin endpoints return HTTP 403 for non-admins. Service role keys are never used to decide user admin standing.
+
+### D-43: Atomic database quota increment via PostgreSQL conditional upsert
+- **Status:** chosen, no advisor review, provisional
+- **Context:** Per FR-QUO-001/002, concurrent requests must not exceed configured daily feature quotas, preventing race conditions at limit minus one.
+- **Decision:** Enforce quotas server-side using PostgreSQL atomic conditional upserts (`INSERT ... ON CONFLICT (user_id, feature, utc_date) DO UPDATE SET count = usage.count + 1 WHERE usage.count < max_quota RETURNING count`). Parallel requests competing at the boundary are resolved atomically by row-level locking.
+
+### D-44: Provisional seed accounts configuration and credentials lifecycle
+- **Status:** chosen, no advisor review, provisional
+- **Context:** Seed judge and demo accounts require deterministic identification and idempotent provisioning without leaking secrets.
+- **Decision:** Store provisional email addresses in `config/accounts.yaml`. Provisioning via `scripts/seed_accounts.py` uses passwords solely from environment variables `JUDGE_PASSWORD`, `DEMO_RETAIL_PASSWORD`, and `DEMO_INSTITUTIONAL_PASSWORD`, creates pre-confirmed accounts via the Supabase Admin API, synchronizes database profiles, and never logs or prints credentials.
+
+### D-45: Production admin authorization guard superseding D-10 interim guard (X4)
+- **Status:** chosen, no advisor review, provisional
+- **Context:** Decision D-10 established an interim `APP_ENV=development` check on `/ops/*`, `/console/`, and the `/` redirect. Production readiness requires operational inspection endpoints to be secured cryptographically by admin role authorization across all environments rather than suppressed by environment flags.
+- **Decision:** Supersede D-10. Mount `/ops/*`, `/console/`, and `/` unconditionally across all environments, guarded strictly by `require_admin` (role read exclusively from `app_metadata.role == 'admin'`). Missing or invalid tokens return HTTP 401 with `ErrorEnvelope`; authenticated non-admins return HTTP 403 with `ErrorEnvelope`; admins receive HTTP 200 (or HTTP 307 redirect for `/`).
+- **Console Session Architecture:** Because initial browser page loads cannot transmit Bearer headers, the frontend console operates an in-memory session model. A login view obtains a Supabase session via `/api/auth/token`, retaining the JWT exclusively in memory and injecting the `Authorization: Bearer <token>` header into all subsequent API requests. Tokens are strictly excluded from URLs, query parameters, web storage persistence, and browser logs.
+
+### D-46: CorrelationScan contract definition, market data caching, and XBRL filings ingestion (X5/X6)
+- **Status:** chosen, no advisor review, provisional
+- **Context:** Combining X5 (Market Data & Feature 1 Statistics) and X6 (Filings & Feature 2 Consistency Engine) without LLM. Resolves D-08 pending contract fields.
+- **Decision:**
+  - `CorrelationScan` contract defined with fields: `as_of`, `source_label` ("unofficial source, demo only"), `parameters_used` (`W`, `B`, `G`, `C`, `lambda`, `seed`), `regime_flag` (`none`, `watch`, `warning`, `critical`), `absorption_ratio`, `ar_delta_std`, `significant_pairs_count`, `mean_correlation`, `top_shifted_pairs` (`pair`, `baseline_corr`, `current_corr`, `fr_adjusted_corr`, `p_value`, `q_value`), `matrix_summary`, `episodes_status` ("pending_scan_full_history"), `seed`, and `code_version`.
+  - Market data from Yahoo Finance chart API fetched once and cached in `data/yfinance/` (gitignored). Candidate universe from `config/universe.yaml` yielded 79 successful tickers and 2 failed tickers reported explicitly with zero synthetic fill.
+  - Feature 1 pipeline aligns returns on common trading days, runs Forbes-Rigobon volatility adjustment, computes systemic absorption ratio and moving-block bootstrap (200 iterations with recorded seed), generating `data/f1_scan_demo.json`.
+  - Feature 2 engine parses 5 non-financial company XBRL XML filings (`INFY`, `ITC`, `MARUTI`, `RELIANCE`, `TATASTEEL`), derives operating metrics and margins, evaluates consistency rules R0-R7, and precomputes `data/f2_filings_demo.json` and per-company JSONs.
+
+### D-47: Feature 3 pending contracts definition (ColumnMapping, TradeLog, Portfolio, DecisionReview)
+- **Status:** chosen, no advisor review, provisional
+- **Context:** PROJECT.md §7.3 and FR-F3-001..012 require formal contract schemas for trade log ingestion, portfolio aggregation, and decision reviews. CorrelationScan was already added to contracts in D-46.
+- **Decision:** Define minimal strict contract models:
+  - `ColumnMapping`: explicit mapping from CSV headers to canonical fields (`date`, `symbol`, `side`, `quantity`, `price`, and optional `fees`, `charges`, `exchange`, `segment`).
+  - `TradeLog`: container of parsed `Trade` items with `total_trades`, `symbols`, `start_date`, `end_date`, `consent_given`, and `is_retained`.
+  - `Portfolio`: aggregated portfolio state with `positions` (`Position` per symbol), `cash_balance`, `total_cost`, `total_market_value`, `total_realized_pnl`, and `total_unrealized_pnl`.
+  - `DecisionReview`: final review model containing `portfolio`, `portfolio_xirr`, `benchmark_replays` (`BenchmarkReplay`), `process_metrics` (`ProcessMetrics`), optional `institutional_metrics` (`InstitutionalMetrics`), `review_text`, educational `disclaimer`, and `parameters_used`.
+  All models exported to `docs/contracts/` JSON schemas and validated via schema drift tests.
+
+### D-48: Frontend technology selection: Plain HTML/CSS/JS without framework or CDN
+- **Status:** Accepted
+- **Context:** Basic ops frontend was initially envisioned with React. Running npm builds, managing node modules, and external CDN dependencies add build overhead and failure points.
+- **Decision:** Cut React in favor of vanilla HTML, CSS, and JavaScript located in `frontend/app/`. The application requires no npm build step, no CDN, and no external frameworks. It is served directly by the FastAPI backend, retains auth tokens strictly in JavaScript memory, renders securely using textContent (preventing XSS from server data), and complies with dense technical dashboard aesthetics (#0F1318 palette, 13px monospace data, 2px border radius).
+
+### D-49: Feature 3 trade log processing and benchmark replay pipeline
+- **Status:** chosen, no advisor review, provisional
+- **Context:** Feature 3 requires processing real trade logs on-the-fly, mapping columns explicitly, computing XIRR, replaying cash flows into Nifty 50 and matched sector indices using stored yfinance market data, and computing process and institutional metrics.
+- **Decision:** Implement `backend/app/features/f3_log/pipeline.py`:
+  - Enforce explicit column mapping; raise row-numbered errors for unmapped, missing, or malformed rows. Never skip invalid rows.
+  - Compute portfolio cash flows, FIFO lot accounting for realized PnL, and XIRR using existing A2 Brent solver (`backend/app/features/f3_log/xirr.py`).
+  - Replay exact cash flows into Nifty 50 (`^NSEI.json`) and matched sector index from `data/yfinance/`. Missing benchmark price data raises an explicit error.
+  - Compute process metrics (concentration HHI, turnover, disposition effect PGR/PLR, max drawdown) and institutional metrics (beta, alpha, tracking error, information ratio) using existing A2 library functions.
+  - Enforce zero persistence for uploaded logs unless `consent_given` is explicitly true.
+
+### D-50: Owner-approved exception for synthetic demo trade log
+- **Status:** chosen, no advisor review, provisional
+- **Context:** PROJECT.md §2.7 real-data policy prohibits synthetic data standing in for live services. To allow demonstration and automated end-to-end testing of Feature 3 pipeline mechanics without collecting or requiring real investor trade logs from external users, an owner-approved exception was granted.
+- **Decision:**
+  - `scripts/make_demo_trade_log.py` generates `private/logs/demo_synthetic_log.csv` using exclusively real trading dates and real close prices from `data/yfinance/`. Missing prices raise explicitly; no prices are invented.
+  - Configuration in `config/parameters.yaml` controls trade count (`synthetic_log_trades`), quantity bounds (`synthetic_log_qty_min`, `synthetic_log_qty_max`), and deterministic seed (`synthetic_log_seed`).
+  - The marker `SYNTHETIC_DEMO` is stamped on every row, recorded in the header metadata comment, and stored in the filename.
+  - The ingestion pipeline detects `SYNTHETIC_DEMO`, flags `is_synthetic_demo = True`, rejects upload if `consent_given` is true (synthetic logs are never retained as real data), and sets explicit disclosure labels on `DecisionReview` ("SYNTHETIC DEMO LOG, not a real investor") and `ProcessMetrics` ("describes the generator, not a real investor").
+  - The exception is recorded in `README.md` under Data limitations.
+
+### D-51: Owner-approved exception for rule-based placeholder LLM provider
+- **Status:** chosen, no advisor review, provisional
+- **Context:** To develop and verify LLM-dependent pipeline interfaces (X7, X8, X9) on CPU-only machines without external Nebius API keys or database dependencies, an owner-approved exception was granted to implement a rule-based placeholder provider.
+- **Decision:**
+  - Implement `backend/app/llm/placeholder.py` matching the `LLMClient` gateway interface.
+  - Active only when `APP_ENV` is `development` or `test`; strictly rejected in `production`.
+  - Every output carries the prefix/marker `"PLACEHOLDER TEMPLATE, not Nemotron"`, is never written to precomputed demo JSON files, and is never displayed as real analysis.
+  - Placeholder token pricing is configured as `0.0` under parameter `llm_placeholder_price_per_1m`; real model pricing remains pending.
+  - Budget guard, cache keys, output financial advice guards, and ledger-shaped records execute identically to the production gateway.
+
+### D-52: Inconsistency contract definition for Feature 2 adjudication
+- **Status:** chosen, no advisor review, provisional
+- **Context:** PROJECT.md §5.10, §7.3, and §9 require a formal frozen contract schema for filing inconsistency findings produced by claim extraction, deterministic metric matching, and adjudicator verification.
+- **Decision:**
+  - Define `Inconsistency` contract in `backend/app/contracts/filings.py` with fields: `rule_id`, `verdict` (`confirm`, `downgrade`, `reject`), `severity` (`high`, `medium`, `low`), `metric`, `claim_quote`, `quote_start`, `quote_end`, `stated_value`, `filed_value`, `difference_value`, `explanation`, `is_placeholder`, and `placeholder_label`.
+  - Export JSON schema to `docs/contracts/Inconsistency.json` and validate schema drift via `backend/tests/known_answer/test_contracts.py`.
+
+### D-53: Unauthenticated /console/ static asset serving and /app root redirect
+- **Status:** chosen, no advisor review, provisional
+- **Context:** Mounting `require_admin` on static file routes for the ops console (`/console/`, `/console/index.html`, `/console/config.html`) prevented the browser from loading the console login form without an existing bearer token, returning a 401 error. Similarly, redirecting `/` to `/console/` under an admin guard caused unauthenticated visitors to receive a 401 response instead of reaching the application.
+- **Decision:**
+  - Serve `/console/` static HTML, CSS, and JS assets without token authentication. These static files contain no data and no secrets; they serve the client-side login form which acquires an in-memory token.
+  - Retain `require_admin` strictly on all `/ops/*` operational inspection routes and admin data endpoints.
+  - Redirect root path `/` directly to `/app` without requiring authentication, allowing browsers to access the demo application cleanly.
+
+### D-54: Initial render unauthenticated state and in-panel error reporting for /app/ and /console/
+- **Status:** chosen, no advisor review, provisional
+- **Context:** `/app/` previously showed only the top header because `#screen-login` was missing the `.active` CSS display class while `#workspace` was hidden, and `app.js` lacked an initial DOM load initialization routine. `/console/` showed only the diagnostics panel because `#login-panel` defaulted to hidden with inline styles, and protected data panels rendered blank tables without informing unauthenticated operators that administrative credentials were required.
+- **Decision:**
+  - Mark `#screen-login` as active by default in `frontend/app/index.html` and invoke `initApp()` on `DOMContentLoaded` in `app.js` to ensure the login screen displays cleanly when unauthenticated.
+  - Remove inline `style="display: none;"` from `#login-panel` across console HTML templates and trigger `showLogin()` when unauthenticated in `initConsole()`.
+  - Render explicit in-panel "LOGIN REQUIRED: Admin authentication required" placeholder rows across `/console/` data tables (events, LLM usage, environment variables, system parameters) upon receiving HTTP 401 or 403 status codes.
+  - Display status and detail messages within `/app/` metadata boxes and alert banners for HTTP 401, 402, 403, and 429 responses to prevent blank panels.
+  - Add automated test `test_frontend_element_ids_and_login_forms_exist` asserting all JS-referenced element IDs exist in matching HTML templates and login forms are present.
+
+### D-55: Production guard for administrative role elevation script
+- **Status:** chosen, no advisor review, provisional
+- **Context:** Granting administrative privileges directly alters authorization barriers, which in production allows access to system metrics, parameter configuration, event logs, and operational controls. Unintended elevation in production could compromise environment integrity.
+- **Decision:**
+  - `scripts/set_admin.py` strictly refuses execution when `APP_ENV=production` unless an explicit `--allow-production` flag is passed.
+  - Role assignment modifies exclusively `app_metadata.role` via Supabase Admin API and never mutates `user_metadata` (keeping user-controlled claims separate from security-critical authorization).
+  - Elevating a non-existent account terminates with an explicit error without creating the user.
+
+### D-56: Multi-step agent orchestrator loop, tool registry, and entitlement guards (Batch X10)
+- **Status:** chosen, no advisor review, provisional
+- **Context:** An agent loop requires controlled execution across analytical tools wrapping Features 1, 2, and 3 without allowing unauthorized access or unconstrained token spend.
+- **Decision:**
+  - Wrap Feature 1 (`f1_contagion`), Feature 2 (`f2_filings`), and Feature 3 (`f3_portfolio`) with in-tool entitlement evaluation (`backend/app/agent/tools.py`). Feature denials are captured as explicit denied step outcomes rather than bypassed.
+  - Define `AgentStep` contract in `backend/app/contracts/agent.py` with provisional fields: `step_number`, `tool_name`, `input_summary`, `output_summary`, `status`, `est_cost_usd`, and `duration_ms`.
+  - Configure maximum steps (`agent_max_steps`), per-run budget (`agent_budget_usd`), and per-run timeout (`agent_timeout_seconds`) via `config/parameters.yaml`. Any violation terminates execution with a loud failure (`RuntimeError`, `BudgetExceededError`, `LLMTimeoutError`) without guessing.
+  - Prohibit placeholder execution in production (`APP_ENV=production`); real Nemotron tool calling remains marked unverified until live credentials are provided.
+  - Enforce financial advice guardrails (`assert_no_financial_advice`) on final answers and record step telemetry to `public.llm_ledger` without logging sensitive user data.
+
+### D-57: Hosted demo mode for Feature 3 benchmark isolation
+- **Status:** chosen, no advisor review, provisional
+- **Context:** Raw benchmark price series live under `data/` and are gitignored and excluded by `.dockerignore`. In the hosted container image, raw benchmark prices are not shipped.
+- **Decision:**
+  - Introduce a configuration parameter `hosted_demo_mode` (boolean, default true) in `config/parameters.yaml`.
+  - When `hosted_demo_mode` is enabled, POST `/f3/review` upload returns a clear HTTP 503 response: `"not available in the hosted demo: benchmark data is not shipped"`, while serving precomputed results via `/f3/demo`.
+  - In local development mode (`hosted_demo_mode = false`), full trade log upload and custom benchmark replay calculations remain enabled.
+
+### D-58: Unconfigured LLM provider in production HTTP 503 response and README env drift enforcement
+- **Status:** chosen, no advisor review, provisional
+- **Context:** In production (`APP_ENV=production`), when no verified LLM provider is configured (e.g. `NEBIUS_API_KEY` missing) or the placeholder provider is refused, requests to `/agent/ask` or `/llm/runtime_call` previously could return generic 500 errors. Upstream operational errors must be surfaced cleanly with appropriate HTTP semantics and standard error envelopes. Additionally, documentation of environment variables must not drift from code.
+- **Decision:**
+  - Introduce `ProviderNotConfiguredError` in `backend/app/llm/exceptions.py` mapped to HTTP 503 with error code `provider_not_configured`.
+  - Both `/agent/ask` and `/llm/runtime_call` return HTTP 503 wrapped in `ErrorEnvelope` when no real provider is configured in production, never generic 500.
+  - Automatically generate the README environment variable reference block from `backend.app.config.env.REGISTRY_BY_GROUP` via `scripts/generate_readme_env.py` and enforce zero-drift via automated test `test_readme_environment_variables_match_registry`.
+
+### D-59: Frontend web application architecture and proxy prefix
+- **Status:** Accepted
+- **Context:** The frontend client requires access to the backend API without CORS complications or leaking direct backend addresses to the browser, while maintaining strict route isolation.
+- **Decision:**
+  - Use Next.js (TypeScript, App Router) in `frontend/web/`.
+  - Enforce a single proxy prefix: `/backend/:path*` rewrites to `BACKEND_URL/:path*` (default `http://127.0.0.1:8000/:path*`).
+  - No client-side rewrites for `/agent`, `/f1`, or other page routes.
+  - Landing page makes zero backend calls.
+  - Use `next/link` for internal navigation so that in-memory state survives transitions across pages.
+
+### D-60: In-memory token storage lifecycle
+- **Status:** Accepted
+- **Context:** Web tokens (Supabase JWTs) must never be vulnerable to XSS exfiltration or persistent credential leaks.
+- **Decision:**
+  - Store JWT authentication tokens strictly in JavaScript runtime memory via React Context.
+  - Never persist tokens to `localStorage`, `sessionStorage`, cookies, URLs, or console logs.
+  - Page reloads intentionally clear the session, requiring re-authentication.
+
+### D-61: Frontend development dependencies
+- **Status:** Accepted
+- **Context:** Component testing, DOM simulation, and structural state validation require dedicated lightweight test utilities without heavy browser automation dependencies.
+- **Decision:**
+  - Add `vitest` as the fast unit/integration test runner.
+  - Add `jsdom` for DOM environment emulation in node.
+  - Add `@testing-library/react` for React component render testing.
+  - Prohibit Playwright, UI kits, Tailwind, 3D, and heavy chart libraries to maintain a lightweight, CPU-friendly build.
+
+### D-62: Admin verification queue manual UUID entry and backend endpoint gap
+- **Status:** Accepted
+- **Context:** The backend exposes `POST /api/admin/verifications/{verification_id}/review`, but lacks a `GET /api/admin/verifications` list endpoint to fetch pending verification applications.
+- **Decision:**
+  - Log the absence of `GET /api/admin/verifications` as a backend gap without modifying backend code.
+  - Frontend admin panel implements manual UUID entry for verification reviews.
+
+### D-63: Self-hosted local font loading via next/font/local
+- **Status:** Accepted
+- **Context:** next/font/google attempts to fetch font assets from remote Google Fonts CDN endpoints during build, resulting in fallback to system fonts under offline, firewalled, or restricted network environments.
+- **Decision:**
+  - Self-host Newsreader (serif for headings), Source Sans 3 (sans for body text), and JetBrains Mono (monospace for numbers/code) locally within frontend/web/src/app/fonts/.
+  - Place accompanying Open Font License (OFL) files alongside each font file.
+  - Load fonts using next/font/local, eliminating all runtime and external font host requests.

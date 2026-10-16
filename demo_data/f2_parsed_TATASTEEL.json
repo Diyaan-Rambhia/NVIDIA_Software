@@ -1,0 +1,323 @@
+{
+  "company": "Tata Steel Limited",
+  "symbol": "TATASTEEL",
+  "period": "Third quarter",
+  "fiscal_period": "Q3 2024",
+  "period_end_date": "2024-12-31",
+  "basis": "consolidated",
+  "level_rounding": "Crores",
+  "metrics": {
+    "RevenueFromOperations": {
+      "value": "536483000000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "OtherIncome": {
+      "value": "2210300000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "Income": {
+      "value": "538693300000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "CostOfMaterialsConsumed": {
+      "value": "194039900000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "PurchasesOfStockInTrade": {
+      "value": "40250000000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "ChangesInInventoriesOfFinishedGoodsWorkInProgressAndStockInTrade": {
+      "value": "5014500000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "EmployeeBenefitExpense": {
+      "value": "60724700000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "FinanceCosts": {
+      "value": "18040900000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "DepreciationDepletionAndAmortisationExpense": {
+      "value": "25691900000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "OtherExpenses": {
+      "value": "177419000000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "Expenses": {
+      "value": "521180900000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "ProfitBeforeExceptionalItemsAndTax": {
+      "value": "17512400000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "ExceptionalItemsBeforeTax": {
+      "value": "-1261900000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "ProfitBeforeTax": {
+      "value": "16250500000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "CurrentTax": {
+      "value": "4569000000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "DeferredTax": {
+      "value": "9196400000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "TaxExpense": {
+      "value": "13765400000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "NetMovementInRegulatoryDeferralAccountBalancesRelatedToProfitOrLossAndTheRelatedDeferredTaxMovement": {
+      "value": "0.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "ProfitLossForPeriodFromContinuingOperations": {
+      "value": "2485100000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "ProfitLossFromDiscontinuedOperationsBeforeTax": {
+      "value": "0.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "TaxExpenseOfDiscontinuedOperations": {
+      "value": "0.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "ProfitLossFromDiscontinuedOperationsAfterTax": {
+      "value": "0.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "ShareOfProfitLossOfAssociatesAndJointVenturesAccountedForUsingEquityMethod": {
+      "value": "469800000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "ProfitLossForPeriod": {
+      "value": "2954900000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "OtherComprehensiveIncomeNetOfTaxes": {
+      "value": "-8565200000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "ComprehensiveIncomeForThePeriod": {
+      "value": "-5610300000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "ProfitOrLossAttributableToOwnersOfParent": {
+      "value": "3266400000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "ProfitOrLossAttributableToNonControllingInterests": {
+      "value": "-311500000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "ComprehensiveIncomeForThePeriodAttributableToOwnersOfParent": {
+      "value": "-4854300000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "ComprehensiveIncomeForThePeriodAttributableToOwnersOfParentNonControllingInterests": {
+      "value": "-756000000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "PaidUpValueOfEquityShareCapital": {
+      "value": "12474400000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "FaceValueOfEquityShareCapital": {
+      "value": "1.00",
+      "contextRef": "OneD",
+      "unitRef": "INRPerShare",
+      "decimals": "INF"
+    },
+    "BasicEarningsLossPerShareFromContinuingOperations": {
+      "value": "0.26",
+      "contextRef": "OneD",
+      "unitRef": "INRPerShare",
+      "decimals": "INF"
+    },
+    "DilutedEarningsLossPerShareFromContinuingOperations": {
+      "value": "0.26",
+      "contextRef": "OneD",
+      "unitRef": "INRPerShare",
+      "decimals": "INF"
+    },
+    "BasicEarningsLossPerShareFromDiscontinuedOperations": {
+      "value": "0.00",
+      "contextRef": "OneD",
+      "unitRef": "INRPerShare",
+      "decimals": "INF"
+    },
+    "DilutedEarningsLossPerShareFromDiscontinuedOperations": {
+      "value": "0.00",
+      "contextRef": "OneD",
+      "unitRef": "INRPerShare",
+      "decimals": "INF"
+    },
+    "BasicEarningsLossPerShareFromContinuingAndDiscontinuedOperations": {
+      "value": "0.26",
+      "contextRef": "OneD",
+      "unitRef": "INRPerShare",
+      "decimals": "INF"
+    },
+    "DilutedEarningsLossPerShareFromContinuingAndDiscontinuedOperations": {
+      "value": "0.26",
+      "contextRef": "OneD",
+      "unitRef": "INRPerShare",
+      "decimals": "INF"
+    },
+    "DebtEquityRatio": {
+      "value": "0.01",
+      "contextRef": "OneD",
+      "unitRef": "pure",
+      "decimals": "INF"
+    },
+    "DebtServiceCoverageRatio": {
+      "value": "0.02",
+      "contextRef": "OneD",
+      "unitRef": "pure",
+      "decimals": "INF"
+    },
+    "InterestServiceCoverageRatio": {
+      "value": "0.03",
+      "contextRef": "OneD",
+      "unitRef": "pure",
+      "decimals": "INF"
+    },
+    "SegmentRevenue": {
+      "value": "536483000000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "SegmentRevenueFromOperations": {
+      "value": "536483000000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "SegmentProfitLossBeforeTaxAndFinanceCosts": {
+      "value": "59936200000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "SegmentFinanceCosts": {
+      "value": "18040900000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "OtherUnallocableExpenditureNetOffUnAllocableIncome": {
+      "value": "25175000000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "SegmentProfitBeforeTax": {
+      "value": "16720300000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "SegmentAssets": {
+      "value": "2801385100000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "AmountOfItemThatWillNotBeReclassifiedToProfitAndLoss": {
+      "value": "-4688500000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "IncomeTaxRelatingToItmesThatWillNotBeReclassifiedToProfitOrLoss": {
+      "value": "-853200000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "AmountOfItemThatWillBeReclassifiedToProfitAndLoss": {
+      "value": "-4377400000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    },
+    "IncomeTaxRelatingToItmesThatWillBeReclassifiedToProfitOrLoss": {
+      "value": "352500000.00",
+      "contextRef": "OneD",
+      "unitRef": "INR",
+      "decimals": "-7"
+    }
+  }
+}

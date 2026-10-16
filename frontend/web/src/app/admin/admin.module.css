@@ -1,0 +1,305 @@
+.pageContainer {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.badge {
+  font-size: 11px;
+  color: var(--color-accent);
+}
+
+.header h1 {
+  font-size: 32px;
+}
+
+.lead {
+  font-size: 14px;
+  color: var(--color-muted);
+}
+
+.card {
+  background-color: var(--color-surface);
+  border: var(--hairline);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.card h2 {
+  font-size: 20px;
+}
+
+.gapNotice {
+  font-size: 11px;
+  color: var(--color-warn);
+  border: 1px solid var(--color-warn);
+  padding: 2px 8px;
+}
+
+.cardLead {
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 900px) {
+  .metricsGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.metricCard {
+  background-color: var(--color-bg);
+  border: var(--hairline);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.mLabel {
+  font-size: 11px;
+  color: var(--color-muted);
+  letter-spacing: 0.05em;
+}
+
+.mValue {
+  font-size: 20px;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+.mValueOk {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-ok);
+}
+
+.mValueWarn {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-warn);
+}
+
+.mSub {
+  font-size: 11px;
+  color: var(--color-accent);
+}
+
+.reviewForm {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+  max-width: 600px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.field label {
+  font-size: 11px;
+  color: var(--color-muted);
+  text-transform: uppercase;
+}
+
+.field input, .field select {
+  background-color: var(--color-bg);
+  border: var(--hairline);
+  color: #FFFFFF;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: var(--font-mono);
+}
+
+.field input:focus, .field select:focus {
+  border-color: var(--color-accent);
+  outline: none;
+}
+
+.submitBtn {
+  background-color: #FFFFFF;
+  color: #000000;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 10px 18px;
+  border: none;
+  cursor: pointer;
+  align-self: flex-start;
+  margin-top: var(--space-2);
+}
+
+.submitBtn:hover:not(:disabled) {
+  background-color: var(--color-text);
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.configGroups {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .configGroups {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.configGroupBlock {
+  background-color: var(--color-bg);
+  border: var(--hairline);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.groupHeader {
+  font-size: 12px;
+  color: var(--color-accent);
+  font-weight: 600;
+  border-bottom: var(--hairline);
+  padding-bottom: var(--space-2);
+}
+
+.varList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.varRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: 12px;
+}
+
+.varName {
+  color: var(--color-text);
+}
+
+.presenceBadge {
+  font-size: 10px;
+  padding: 1px 6px;
+  border: 1px solid currentColor;
+}
+
+.presOk {
+  color: var(--color-ok);
+  background-color: var(--color-ok-bg);
+}
+
+.presMissing {
+  color: var(--color-fail);
+  background-color: var(--color-fail-bg);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  padding: var(--space-3) var(--space-4);
+  font-size: 11px;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: var(--hairline);
+}
+
+.table td {
+  padding: var(--space-3) var(--space-4);
+  font-size: 12px;
+  border-bottom: var(--hairline);
+}
+
+.paramNameCell {
+  color: #FFFFFF;
+  font-weight: 500;
+}
+
+.idCell {
+  color: var(--color-muted);
+}
+
+.statusBadge {
+  font-size: 10px;
+  padding: 1px 6px;
+  border: 1px solid currentColor;
+  display: inline-block;
+  font-weight: 600;
+}
+
+.statusOk {
+  color: var(--color-ok);
+  background-color: var(--color-ok-bg);
+}
+
+.statusWarn {
+  color: var(--color-warn);
+  background-color: var(--color-warn-bg);
+}
+
+.emptyCell {
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.loadingBox {
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  font-size: 14px;
+  color: var(--color-muted);
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

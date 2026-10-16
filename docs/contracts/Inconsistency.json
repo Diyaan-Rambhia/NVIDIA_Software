@@ -1,0 +1,113 @@
+{
+  "additionalProperties": false,
+  "description": "Adjudicated filing inconsistency finding per PROJECT.md \u00a75.10, \u00a77.3, \u00a79.",
+  "properties": {
+    "claim_quote": {
+      "title": "Claim Quote",
+      "type": "string"
+    },
+    "difference_value": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Difference Value"
+    },
+    "explanation": {
+      "title": "Explanation",
+      "type": "string"
+    },
+    "filed_value": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Filed Value"
+    },
+    "is_placeholder": {
+      "default": false,
+      "title": "Is Placeholder",
+      "type": "boolean"
+    },
+    "metric": {
+      "title": "Metric",
+      "type": "string"
+    },
+    "placeholder_label": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Placeholder Label"
+    },
+    "quote_end": {
+      "title": "Quote End",
+      "type": "integer"
+    },
+    "quote_start": {
+      "title": "Quote Start",
+      "type": "integer"
+    },
+    "rule_id": {
+      "title": "Rule Id",
+      "type": "string"
+    },
+    "severity": {
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "title": "Severity",
+      "type": "string"
+    },
+    "stated_value": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Stated Value"
+    },
+    "verdict": {
+      "enum": [
+        "confirm",
+        "downgrade",
+        "reject"
+      ],
+      "title": "Verdict",
+      "type": "string"
+    }
+  },
+  "required": [
+    "rule_id",
+    "verdict",
+    "severity",
+    "metric",
+    "claim_quote",
+    "quote_start",
+    "quote_end",
+    "explanation"
+  ],
+  "title": "Inconsistency",
+  "type": "object"
+}

@@ -18,6 +18,8 @@ class ErrorDetail(StrictContractModel):
     message: str
     request_id: str
     upstream: Any = None
+    upgrade_targets: list[str] | None = None
+    reset_time: str | None = None
 
 
 class ErrorEnvelope(StrictContractModel):

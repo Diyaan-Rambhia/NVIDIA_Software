@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FinInsight Technical Dashboard</title>
+  <link rel="stylesheet" href="/app/app.css">
+</head>
+<body>
+  <div id="app-container">
+    <header id="top-bar">
+      <div id="brand-title">FININSIGHT // TECHNICAL INTELLIGENCE</div>
+      <div id="session-info">
+        <span id="user-display">UNAUTHENTICATED</span>
+        <span id="plan-badge">PLAN: NONE</span>
+        <span id="quota-display">QUOTAS: --</span>
+        <button id="btn-logout" class="btn-subtle" style="display: none;">LOGOUT</button>
+      </div>
+    </header>
+
+    <div id="alert-banner" class="alert-box" style="display: none;">
+      <span id="alert-status">ERROR</span>: <span id="alert-message"></span>
+    </div>
+
+    <!-- Login Screen -->
+    <section id="screen-login" class="screen-view active">
+      <div class="panel-box" style="max-width: 480px; margin: 40px auto;">
+        <div class="panel-header">AUTHENTICATION REQUIRED</div>
+        <form id="form-login">
+          <div class="form-row">
+            <label for="input-email">SUPABASE EMAIL</label>
+            <input type="email" id="input-email" required autocomplete="username">
+          </div>
+          <div class="form-row">
+            <label for="input-password">PASSWORD</label>
+            <input type="password" id="input-password" required autocomplete="current-password">
+          </div>
+          <div class="form-actions">
+            <button type="submit" id="btn-submit-login" class="btn-primary">SIGN IN</button>
+          </div>
+          <div id="login-error" class="error-text"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Main Navigation & Feature Screens -->
+    <div id="workspace" style="display: none;">
+      <nav id="feature-nav">
+        <button id="nav-f1" class="nav-btn active">FEATURE 1: CONTAGION DETECTOR</button>
+        <button id="nav-f2" class="nav-btn">FEATURE 2: FILING CONSISTENCY</button>
+        <button id="nav-f3" class="nav-btn">FEATURE 3: TRADE LOG ADVISOR</button>
+      </nav>
+
+      <!-- Feature 1: Contagion Detector -->
+      <section id="screen-f1" class="screen-view active">
+        <div class="panel-box">
+          <div class="panel-header">
+            <span>FEATURE 1: SYSTEMIC CONTAGION & ABSORPTION SCAN</span>
+            <span class="badge-source">unofficial source, demo only</span>
+          </div>
+          <div class="action-bar">
+            <button id="btn-load-f1" class="btn-primary">LOAD PRECOMPUTED SCAN</button>
+            <span id="f1-meta" class="meta-label"></span>
+          </div>
+          <div id="f1-content" class="results-view" style="display: none;">
+            <div class="metrics-grid">
+              <div class="metric-block">
+                <span class="m-label">REGIME FLAG</span>
+                <span id="f1-regime" class="m-value">--</span>
+              </div>
+              <div class="metric-block">
+                <span class="m-label">ABSORPTION RATIO</span>
+                <span id="f1-ar" class="m-value">--</span>
+              </div>
+              <div class="metric-block">
+                <span class="m-label">AR DELTA (STD)</span>
+                <span id="f1-ar-delta" class="m-value">--</span>
+              </div>
+              <div class="metric-block">
+                <span class="m-label">SIGNIFICANT PAIRS</span>
+                <span id="f1-sig-count" class="m-value">--</span>
+              </div>
+              <div class="metric-block">
+                <span class="m-label">MEAN CORRELATION</span>
+                <span id="f1-mean-corr" class="m-value">--</span>
+              </div>
+              <div class="metric-block">
+                <span class="m-label">BOOTSTRAP SEED</span>
+                <span id="f1-seed" class="m-value">--</span>
+              </div>
+            </div>
+            <div class="sub-header">PARAMETERS USED</div>
+            <pre id="f1-params" class="raw-data"></pre>
+            <div class="sub-header">SIGNIFICANT CORRELATION SHIFTS (TOP PAIRS)</div>
+            <div class="table-wrap">
+              <table id="f1-pairs-table">
+                <thead>
+                  <tr>
+                    <th>PAIR</th>
+                    <th>BASELINE CORR</th>
+                    <th>CURRENT CORR</th>
+                    <th>FR ADJUSTED</th>
+                    <th>P-VALUE</th>
+                    <th>Q-VALUE</th>
+                  </tr>
+                </thead>
+                <tbody id="f1-pairs-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Feature 2: Filing Consistency -->
+      <section id="screen-f2" class="screen-view">
+        <div class="panel-box">
+          <div class="panel-header">
+            <span>FEATURE 2: XBRL FILINGS CONSISTENCY CHECKER</span>
+            <span class="badge-notice">revenue and profit checks only</span>
+          </div>
+          <div class="action-bar">
+            <button id="btn-load-f2" class="btn-primary">LOAD PRECOMPUTED FILINGS CHECK</button>
+            <span id="f2-meta" class="meta-label"></span>
+          </div>
+          <div id="f2-content" class="results-view" style="display: none;">
+            <div class="sub-header">COMPANY AUDIT COVERAGE & SUMMARY</div>
+            <div id="f2-companies-summary" class="metrics-grid"></div>
+            <div class="sub-header">EVALUATED RULES & CONTRADICTION EVIDENCE</div>
+            <div class="table-wrap">
+              <table id="f2-rules-table">
+                <thead>
+                  <tr>
+                    <th>COMPANY</th>
+                    <th>PERIOD</th>
+                    <th>RULE</th>
+                    <th>CLAIM TEXT</th>
+                    <th>FILED NUMERIC METRIC</th>
+                    <th>RESULT STATUS</th>
+                    <th>EVIDENCE & RATIONALE</th>
+                  </tr>
+                </thead>
+                <tbody id="f2-rules-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Feature 3: Trade Log Advisor -->
+      <section id="screen-f3" class="screen-view">
+        <div class="panel-box">
+          <div class="panel-header">
+            <span>FEATURE 3: INVESTMENT LOG & BEHAVIORAL PROCESS ADVISOR</span>
+            <span class="badge-source">real logs only</span>
+          </div>
+          <form id="form-f3-upload">
+            <div class="form-row">
+              <label for="input-f3-csv">UPLOAD REAL TRADE LOG (CSV FORMAT)</label>
+              <input type="file" id="input-f3-csv" accept=".csv" required>
+            </div>
+            <div class="mapping-grid">
+              <div class="form-row">
+                <label for="col-date">DATE COLUMN *</label>
+                <input type="text" id="col-date" value="Date" required>
+              </div>
+              <div class="form-row">
+                <label for="col-symbol">SYMBOL COLUMN *</label>
+                <input type="text" id="col-symbol" value="Symbol" required>
+              </div>
+              <div class="form-row">
+                <label for="col-side">SIDE COLUMN (BUY/SELL) *</label>
+                <input type="text" id="col-side" value="Side" required>
+              </div>
+              <div class="form-row">
+                <label for="col-qty">QUANTITY COLUMN *</label>
+                <input type="text" id="col-qty" value="Quantity" required>
+              </div>
+              <div class="form-row">
+                <label for="col-price">PRICE COLUMN *</label>
+                <input type="text" id="col-price" value="Price" required>
+              </div>
+              <div class="form-row">
+                <label for="col-fees">FEES COLUMN (OPTIONAL)</label>
+                <input type="text" id="col-fees" value="Fees">
+              </div>
+            </div>
+            <div class="form-row-checkbox">
+              <input type="checkbox" id="check-consent">
+              <label for="check-consent">I give explicit consent for retention of this trade log (zero persistence by default)</label>
+            </div>
+            <div class="form-actions">
+              <button type="submit" id="btn-submit-f3" class="btn-primary">PROCESS LOG AUDIT</button>
+            </div>
+          </form>
+
+          <div id="f3-content" class="results-view" style="display: none;">
+            <div id="f3-synthetic-banner" class="banner-warn" style="display: none;">SYNTHETIC DEMO LOG, not a real investor</div>
+            <div class="sub-header">PORTFOLIO VALUATION & XIRR</div>
+            <div class="metrics-grid">
+              <div class="metric-block">
+                <span class="m-label">PORTFOLIO XIRR</span>
+                <span id="f3-xirr" class="m-value">--</span>
+              </div>
+              <div class="metric-block">
+                <span class="m-label">TOTAL COST</span>
+                <span id="f3-total-cost" class="m-value">--</span>
+              </div>
+              <div class="metric-block">
+                <span class="m-label">MARKET VALUE</span>
+                <span id="f3-market-value" class="m-value">--</span>
+              </div>
+              <div class="metric-block">
+                <span class="m-label">REALIZED PNL</span>
+                <span id="f3-realized-pnl" class="m-value">--</span>
+              </div>
+              <div class="metric-block">
+                <span class="m-label">UNREALIZED PNL</span>
+                <span id="f3-unrealized-pnl" class="m-value">--</span>
+              </div>
+            </div>
+
+            <div class="sub-header">BENCHMARK REPLAY COMPARISON</div>
+            <div class="table-wrap">
+              <table id="f3-benchmark-table">
+                <thead>
+                  <tr>
+                    <th>BENCHMARK</th>
+                    <th>TERMINAL VALUE (INR)</th>
+                    <th>BENCHMARK XIRR</th>
+                    <th>PARTIAL SHORTFALL</th>
+                  </tr>
+                </thead>
+                <tbody id="f3-benchmark-body"></tbody>
+              </table>
+            </div>
+
+            <div class="sub-header">BEHAVIORAL PROCESS METRICS</div>
+            <div id="f3-process-label" class="sub-notice" style="display: none;">describes the generator, not a real investor</div>
+            <div class="metrics-grid">
+              <div class="metric-block">
+                <span class="m-label">CONCENTRATION (HHI)</span>
+                <span id="f3-hhi" class="m-value">--</span>
+              </div>
+              <div class="metric-block">
+                <span class="m-label">PORTFOLIO TURNOVER</span>
+                <span id="f3-turnover" class="m-value">--</span>
+              </div>
+              <div class="metric-block">
+                <span class="m-label">MAX DRAWDOWN</span>
+                <span id="f3-mdd" class="m-value">--</span>
+              </div>
+              <div class="metric-block">
+                <span class="m-label">DISPOSITION (PGR / PLR)</span>
+                <span id="f3-disp" class="m-value">--</span>
+              </div>
+            </div>
+
+            <div id="f3-inst-section" style="display: none;">
+              <div class="sub-header">INSTITUTIONAL METRICS</div>
+              <div class="metrics-grid">
+                <div class="metric-block">
+                  <span class="m-label">BETA</span>
+                  <span id="f3-beta" class="m-value">--</span>
+                </div>
+                <div class="metric-block">
+                  <span class="m-label">ALPHA</span>
+                  <span id="f3-alpha" class="m-value">--</span>
+                </div>
+                <div class="metric-block">
+                  <span class="m-label">TRACKING ERROR</span>
+                  <span id="f3-te" class="m-value">--</span>
+                </div>
+                <div class="metric-block">
+                  <span class="m-label">INFORMATION RATIO</span>
+                  <span id="f3-ir" class="m-value">--</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="sub-header">QUALITATIVE REVIEW</div>
+            <div id="f3-review-box" class="review-box">
+              <div id="f3-review-text" class="review-text"></div>
+              <div id="f3-disclaimer" class="disclaimer-text"></div>
+            </div>
+
+            <div class="sub-header">PARAMETERS USED</div>
+            <pre id="f3-params" class="raw-data"></pre>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script src="/app/app.js"></script>
+</body>
+</html>

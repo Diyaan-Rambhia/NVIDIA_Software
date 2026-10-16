@@ -18,3 +18,4 @@ Read `PROJECT.md` and `PROGRESS.md` first before beginning any task.
    - `[x]` done (tick only after verification)
    - `[!]` blocked
 10. **Secret length for redaction:** Secrets must be at least 6 characters or they are not redacted in logs.
+11. **TASK_PROGRESS.md lifecycle:** At the start of a task, start a fresh TASK_PROGRESS.md with only that task's steps; when the task finishes, its ticks go to PROGRESS.md and the file is reset. Never put completed history in TASK_PROGRESS.md.

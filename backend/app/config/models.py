@@ -57,9 +57,30 @@ class ParameterEntry(StrictBaseModel):
         return self
 
 
+class RiskFreeConfig(StrictBaseModel):
+    """Risk-free rate configuration entry per X1 feasibility scope decision."""
+
+    value: float | None = None
+    unit: str | None = None
+    status: str = "pending"
+    source: str | None = None
+    as_of: str | None = None
+
+    @model_validator(mode="after")
+    def validate_risk_free_fields(self) -> "RiskFreeConfig":
+        if self.status == "pending" and self.value is not None:
+            raise ValueError("Pending risk-free rate must have null value")
+        return self
+
+
 class ParametersConfig(StrictBaseModel):
     """Root model for config/parameters.yaml."""
 
+    risk_free: RiskFreeConfig = Field(
+        default_factory=lambda: RiskFreeConfig(
+            value=None, unit=None, status="pending", source=None, as_of=None
+        )
+    )
     parameters: dict[str, ParameterEntry]
 
 
@@ -251,8 +272,7 @@ class EpisodeEntry(StrictBaseModel):
         if self.status == "pending_confirmation":
             if self.start is not None or self.end is not None:
                 raise ValueError(
-                    f"Episode '{self.name}' with 'pending_confirmation' status "
-                    "must have null dates"
+                    f"Episode '{self.name}' with 'pending_confirmation' status must have null dates"
                 )
         elif self.status == "confirmed":
             if self.start is None or self.end is None:
@@ -283,6 +303,7 @@ class LexiconConfig(StrictBaseModel):
     positive_phrases: list[str]
     negative_phrases: list[str]
     never_trigger_alone: list[str]
+    prohibited_advice_phrases: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def validate_phrases(self) -> "LexiconConfig":
@@ -290,6 +311,7 @@ class LexiconConfig(StrictBaseModel):
             ("positive_phrases", self.positive_phrases),
             ("negative_phrases", self.negative_phrases),
             ("never_trigger_alone", self.never_trigger_alone),
+            ("prohibited_advice_phrases", self.prohibited_advice_phrases),
         ]:
             for phrase in phrases:
                 if not phrase or not phrase.strip():

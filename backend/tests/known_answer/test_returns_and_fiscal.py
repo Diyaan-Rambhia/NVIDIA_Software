@@ -179,8 +179,8 @@ def test_align_mixed_naive_aware_raises() -> None:
         ("Q3 FY27", 3, 2027),
         ("Q4 FY27", 4, 2027),
         ("Q1 FY26", 1, 2026),
-        ("Q1 FY00", 1, 2000),
-        ("Q4 FY99", 4, 2099),
+        ("Q1 FY24", 1, 2024),
+        ("Q4 FY28", 4, 2028),
     ],
 )
 def test_parse_and_format_fiscal_label_roundtrip(label: str, exp_q: int, exp_fy: int) -> None:
@@ -193,11 +193,26 @@ def test_parse_and_format_fiscal_label_roundtrip(label: str, exp_q: int, exp_fy:
 
 def test_two_digit_fiscal_year_century_mapping_and_boundaries() -> None:
     """Pin two-digit fiscal year century mapping rule: 2000 + short_year."""
-    assert parse_fiscal_label("Q1 FY00") == (1, 2000)
-    assert parse_fiscal_label("Q4 FY99") == (4, 2099)
+    assert parse_fiscal_label("Q1 FY00", min_year=2000, max_year=2099) == (1, 2000)
+    assert parse_fiscal_label("Q4 FY99", min_year=2000, max_year=2099) == (4, 2099)
     assert parse_fiscal_label("Q1 FY27") == (1, 2027)
-    assert format_fiscal_label(1, 2000) == "Q1 FY00"
-    assert format_fiscal_label(4, 2099) == "Q4 FY99"
+    assert format_fiscal_label(1, 2000, min_year=2000, max_year=2099) == "Q1 FY00"
+    assert format_fiscal_label(4, 2099, min_year=2000, max_year=2099) == "Q4 FY99"
+
+
+def test_fiscal_year_range_bounds() -> None:
+    """Labels outside the configured fiscal-year range must raise ValueError."""
+    with pytest.raises(ValueError, match="outside configured range"):
+        parse_fiscal_label("Q1 FY00")
+
+    with pytest.raises(ValueError, match="outside configured range"):
+        parse_fiscal_label("Q4 FY99")
+
+    with pytest.raises(ValueError, match="outside configured range"):
+        format_fiscal_label(1, 2019)
+
+    with pytest.raises(ValueError, match="outside configured range"):
+        format_fiscal_label(1, 2035)
 
 
 @pytest.mark.parametrize(

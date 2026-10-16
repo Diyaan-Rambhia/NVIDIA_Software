@@ -167,9 +167,7 @@ def test_judge_all_is_never_purchasable_and_never_upgrade_target(plans_config):
 
     for plan_name, plan in plans_config.plans.items():
         for feat_name, feat in plan.features.items():
-            assert feat.unlocks_with != "judge_all", (
-                f"{plan_name}.{feat_name} references judge_all"
-            )
+            assert feat.unlocks_with != "judge_all", f"{plan_name}.{feat_name} references judge_all"
 
 
 def test_error_unknown_plan(plans_config, sample_now):
@@ -252,4 +250,3 @@ def test_schema_rejects_pending_marker_on_other_plans():
     }
     with pytest.raises(ValueError, match="Quota pending marker is only permitted"):
         PlansConfig.model_validate(invalid_plans)
-

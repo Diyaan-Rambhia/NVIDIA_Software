@@ -60,3 +60,33 @@ class Hypothesis(StrictContractModel):
     evidence_weakening: list[str]
     retrieved_urls: list[str] = Field(min_length=1)
     plausible_mechanism: str
+
+
+class ShiftedPair(StrictContractModel):
+    """Pair correlation shift detail."""
+
+    pair: list[str] = Field(min_length=2, max_length=2)
+    baseline_corr: float
+    current_corr: float
+    fr_adjusted_corr: float
+    p_value: float
+    q_value: float
+
+
+class CorrelationScan(StrictContractModel):
+    """Output contract for Feature 1 correlation scan per PROJECT.md §5.7 and §5.8."""
+
+    as_of: str
+    source_label: str = "unofficial source, demo only"
+    parameters_used: dict[str, float | int | bool | str]
+    regime_flag: str
+    absorption_ratio: float
+    ar_delta_std: float
+    significant_pairs_count: int
+    mean_correlation: float
+    top_shifted_pairs: list[ShiftedPair] = Field(default_factory=list)
+    matrix_summary: dict[str, float | int] = Field(default_factory=dict)
+    episodes_status: str = "pending_scan_full_history"
+    seed: int
+    code_version: str
+

@@ -1,0 +1,329 @@
+.pageContainer {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.badge {
+  font-size: 11px;
+  color: var(--color-accent);
+}
+
+.header h1 {
+  font-size: 32px;
+}
+
+.lead {
+  font-size: 14px;
+  color: var(--color-muted);
+}
+
+.layoutGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+}
+
+@media (min-width: 960px) {
+  .layoutGrid {
+    grid-template-columns: 1.35fr 0.65fr;
+  }
+}
+
+.mainCol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.sideCol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.card {
+  background-color: var(--color-surface);
+  border: var(--hairline);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.card h2 {
+  font-size: 20px;
+}
+
+.cardLead {
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.field label {
+  font-size: 12px;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.field textarea, .field input, .field select {
+  background-color: var(--color-bg);
+  border: var(--hairline);
+  color: #FFFFFF;
+  padding: 10px var(--space-3);
+  font-size: 13px;
+}
+
+.field textarea:focus, .field input:focus, .field select:focus {
+  border-color: var(--color-accent);
+  outline: none;
+}
+
+.guardRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.fieldSmall {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.fieldSmall label {
+  font-size: 11px;
+  color: var(--color-muted);
+}
+
+.fieldSmall input {
+  background-color: var(--color-bg);
+  border: var(--hairline);
+  color: #FFFFFF;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: var(--font-mono);
+}
+
+.submitBtn {
+  background-color: #FFFFFF;
+  color: #000000;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.submitBtn:hover:not(:disabled) {
+  background-color: var(--color-text);
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.resultsWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.stepsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.telemetryBadges {
+  display: flex;
+  gap: var(--space-3);
+  font-size: 11px;
+  color: var(--color-accent);
+}
+
+.stepsTableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  padding: var(--space-3) var(--space-4);
+  font-size: 11px;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: var(--hairline);
+}
+
+.table td {
+  padding: var(--space-4);
+  font-size: 12px;
+  border-bottom: var(--hairline);
+  vertical-align: top;
+}
+
+.stepNum {
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.toolCell {
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+.summaryCell {
+  color: var(--color-text);
+  max-width: 200px;
+  line-height: 1.4;
+}
+
+.statusBadge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border: 1px solid currentColor;
+  display: inline-block;
+  font-weight: 600;
+}
+
+.badgeSuccess {
+  color: var(--color-ok);
+  background-color: var(--color-ok-bg);
+}
+
+.badgeDenied {
+  color: var(--color-warn);
+  background-color: var(--color-warn-bg);
+}
+
+.badgeError {
+  color: var(--color-fail);
+  background-color: var(--color-fail-bg);
+}
+
+.answerText {
+  background-color: var(--color-bg);
+  border: var(--hairline);
+  padding: var(--space-5);
+  font-size: 14px;
+  line-height: 1.6;
+  color: #FFFFFF;
+  white-space: pre-wrap;
+}
+
+.disclaimer {
+  font-size: 12px;
+  color: var(--color-muted);
+  border-left: 2px solid var(--color-border);
+  padding-left: var(--space-3);
+  line-height: 1.4;
+}
+
+/* Nemotron Side Panel */
+.nemotronCard {
+  background-color: var(--color-surface);
+  border: var(--hairline);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.nemotronHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nemotronBadge {
+  font-size: 10px;
+  color: var(--color-accent);
+  letter-spacing: 0.05em;
+}
+
+.nemotronCard h3 {
+  font-size: 18px;
+}
+
+.nemotronLead {
+  font-size: 12px;
+  color: var(--color-muted);
+  line-height: 1.4;
+}
+
+.nemotronSuccess {
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.modelMeta {
+  font-size: 11px;
+  color: var(--color-accent);
+}
+
+.rawOutput {
+  font-size: 13px;
+  color: #FFFFFF;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.unverifiedNote {
+  font-size: 10px;
+  color: var(--color-warn);
+  border-top: var(--hairline);
+  padding-top: var(--space-2);
+}
+
+.nemotronBtn {
+  background-color: var(--color-border);
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 8px 14px;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+}
+
+.nemotronBtn:hover:not(:disabled) {
+  border-color: var(--color-accent);
+}
+
+.nemotronBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

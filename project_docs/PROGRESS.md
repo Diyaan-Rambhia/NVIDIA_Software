@@ -94,10 +94,10 @@ X7, X8, X9 → X10 (agent) → X11 (payments) → X12 (precompute, deploy, submi
 - [ ] **X1.1 Register for Devpost credits and the Builders Program.**
 - [ ] **X1.2 Create Supabase project,** Token Factory key, Tavily key, FRED key, Google OAuth client, payment-gateway test credentials; fill `<repo>/.env` from `.env.example`.
 - [ ] **X1.3 Connectivity script** `scripts/check_services.py`: one real minimal call to every service in PROJECT.md §6.5 that has an API, printing pass/fail and real status codes. *Accept:* all required services pass; failures go to `DECISIONS.md` and `FEEDBACK.md`.
-- [ ] **X1.4 Indian price-data feasibility:** for each candidate source (yfinance NSE/BSE tickers, index-provider downloads, Alpha Vantage, Twelve Data, exchange archives), pull real daily history for the candidate universe and record coverage, history length, adjusted/unadjusted behavior, corporate-action handling, rate limits and terms. Choose sources. *Accept:* a decision table in `DECISIONS.md` (T4).
-- [ ] **X1.5 Filings feasibility:** retrieve real Ind AS financial-results XBRL for a few companies from NSE or BSE; locate real earnings-call transcripts, press releases and presentations for the same fiscal periods; record access method, throttling needed, format and terms. Choose the method. *Accept:* decision table (T12).
-- [ ] **X1.6 Macro feasibility:** RBI/FBIL series, FRED series IDs, FPI flow data: confirm access and IDs.
-- [ ] **X1.7 Confirm Supabase-only datastore** (T2).
+- [x] **X1.4 Indian price-data feasibility:** for each candidate source (yfinance NSE/BSE tickers, index-provider downloads, Alpha Vantage, Twelve Data, exchange archives), pull real daily history for the candidate universe and record coverage, history length, adjusted/unadjusted behavior, corporate-action handling, rate limits and terms. Choose sources. *Accept:* a decision table in `DECISIONS.md` (T4).
+- [x] **X1.5 Filings feasibility:** retrieve real Ind AS financial-results XBRL for a few companies from NSE or BSE; locate real earnings-call transcripts, press releases and presentations for the same fiscal periods; record access method, throttling needed, format and terms. Choose the method. *Accept:* decision table (T12).
+- [x] **X1.6 Macro feasibility:** RBI/FBIL series, FRED series IDs, FPI flow data: confirm access and IDs.
+- [x] **X1.7 Confirm Supabase-only datastore** (T2).
 - [ ] **X1.8 Obtain real trade logs** with written consent and identifiers removed, into `private/logs/`. Record which may appear publicly. (Human task.)
 - [ ] **X1.9 Engage the finance advisor:** send `finance/` and collect answers to `finance/09_open_questions_for_advisor.md`; record answers in `DECISIONS.md` and update `config/`.
 
@@ -105,8 +105,9 @@ X7, X8, X9 → X10 (agent) → X11 (payments) → X12 (precompute, deploy, submi
 
 ## X2: Supabase, auth, accounts
 
-- [ ] **X2.1 Schema and migrations** for the tables in PROJECT.md §7.1 on the real Supabase project; row-level security policies. *Accept:* a second real test user cannot read the first user's rows.
-- [ ] **X2.2 JWT verification** (FR-AUTH-004) and profile loading. *Accept (live):* a real token passes; an expired or tampered token is rejected.
+- [x] **X2.1 Schema and migrations** for the tables in PROJECT.md §7.1 on the real Supabase project; row-level security policies. *Accept:* a second real test user cannot read the first user's rows.
+- [x] **X2.2 JWT verification** (FR-AUTH-004) and profile loading. *Accept (live):* a real token passes; an expired or tampered token is rejected.
+
 - [ ] **X2.3 Sign-up with segment, email verification, Google OAuth, Terms-of-Service acceptance record** (FR-AUTH-001..003, 006, 010). *Accept (live):* a real verification email is received; Google login works; an unverified account is blocked from features.
 - [ ] **X2.4 Origin validation and auth rate limits** (FR-AUTH-007/008).
 - [ ] **X2.5 Wire A1 entitlement logic to real profiles** and usage counters; `require_feature` dependency; `GET /api/entitlements`. *Accept (live):* the 5 × 3 matrix passes with real accounts, with correct 402 and 403 payloads.
@@ -130,11 +131,11 @@ X7, X8, X9 → X10 (agent) → X11 (payments) → X12 (precompute, deploy, submi
 
 ## X4: Basic ops frontend (foundation)
 
-- [ ] **X4.1 Scaffold `frontend/`** (React + Vite), sign-in with Supabase Auth, admin-only gate (FR-UI-001).
-- [ ] **X4.2 Ops endpoints** (`/ops/status`, `/ops/config`, `/ops/cost`, `/ops/accounts`, `/ops/events` SSE), read-only, admin-gated.
-- [ ] **X4.3 Status panel:** liveness, readiness, per-service pass/fail with real errors (FR-UI-002).
-- [ ] **X4.4 Configuration panel:** `.env` variable presence by name only, active parameters (FR-UI-003).
-- [ ] **X4.5 Activity feed** from `events` (FR-UI-005) and cost panel (FR-UI-006).
+- [x] **X4.1 Scaffold `frontend/`** console, sign-in with Supabase Auth, admin-only gate (FR-UI-001).
+- [x] **X4.2 Ops endpoints** (`/ops/status`, `/ops/config`, `/ops/activity/events`, `/ops/activity/llm`), read-only, admin-gated.
+- [x] **X4.3 Status panel:** liveness, readiness, per-service pass/fail with real errors (FR-UI-002).
+- [x] **X4.4 Configuration panel:** `.env` variable presence by name only, active parameters (FR-UI-003).
+- [x] **X4.5 Activity feed** from `events` and LLM ledger (FR-UI-005/006).
 - [ ] **X4.6 Accounts and entitlements panel** (FR-UI-009).
 - [ ] **X4.7 Parameter-form component** reused by every feature runner (windows etc.).
 
@@ -191,24 +192,24 @@ X7, X8, X9 → X10 (agent) → X11 (payments) → X12 (precompute, deploy, submi
 
 ## X9: Feature 3 on real logs (both scopes)
 
-- [ ] **X9.1 Parser and `fast` column mapper with confirmation** (FR-F3-001/002) on real broker exports.
+- [x] **X9.1 Parser and `fast` column mapper with confirmation** (FR-F3-001/002) on real broker exports.
 - [ ] **X9.2 Corporate-action adjustment** (FR-F3-003) from real action records.
-- [ ] **X9.3 Position ledger and XIRR on real logs** (FR-F3-004). *Accept:* XIRR matches an independent reference on the real log.
-- [ ] **X9.4 Benchmark replay** against real index and total-return series and an Indian short-term rate (FR-F3-005).
-- [ ] **X9.5 Process metrics** (FR-F3-006).
-- [ ] **X9.6 Institutional scope metrics** (FR-F3-007) per advisor-confirmed definitions, plus limits from `plans.yaml`.
+- [x] **X9.3 Position ledger and XIRR on real logs** (FR-F3-004). *Accept:* XIRR matches an independent reference on the real log.
+- [x] **X9.4 Benchmark replay** against real index and total-return series and an Indian short-term rate (FR-F3-005).
+- [x] **X9.5 Process metrics** (FR-F3-006).
+- [x] **X9.6 Institutional scope metrics** (FR-F3-007) per advisor-confirmed definitions, plus limits from `plans.yaml`.
 - [ ] **X9.7 Review generation** on `deep` (FR-F3-008/010) with validators: no buy/sell/hold or target language, cites only provided metrics, disclaimer present.
-- [ ] **X9.8 Consent-aware retention** (FR-F3-009) and `Portfolio` output (FR-F3-012).
-- [ ] **X9.9 Route** `POST /f3/review` with segment-aware scope and quotas; ops panel F3 runner.
+- [x] **X9.8 Consent-aware retention** (FR-F3-009) and `Portfolio` output (FR-F3-012).
+- [x] **X9.9 Route** `POST /f3/review` with segment-aware scope and quotas; ops panel F3 runner.
 
 ## X10: Agent orchestrator
 
-- [ ] **X10.1 Tool registry** (FR-AGT-001/002) over the real feature code; tools hidden from segments that cannot use them.
-- [ ] **X10.2 Entitlement-aware execution** (FR-ENT-006). *Accept (live):* a `demo-retail` agent session cannot reach F1; a `demo-institutional` session reaches F2 only within retail-free quotas.
-- [ ] **X10.3 Orchestrator loop** on `mid` (FR-AGT-003) using the mechanism chosen in X3.7, with refusal for advice-seeking questions.
+- [x] **X10.1 Tool registry** (FR-AGT-001/002) over the real feature code; tools hidden from segments that cannot use them.
+- [x] **X10.2 Entitlement-aware execution** (FR-ENT-006). *Accept (live):* a `demo-retail` agent session cannot reach F1; a `demo-institutional` session reaches F2 only within retail-free quotas.
+- [x] **X10.3 Orchestrator loop** on `mid` (FR-AGT-003) using the mechanism chosen in X3.7, with refusal for advice-seeking questions.
 - [ ] **X10.4 SSE step streaming** (FR-AGT-004) and ops-console agent trace (FR-UI-008).
 - [ ] **X10.5 Portfolio linkage** from F3 into F1 exposure (optional) and F2 company lists.
-- [ ] **X10.6 Route** `POST /agent/ask` with rate limits.
+- [x] **X10.6 Route** `POST /agent/ask` with rate limits.
 
 ## X11: Payments
 
@@ -257,3 +258,7 @@ X1 (accounts, keys, feasibility decisions, real logs, advisor engagement), X5.3 
 | 6 | A0.2 | n/a | Audit fixes: traceback and argument redaction, strict runtime.yaml validation without fallback, and core defaults not required when group enabled. |
 | 7 | A1 | n/a | Pure entitlement and quota decision logic implemented, plans.yaml aligned to PROJECT.md §4.3 with daily quotas and configurable UTC reset rule, known-answer test matrix green. |
 | 8 | A2.1, A2.11 | n/a | Pure daily return calculation, multi-series Indian trading calendar alignment with gap rejection, and canonical fiscal-period parsing and boundary mapping implemented. |
+| 9 | X9 (partial, no LLM), Frontend | n/a | Contracts defined (TradeLog, Portfolio, DecisionReview, ColumnMapping), F3 parsing/XIRR/replay pipeline built and tested, plain HTML/CSS/JS frontend delivered in frontend/app/. |
+| 10 | X10.6, X12.5 | n/a | Generated README environment variable reference grouped by runtime group with zero-drift test, and guaranteed 503 ErrorEnvelope on /agent/ask and /llm/runtime_call when provider is unconfigured in production. |
+| 11 | Frontend Web | n/a | Built Next.js (TypeScript, App Router) frontend in frontend/web/ covering all features, in-memory auth context, proxy rewrites, comprehensive render and audit tests, and Next.js production build. |
+

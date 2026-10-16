@@ -6,10 +6,28 @@ Annualisation factors and return series are required arguments with no literals 
 
 import math
 from collections.abc import Sequence
+from typing import Any
 
 import numpy as np
 
-from backend.app.config.loader import ParameterError
+from backend.app.config.loader import (
+    ParameterError,
+    get_risk_free_rate,
+    get_risk_free_rate_parameters,
+)
+from backend.app.config.models import ParametersConfig
+
+
+def resolve_risk_free_rate(params_config: ParametersConfig | None = None) -> float:
+    """Resolve configured risk-free rate, raising ParameterError if null or unit invalid."""
+    return get_risk_free_rate(params_config)
+
+
+def resolve_risk_free_parameters(
+    params_config: ParametersConfig | None = None,
+) -> dict[str, Any]:
+    """Resolve recorded parameters for the risk-free rate (value, unit, source, as_of)."""
+    return get_risk_free_rate_parameters(params_config)
 
 
 def _validate_return_pair(
@@ -117,6 +135,28 @@ def beta_and_alpha(
     alpha_annualized = float(alpha_period * annualisation_factor)
 
     return beta, alpha_annualized
+
+
+def beta_and_alpha_result(
+    portfolio_returns: Sequence[float] | np.ndarray,
+    benchmark_returns: Sequence[float] | np.ndarray,
+    annualisation_factor: float,
+    risk_free_returns: Sequence[float] | np.ndarray | None = None,
+    params_config: ParametersConfig | None = None,
+) -> dict[str, Any]:
+    """Compute Beta and Alpha recording risk-free rate parameters (value, unit, source, as_of)."""
+    beta, alpha = beta_and_alpha(
+        portfolio_returns,
+        benchmark_returns,
+        annualisation_factor,
+        risk_free_returns,
+    )
+    rf_params = resolve_risk_free_parameters(params_config)
+    return {
+        "beta": beta,
+        "alpha": alpha,
+        "parameters": rf_params,
+    }
 
 
 def tracking_error(

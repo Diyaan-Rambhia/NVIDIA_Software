@@ -46,3 +46,33 @@ class FilingMetric(StrictContractModel):
     source_filing_reference: str
     derived: bool
     retrieval_time: str
+
+
+InconsistencyVerdict = Literal["confirm", "downgrade", "reject"]
+InconsistencySeverity = Literal["high", "medium", "low"]
+
+
+class Inconsistency(StrictContractModel):
+    """Adjudicated filing inconsistency finding per PROJECT.md §5.10, §7.3, §9."""
+
+    rule_id: str
+    verdict: InconsistencyVerdict
+    severity: InconsistencySeverity
+    metric: str
+    claim_quote: str
+    quote_start: int
+    quote_end: int
+    stated_value: float | None = None
+    filed_value: float | None = None
+    difference_value: float | None = None
+    explanation: str
+    is_placeholder: bool = False
+    placeholder_label: str | None = None
+
+    @model_validator(mode="after")
+    def validate_offsets(self) -> "Inconsistency":
+        if self.quote_end <= self.quote_start:
+            raise ValueError(
+                f"Quote end offset ({self.quote_end}) must be greater than start offset ({self.quote_start})"
+            )
+        return self

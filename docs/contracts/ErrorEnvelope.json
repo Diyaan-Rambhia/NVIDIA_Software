@@ -16,6 +16,33 @@
           "title": "Request Id",
           "type": "string"
         },
+        "reset_time": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reset Time"
+        },
+        "upgrade_targets": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Upgrade Targets"
+        },
         "upstream": {
           "default": null,
           "title": "Upstream"

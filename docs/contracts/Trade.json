@@ -1,6 +1,6 @@
 {
   "additionalProperties": false,
-  "description": "Single trade per PROJECT.md \u00a74.8, \u00a77.3, and FR-F3-001.",
+  "description": "Single trade execution record.",
   "properties": {
     "charges": {
       "anyOf": [
@@ -41,6 +41,18 @@
       ],
       "default": null,
       "title": "Fees"
+    },
+    "marker": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Marker"
     },
     "price": {
       "exclusiveMinimum": 0,

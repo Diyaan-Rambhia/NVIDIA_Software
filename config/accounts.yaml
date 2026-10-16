@@ -1,0 +1,19 @@
+# Configuration for provisional seed accounts per PROJECT.md §4.3 and PROGRESS.md X2.2
+# Status: chosen, no advisor review, provisional
+
+accounts:
+  judge:
+    email: judge@fininsight.local
+    segment: internal
+    plan: judge_all
+    role: admin
+  demo_retail:
+    email: demo_retail@fininsight.local
+    segment: retail
+    plan: retail_free
+    role: user
+  demo_institutional:
+    email: demo_institutional@fininsight.local
+    segment: institutional
+    plan: institutional_free
+    role: user

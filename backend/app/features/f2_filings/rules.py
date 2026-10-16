@@ -119,8 +119,7 @@ def validate_alignment(
             value=claim.period,
             allowed_range=metric.fiscal_period,
             reason=(
-                f"Fiscal period mismatch: claim ({claim.period}) "
-                f"!= metric ({metric.fiscal_period})"
+                f"Fiscal period mismatch: claim ({claim.period}) != metric ({metric.fiscal_period})"
             ),
         )
     if claimed_unit is not None and claimed_unit != metric.unit:

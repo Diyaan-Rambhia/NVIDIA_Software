@@ -1,0 +1,111 @@
+{
+  "$defs": {
+    "Position": {
+      "additionalProperties": false,
+      "description": "Open or closed position summary for a single instrument.",
+      "properties": {
+        "average_buy_price": {
+          "title": "Average Buy Price",
+          "type": "number"
+        },
+        "current_price": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Current Price"
+        },
+        "current_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Current Value"
+        },
+        "quantity": {
+          "title": "Quantity",
+          "type": "number"
+        },
+        "realized_pnl": {
+          "title": "Realized Pnl",
+          "type": "number"
+        },
+        "symbol": {
+          "title": "Symbol",
+          "type": "string"
+        },
+        "unrealized_pnl": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unrealized Pnl"
+        }
+      },
+      "required": [
+        "symbol",
+        "quantity",
+        "average_buy_price",
+        "realized_pnl"
+      ],
+      "title": "Position",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Aggregated portfolio positions and valuations.",
+  "properties": {
+    "cash_balance": {
+      "default": 0.0,
+      "title": "Cash Balance",
+      "type": "number"
+    },
+    "positions": {
+      "items": {
+        "$ref": "#/$defs/Position"
+      },
+      "title": "Positions",
+      "type": "array"
+    },
+    "total_cost": {
+      "title": "Total Cost",
+      "type": "number"
+    },
+    "total_market_value": {
+      "title": "Total Market Value",
+      "type": "number"
+    },
+    "total_realized_pnl": {
+      "title": "Total Realized Pnl",
+      "type": "number"
+    },
+    "total_unrealized_pnl": {
+      "title": "Total Unrealized Pnl",
+      "type": "number"
+    }
+  },
+  "required": [
+    "positions",
+    "total_cost",
+    "total_market_value",
+    "total_realized_pnl",
+    "total_unrealized_pnl"
+  ],
+  "title": "Portfolio",
+  "type": "object"
+}

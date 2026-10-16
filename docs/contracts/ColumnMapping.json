@@ -1,0 +1,95 @@
+{
+  "additionalProperties": false,
+  "description": "Explicit mapping from raw CSV headers to canonical trade fields.",
+  "properties": {
+    "charges": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Charges"
+    },
+    "date": {
+      "title": "Date",
+      "type": "string"
+    },
+    "exchange": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Exchange"
+    },
+    "fees": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Fees"
+    },
+    "marker": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Marker"
+    },
+    "price": {
+      "title": "Price",
+      "type": "string"
+    },
+    "quantity": {
+      "title": "Quantity",
+      "type": "string"
+    },
+    "segment": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Segment"
+    },
+    "side": {
+      "title": "Side",
+      "type": "string"
+    },
+    "symbol": {
+      "title": "Symbol",
+      "type": "string"
+    }
+  },
+  "required": [
+    "date",
+    "symbol",
+    "side",
+    "quantity",
+    "price"
+  ],
+  "title": "ColumnMapping",
+  "type": "object"
+}

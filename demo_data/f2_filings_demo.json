@@ -1,0 +1,473 @@
+{
+  "source_label": "unofficial source, demo only",
+  "companies_evaluated": [
+    {
+      "symbol": "INFY",
+      "company": "Infosys Limited",
+      "fiscal_period": "Q3 2024",
+      "revenue": "349150000000.00",
+      "pbt": "88440000000.00",
+      "pat": "63580000000.00",
+      "rule_results": [
+        {
+          "rule_id": "R0",
+          "status": "pass",
+          "severity": "none",
+          "evidence": {
+            "stated_value": 349150000000.0,
+            "filed_value": 349150000000.0,
+            "diff": 0.0,
+            "tolerance_pp": 0.5
+          },
+          "reason": null
+        },
+        {
+          "rule_id": "R1",
+          "status": "pass",
+          "severity": "none",
+          "evidence": {
+            "direction": "grew",
+            "filing_change": 0.05
+          },
+          "reason": null
+        },
+        {
+          "rule_id": "R2",
+          "status": "flag",
+          "severity": "medium",
+          "evidence": {
+            "descriptor": "strong",
+            "growth": 0.07,
+            "strong_threshold": 0.08,
+            "threshold_label": "provisional threshold"
+          },
+          "reason": "Growth 0.0700 is below strong threshold 0.0800 (provisional threshold)"
+        },
+        {
+          "rule_id": "R3",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong"
+          },
+          "reason": "Descriptor 'strong' is not a trend descriptor"
+        },
+        {
+          "rule_id": "R4",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong",
+            "metric": "revenue"
+          },
+          "reason": "Claim is not a margin expansion claim"
+        },
+        {
+          "rule_id": "R5",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong"
+          },
+          "reason": "Claim is not a cash quality claim"
+        },
+        {
+          "rule_id": "R6",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong"
+          },
+          "reason": "Claim is not a working capital discipline claim"
+        },
+        {
+          "rule_id": "R7",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong"
+          },
+          "reason": "Descriptor 'strong' is not a cautious word candidate"
+        }
+      ],
+      "flags_count": 1,
+      "passes_count": 2,
+      "llm_adjudication": "not generated: awaiting real model"
+    },
+    {
+      "symbol": "ITC",
+      "company": "ITC Limited",
+      "fiscal_period": "Q3 2024",
+      "revenue": "203499600000.00",
+      "pbt": "65319600000.00",
+      "pat": "50131800000.00",
+      "rule_results": [
+        {
+          "rule_id": "R0",
+          "status": "pass",
+          "severity": "none",
+          "evidence": {
+            "stated_value": 203499600000.0,
+            "filed_value": 203499600000.0,
+            "diff": 0.0,
+            "tolerance_pp": 0.5
+          },
+          "reason": null
+        },
+        {
+          "rule_id": "R1",
+          "status": "pass",
+          "severity": "none",
+          "evidence": {
+            "direction": "grew",
+            "filing_change": 0.05
+          },
+          "reason": null
+        },
+        {
+          "rule_id": "R2",
+          "status": "pass",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong",
+            "growth": 0.07,
+            "strong_threshold": 0.07,
+            "threshold_label": "provisional threshold"
+          },
+          "reason": null
+        },
+        {
+          "rule_id": "R3",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong"
+          },
+          "reason": "Descriptor 'strong' is not a trend descriptor"
+        },
+        {
+          "rule_id": "R4",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong",
+            "metric": "revenue"
+          },
+          "reason": "Claim is not a margin expansion claim"
+        },
+        {
+          "rule_id": "R5",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong"
+          },
+          "reason": "Claim is not a cash quality claim"
+        },
+        {
+          "rule_id": "R6",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong"
+          },
+          "reason": "Claim is not a working capital discipline claim"
+        },
+        {
+          "rule_id": "R7",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong"
+          },
+          "reason": "Descriptor 'strong' is not a cautious word candidate"
+        }
+      ],
+      "flags_count": 0,
+      "passes_count": 3,
+      "llm_adjudication": "not generated: awaiting real model"
+    },
+    {
+      "symbol": "MARUTI",
+      "company": "Maruti Suzuki India Limited",
+      "fiscal_period": "Q3 2024",
+      "revenue": "387643000000.00",
+      "pbt": "46589000000.00",
+      "pat": "37269000000.00",
+      "rule_results": [
+        {
+          "rule_id": "R0",
+          "status": "pass",
+          "severity": "none",
+          "evidence": {
+            "stated_value": 387643000000.0,
+            "filed_value": 387643000000.0,
+            "diff": 0.0,
+            "tolerance_pp": 0.5
+          },
+          "reason": null
+        },
+        {
+          "rule_id": "R1",
+          "status": "pass",
+          "severity": "none",
+          "evidence": {
+            "direction": "grew",
+            "filing_change": 0.05
+          },
+          "reason": null
+        },
+        {
+          "rule_id": "R2",
+          "status": "flag",
+          "severity": "medium",
+          "evidence": {
+            "descriptor": "strong",
+            "growth": 0.07,
+            "strong_threshold": 0.1,
+            "threshold_label": "provisional threshold"
+          },
+          "reason": "Growth 0.0700 is below strong threshold 0.1000 (provisional threshold)"
+        },
+        {
+          "rule_id": "R3",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong"
+          },
+          "reason": "Descriptor 'strong' is not a trend descriptor"
+        },
+        {
+          "rule_id": "R4",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong",
+            "metric": "revenue"
+          },
+          "reason": "Claim is not a margin expansion claim"
+        },
+        {
+          "rule_id": "R5",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong"
+          },
+          "reason": "Claim is not a cash quality claim"
+        },
+        {
+          "rule_id": "R6",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong"
+          },
+          "reason": "Claim is not a working capital discipline claim"
+        },
+        {
+          "rule_id": "R7",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong"
+          },
+          "reason": "Descriptor 'strong' is not a cautious word candidate"
+        }
+      ],
+      "flags_count": 1,
+      "passes_count": 2,
+      "llm_adjudication": "not generated: awaiting real model"
+    },
+    {
+      "symbol": "RELIANCE",
+      "company": "Reliance Industries Limited",
+      "fiscal_period": "Q3 2024",
+      "revenue": "1282600000000.00",
+      "pbt": "115970000000.00",
+      "pat": "87210000000.00",
+      "rule_results": [
+        {
+          "rule_id": "R0",
+          "status": "pass",
+          "severity": "none",
+          "evidence": {
+            "stated_value": 1282600000000.0,
+            "filed_value": 1282600000000.0,
+            "diff": 0.0,
+            "tolerance_pp": 0.5
+          },
+          "reason": null
+        },
+        {
+          "rule_id": "R1",
+          "status": "pass",
+          "severity": "none",
+          "evidence": {
+            "direction": "grew",
+            "filing_change": 0.05
+          },
+          "reason": null
+        },
+        {
+          "rule_id": "R2",
+          "status": "pass",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong",
+            "growth": 0.07,
+            "strong_threshold": 0.06,
+            "threshold_label": "provisional threshold"
+          },
+          "reason": null
+        },
+        {
+          "rule_id": "R3",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong"
+          },
+          "reason": "Descriptor 'strong' is not a trend descriptor"
+        },
+        {
+          "rule_id": "R4",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong",
+            "metric": "revenue"
+          },
+          "reason": "Claim is not a margin expansion claim"
+        },
+        {
+          "rule_id": "R5",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong"
+          },
+          "reason": "Claim is not a cash quality claim"
+        },
+        {
+          "rule_id": "R6",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong"
+          },
+          "reason": "Claim is not a working capital discipline claim"
+        },
+        {
+          "rule_id": "R7",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong"
+          },
+          "reason": "Descriptor 'strong' is not a cautious word candidate"
+        }
+      ],
+      "flags_count": 0,
+      "passes_count": 3,
+      "llm_adjudication": "not generated: awaiting real model"
+    },
+    {
+      "symbol": "TATASTEEL",
+      "company": "Tata Steel Limited",
+      "fiscal_period": "Q3 2024",
+      "revenue": "536483000000.00",
+      "pbt": "16250500000.00",
+      "pat": "2954900000.00",
+      "rule_results": [
+        {
+          "rule_id": "R0",
+          "status": "pass",
+          "severity": "none",
+          "evidence": {
+            "stated_value": 536483000000.0,
+            "filed_value": 536483000000.0,
+            "diff": 0.0,
+            "tolerance_pp": 0.5
+          },
+          "reason": null
+        },
+        {
+          "rule_id": "R1",
+          "status": "pass",
+          "severity": "none",
+          "evidence": {
+            "direction": "grew",
+            "filing_change": 0.05
+          },
+          "reason": null
+        },
+        {
+          "rule_id": "R2",
+          "status": "pass",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong",
+            "growth": 0.07,
+            "strong_threshold": 0.05,
+            "threshold_label": "provisional threshold"
+          },
+          "reason": null
+        },
+        {
+          "rule_id": "R3",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong"
+          },
+          "reason": "Descriptor 'strong' is not a trend descriptor"
+        },
+        {
+          "rule_id": "R4",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong",
+            "metric": "revenue"
+          },
+          "reason": "Claim is not a margin expansion claim"
+        },
+        {
+          "rule_id": "R5",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong"
+          },
+          "reason": "Claim is not a cash quality claim"
+        },
+        {
+          "rule_id": "R6",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong"
+          },
+          "reason": "Claim is not a working capital discipline claim"
+        },
+        {
+          "rule_id": "R7",
+          "status": "not_applicable",
+          "severity": "none",
+          "evidence": {
+            "descriptor": "strong"
+          },
+          "reason": "Descriptor 'strong' is not a cautious word candidate"
+        }
+      ],
+      "flags_count": 0,
+      "passes_count": 3,
+      "llm_adjudication": "not generated: awaiting real model"
+    }
+  ],
+  "total_rules_evaluated": 40,
+  "total_flags": 2,
+  "total_passes": 13
+}

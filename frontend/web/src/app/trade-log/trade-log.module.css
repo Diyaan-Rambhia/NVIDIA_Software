@@ -1,0 +1,313 @@
+.pageContainer {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.badge {
+  font-size: 11px;
+  color: var(--color-accent);
+}
+
+.header h1 {
+  font-size: 32px;
+}
+
+.lead {
+  font-size: 14px;
+  color: var(--color-muted);
+}
+
+.uploadSection {
+  background-color: var(--color-surface);
+  border: var(--hairline);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.uploadSection h2 {
+  font-size: 20px;
+}
+
+.formLead {
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.uploadForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.fileField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.fileField label {
+  font-size: 12px;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.fileField input[type="file"] {
+  background-color: var(--color-bg);
+  border: var(--hairline);
+  color: var(--color-muted);
+  padding: var(--space-3);
+  font-size: 13px;
+}
+
+.mappingGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+@media (min-width: 768px) {
+  .mappingGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.mapField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.mapField label {
+  font-size: 11px;
+  color: var(--color-muted);
+}
+
+.mapField input {
+  background-color: var(--color-bg);
+  border: var(--hairline);
+  color: #FFFFFF;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: var(--font-mono);
+}
+
+.mapField input:focus {
+  border-color: var(--color-accent);
+  outline: none;
+}
+
+.checkboxField {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-top: var(--space-1);
+}
+
+.checkboxField input[type="checkbox"] {
+  margin-top: 3px;
+  cursor: pointer;
+}
+
+.checkboxField label {
+  font-size: 12px;
+  color: var(--color-muted);
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.checkboxField strong {
+  color: var(--color-text);
+}
+
+.submitBtn {
+  background-color: #FFFFFF;
+  color: #000000;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  align-self: flex-start;
+  margin-top: var(--space-2);
+}
+
+.submitBtn:hover:not(:disabled) {
+  background-color: var(--color-text);
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.resultsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.syntheticBanner {
+  background-color: var(--color-warn-bg);
+  border: 1px solid var(--color-warn);
+  color: var(--color-warn);
+  padding: var(--space-3) var(--space-4);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+
+.processLabelBox {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
+  padding: var(--space-3) var(--space-4);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cardSection {
+  background-color: var(--color-surface);
+  border: var(--hairline);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.cardSection h2, .cardSection h3 {
+  font-size: 20px;
+}
+
+.cardLead {
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 900px) {
+  .metricsGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.metricCard {
+  background-color: var(--color-bg);
+  border: var(--hairline);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.mLabel {
+  font-size: 11px;
+  color: var(--color-muted);
+  letter-spacing: 0.05em;
+}
+
+.mValue {
+  font-size: 20px;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+.mSub {
+  font-size: 11px;
+  color: var(--color-accent);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  padding: var(--space-3) var(--space-4);
+  font-size: 11px;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: var(--hairline);
+}
+
+.table td {
+  padding: var(--space-4);
+  font-size: 13px;
+  border-bottom: var(--hairline);
+}
+
+.bmNameCell {
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+.statusBadge {
+  font-size: 11px;
+  padding: 2px 6px;
+  border: 1px solid currentColor;
+  display: inline-block;
+  font-weight: 600;
+}
+
+.statusOk {
+  color: var(--color-ok);
+  background-color: var(--color-ok-bg);
+}
+
+.statusWarn {
+  color: var(--color-warn);
+  background-color: var(--color-warn-bg);
+}
+
+.emptyCell {
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.reviewText {
+  background-color: var(--color-bg);
+  border: var(--hairline);
+  padding: var(--space-4);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text);
+  white-space: pre-wrap;
+}
+
+.disclaimerBox {
+  font-size: 12px;
+  color: var(--color-muted);
+  border-left: 2px solid var(--color-border);
+  padding-left: var(--space-3);
+  line-height: 1.5;
+}
+
+.paramsBox {
+  background-color: var(--color-bg);
+  border: var(--hairline);
+  padding: var(--space-4);
+  font-size: 11px;
+  color: var(--color-text);
+  overflow-x: auto;
+  max-height: 200px;
+}

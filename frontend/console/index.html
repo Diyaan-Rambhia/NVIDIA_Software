@@ -21,6 +21,22 @@
 
   <div id="index-error" class="error-box"></div>
 
+  <div id="login-panel" class="panel">
+    <div class="panel-title">OPERATOR AUTHENTICATION</div>
+    <div id="login-error" class="error-box"></div>
+    <form id="login-form">
+      <div style="margin-bottom: 8px;">
+        <label for="login-email" style="display: block; margin-bottom: 4px; color: var(--text-muted);">EMAIL</label>
+        <input type="email" id="login-email" required style="background: var(--bg-main); color: var(--text-main); border: 1px solid var(--border); padding: 4px; width: 100%; max-width: 320px;">
+      </div>
+      <div style="margin-bottom: 8px;">
+        <label for="login-password" style="display: block; margin-bottom: 4px; color: var(--text-muted);">PASSWORD</label>
+        <input type="password" id="login-password" required style="background: var(--bg-main); color: var(--text-main); border: 1px solid var(--border); padding: 4px; width: 100%; max-width: 320px;">
+      </div>
+      <button type="submit" id="login-submit" style="background: var(--bg-panel); color: var(--text-main); border: 1px solid var(--accent); padding: 4px 12px; cursor: pointer;">AUTHENTICATE</button>
+    </form>
+  </div>
+
   <div class="panel">
     <div class="panel-title">CORE HEALTH PROBES</div>
     <table class="data-table">
@@ -95,10 +111,55 @@
     </table>
   </div>
 
+  <div class="panel">
+    <div class="panel-title">LIVE SYSTEM EVENTS (/ops/activity/events)</div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>TIME</th>
+          <th>KIND</th>
+          <th>SUBJECT</th>
+          <th>STATUS</th>
+          <th>DURATION (MS)</th>
+        </tr>
+      </thead>
+      <tbody id="events-table-body">
+        <tr>
+          <td colspan="6">Loading events...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">LLM USAGE ACTIVITY (/ops/activity/llm)</div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>TIME</th>
+          <th>ROUTE</th>
+          <th>ALIAS</th>
+          <th>MODEL</th>
+          <th>IN TOKENS</th>
+          <th>OUT TOKENS</th>
+          <th>EST COST (USD)</th>
+          <th>CACHE</th>
+        </tr>
+      </thead>
+      <tbody id="llm-table-body">
+        <tr>
+          <td colspan="9">Loading LLM activity...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
   <script src="/console/assets/console.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
-      startPolling("index");
+      initConsole("index");
     });
   </script>
 </body>

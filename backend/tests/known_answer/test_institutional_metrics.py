@@ -8,9 +8,13 @@ import math
 import pytest
 
 from backend.app.config.loader import ParameterError
+from backend.app.config.models import ParametersConfig, RiskFreeConfig
 from backend.app.features.f3_log.institutional_metrics import (
     beta_and_alpha,
+    beta_and_alpha_result,
     information_ratio,
+    resolve_risk_free_parameters,
+    resolve_risk_free_rate,
     tracking_error,
 )
 
@@ -104,3 +108,41 @@ def test_information_ratio_hand_computed() -> None:
     ir = information_ratio(rp, rb, annualisation_factor=ann_factor)
     expected = (0.02 * 250.0) / math.sqrt(0.05)
     assert math.isclose(ir, expected, rel_tol=1e-10)
+
+
+def test_resolve_risk_free_rate_raises() -> None:
+    """Resolving unconfigured / null risk-free rate must raise ParameterError."""
+    cfg = ParametersConfig(
+        risk_free=RiskFreeConfig(value=None, status="pending", source=None, as_of=None),
+        parameters={},
+    )
+    with pytest.raises(ParameterError, match="Risk-free rate is null"):
+        resolve_risk_free_rate(cfg)
+
+
+def test_resolve_risk_free_rate_configured() -> None:
+    """Resolving configured risk-free rate returns converted decimal and records parameters."""
+    rate = resolve_risk_free_rate()
+    assert rate == 0.057281
+
+    params = resolve_risk_free_parameters()
+    assert params["value"] == 5.7281
+    assert params["unit"] == "percent per annum"
+    assert params["source"] == "RBI 91-day T-bill auction cut-off yield (Treasury Bills: Full Auction Result, press release 2026-2027/1326)"
+    assert params["as_of"] == "14 October 2026 auction"
+    assert params["decimal_rate"] == 0.057281
+
+
+def test_beta_and_alpha_result_records_risk_free_parameters() -> None:
+    """Verify result using risk-free rate records value, unit, source and as_of."""
+    rb = [0.01, 0.02, 0.03]
+    rp = [0.020, 0.035, 0.050]
+    res = beta_and_alpha_result(rp, rb, annualisation_factor=250.0)
+    assert math.isclose(res["beta"], 1.50, rel_tol=1e-12)
+    assert math.isclose(res["alpha"], 1.25, rel_tol=1e-12)
+    p = res["parameters"]
+    assert p["value"] == 5.7281
+    assert p["unit"] == "percent per annum"
+    assert p["source"] == "RBI 91-day T-bill auction cut-off yield (Treasury Bills: Full Auction Result, press release 2026-2027/1326)"
+    assert p["as_of"] == "14 October 2026 auction"
+

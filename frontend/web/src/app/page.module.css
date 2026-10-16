@@ -1,0 +1,344 @@
+.page {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-4);
+}
+
+.heroSection {
+  padding: var(--space-8) 0 var(--space-12) 0;
+  border-bottom: var(--hairline);
+}
+
+.heroGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-8);
+}
+
+@media (min-width: 900px) {
+  .heroGrid {
+    grid-template-columns: 1.2fr 0.8fr;
+  }
+}
+
+.heroMain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sectionIndex {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--color-accent);
+}
+
+.heroTitle {
+  font-size: 38px;
+  line-height: 1.15;
+  color: #FFFFFF;
+}
+
+@media (min-width: 768px) {
+  .heroTitle {
+    font-size: 46px;
+  }
+}
+
+.heroLead {
+  font-size: 17px;
+  color: var(--color-muted);
+  line-height: 1.6;
+  max-width: 640px;
+}
+
+.ctaRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.primaryCta {
+  background-color: #FFFFFF;
+  color: #000000;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 24px;
+  border: 1px solid #FFFFFF;
+}
+
+.primaryCta:hover {
+  background-color: var(--color-text);
+}
+
+.secondaryCta {
+  font-size: 14px;
+  padding: 10px 24px;
+  border: var(--hairline);
+  color: var(--color-text);
+}
+
+.secondaryCta:hover {
+  border-color: var(--color-accent);
+  color: #FFFFFF;
+}
+
+.heroVisual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.diagramBox {
+  width: 100%;
+  border: var(--hairline);
+  background-color: var(--color-surface);
+  padding: var(--space-4);
+}
+
+.diagramLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-warn);
+  text-transform: uppercase;
+  margin-bottom: var(--space-2);
+}
+
+.convergenceSvg {
+  width: 100%;
+  height: auto;
+  border-bottom: var(--hairline);
+  padding-bottom: var(--space-2);
+}
+
+.diagramCaption {
+  font-size: 12px;
+  color: var(--color-muted);
+  margin-top: var(--space-2);
+  line-height: 1.4;
+}
+
+/* Tools Section */
+.toolsSection {
+  padding: var(--space-12) 0;
+  border-bottom: var(--hairline);
+}
+
+.sectionHeader {
+  margin-bottom: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sectionHeader h2 {
+  font-size: 28px;
+}
+
+.toolColumns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+}
+
+@media (min-width: 768px) {
+  .toolColumns {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.toolCol {
+  background-color: var(--color-surface);
+  border: var(--hairline);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.toolNum {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-accent);
+}
+
+.toolCol h3 {
+  font-size: 20px;
+}
+
+.toolCol p {
+  font-size: 14px;
+  color: var(--color-muted);
+  line-height: 1.6;
+  flex: 1;
+}
+
+.toolMeta {
+  font-size: 10px;
+  color: var(--color-muted);
+  border-top: var(--hairline);
+  padding-top: var(--space-3);
+}
+
+/* Methodology Section */
+.methodSection {
+  padding: var(--space-12) 0;
+  border-bottom: var(--hairline);
+}
+
+.methodSteps {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+}
+
+@media (min-width: 768px) {
+  .methodSteps {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.methodStep {
+  border-left: 2px solid var(--color-border);
+  padding-left: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.stepMarker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-ok);
+}
+
+.methodStep h4 {
+  font-size: 18px;
+}
+
+.methodStep p {
+  font-size: 14px;
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+
+/* Limitations Section */
+.limitsSection {
+  padding: var(--space-12) 0;
+  border-bottom: var(--hairline);
+}
+
+.limitsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .limitsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.limitItem {
+  background-color: var(--color-surface);
+  border: var(--hairline);
+  padding: var(--space-4);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.limitItem strong {
+  color: #FFFFFF;
+  margin-right: var(--space-1);
+}
+
+/* Plans Section */
+.plansSection {
+  padding: var(--space-12) 0;
+  border-bottom: var(--hairline);
+}
+
+.plansGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+}
+
+@media (min-width: 768px) {
+  .plansGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.planCard {
+  background-color: var(--color-surface);
+  border: var(--hairline);
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.planBadge {
+  font-size: 11px;
+  color: var(--color-accent);
+}
+
+.planCard h3 {
+  font-size: 24px;
+}
+
+.planCard p {
+  font-size: 14px;
+  color: var(--color-muted);
+}
+
+.planFeatures {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.planFeatures li {
+  font-size: 13px;
+  color: var(--color-text);
+  padding-left: var(--space-4);
+  position: relative;
+}
+
+.planFeatures li::before {
+  content: "—";
+  position: absolute;
+  left: 0;
+  color: var(--color-accent);
+}
+
+.disabledFeature {
+  color: var(--color-muted) !important;
+  text-decoration: line-through;
+}
+
+/* Bottom CTA Section */
+.bottomCtaSection {
+  padding: var(--space-16) 0 var(--space-8) 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.bottomCtaSection h2 {
+  font-size: 32px;
+}
+
+.bottomCtaSection p {
+  font-size: 15px;
+  color: var(--color-muted);
+}

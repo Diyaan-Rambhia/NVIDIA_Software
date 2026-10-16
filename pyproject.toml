@@ -17,6 +17,7 @@ dependencies = [
     "numpy",
     "scipy",
     "scikit-learn",
+    "psycopg[binary]>=3.2.0",
 ]
 
 [project.optional-dependencies]
@@ -39,6 +40,7 @@ pythonpath = ["."]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+extend-exclude = ["scripts/feasibility"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B"]

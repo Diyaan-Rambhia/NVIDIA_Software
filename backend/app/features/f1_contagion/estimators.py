@@ -196,9 +196,7 @@ def ledoit_wolf_covariance(
     if window is not None:
         validate_parameter_bounds("W", window, config)
         if returns.shape[0] < window:
-            raise ValueError(
-                f"Available observations {returns.shape[0]} less than window {window}"
-            )
+            raise ValueError(f"Available observations {returns.shape[0]} less than window {window}")
         data = returns[-window:]
     else:
         data = returns
@@ -382,8 +380,7 @@ def standardized_absorption_ratio_shift(
 
     if short_window >= long_window:
         raise ValueError(
-            f"short_window ({short_window}) must be strictly less than "
-            f"long_window ({long_window})"
+            f"short_window ({short_window}) must be strictly less than long_window ({long_window})"
         )
 
     if len(ar_series) < long_window:

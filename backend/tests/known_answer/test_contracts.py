@@ -7,14 +7,24 @@ import pytest
 from pydantic import ValidationError
 
 from backend.app.contracts import (
+    BenchmarkReplay,
     Claim,
+    ColumnMapping,
+    CorrelationScan,
+    DecisionReview,
     ErrorDetail,
     ErrorEnvelope,
     EvidenceItem,
     EvidencePack,
     FilingMetric,
     Hypothesis,
+    Inconsistency,
+    InstitutionalMetrics,
+    Portfolio,
+    Position,
+    ProcessMetrics,
     Trade,
+    TradeLog,
     WindowRange,
 )
 from scripts.export_contract_schemas import CONTRACT_MODELS
@@ -70,6 +80,23 @@ def test_roundtrip_all_models() -> None:
     )
     assert Claim.model_validate(cl.model_dump()) == cl
 
+    inc = Inconsistency(
+        rule_id="R0",
+        verdict="confirm",
+        severity="high",
+        metric="revenue from operations",
+        claim_quote="revenue grew by 15%",
+        quote_start=10,
+        quote_end=30,
+        stated_value=15.0,
+        filed_value=8.5,
+        difference_value=6.5,
+        explanation="Stated growth exceeds filed growth by 6.5 percentage points.",
+        is_placeholder=False,
+        placeholder_label=None,
+    )
+    assert Inconsistency.model_validate(inc.model_dump()) == inc
+
     fm = FilingMetric(
         company="Tata Motors",
         symbol="TATAMOTORS",
@@ -99,6 +126,93 @@ def test_roundtrip_all_models() -> None:
     )
     assert Trade.model_validate(tr.model_dump()) == tr
 
+    cm = ColumnMapping(
+        date="Txn Date",
+        symbol="Scrip",
+        side="Type",
+        quantity="Qty",
+        price="Rate",
+        fees="Brokerage",
+    )
+    assert ColumnMapping.model_validate(cm.model_dump()) == cm
+
+    tl = TradeLog(
+        trades=[tr],
+        total_trades=1,
+        symbols=["INFY"],
+        start_date="2025-05-10",
+        end_date="2025-05-10",
+        consent_given=True,
+        is_retained=False,
+    )
+    assert TradeLog.model_validate(tl.model_dump()) == tl
+
+    pos = Position(
+        symbol="INFY",
+        quantity=100.0,
+        average_buy_price=1450.50,
+        realized_pnl=0.0,
+        current_price=1500.0,
+        current_value=150000.0,
+        unrealized_pnl=4950.0,
+    )
+    port = Portfolio(
+        positions=[pos],
+        cash_balance=10000.0,
+        total_cost=145050.0,
+        total_market_value=150000.0,
+        total_realized_pnl=0.0,
+        total_unrealized_pnl=4950.0,
+    )
+    assert Portfolio.model_validate(port.model_dump()) == port
+
+    br = BenchmarkReplay(
+        benchmark_name="NIFTY 50",
+        terminal_value=155000.0,
+        xirr=0.12,
+        partial_shortfall=False,
+    )
+    pm = ProcessMetrics(
+        concentration_hhi=1.0,
+        turnover=0.5,
+        disposition_effect={"pgr": 0.6, "plr": 0.4},
+        max_drawdown=0.05,
+    )
+    im = InstitutionalMetrics(
+        beta=1.05,
+        alpha=0.02,
+        tracking_error=0.04,
+        information_ratio=0.5,
+    )
+    dr = DecisionReview(
+        portfolio=port,
+        portfolio_xirr=0.15,
+        benchmark_replays=[br],
+        process_metrics=pm,
+        institutional_metrics=im,
+        review_text="Process evaluation complete.",
+        disclaimer="For educational purposes only.",
+        parameters_used={"window": 20},
+    )
+    assert DecisionReview.model_validate(dr.model_dump()) == dr
+
+    cs = CorrelationScan(
+        as_of="2025-07-01",
+        source_label="unofficial source, demo only",
+        parameters_used={"W": 60},
+        regime_flag="none",
+        absorption_ratio=0.35,
+        ar_delta_std=0.2,
+        significant_pairs_count=0,
+        mean_correlation=0.45,
+        top_shifted_pairs=[],
+        matrix_summary={"max": 0.8},
+        episodes_status="pending_scan_full_history",
+        seed=42,
+        code_version="v0.1.0",
+    )
+    assert CorrelationScan.model_validate(cs.model_dump()) == cs
+
 
 def test_unknown_field_rejected() -> None:
     """Extra unexpected fields must be rejected per extra='forbid'."""
@@ -125,12 +239,8 @@ def test_unknown_field_rejected() -> None:
 
 def test_evidence_item_id_pattern() -> None:
     """EvidenceItem id must match 'E<digits>' pattern."""
-    EvidenceItem(
-        id="E1", kind="pair_shift", description="Valid", values={"x": 1.0}, source="NSE"
-    )
-    EvidenceItem(
-        id="E999", kind="pair_shift", description="Valid", values={"x": 1.0}, source="NSE"
-    )
+    EvidenceItem(id="E1", kind="pair_shift", description="Valid", values={"x": 1.0}, source="NSE")
+    EvidenceItem(id="E999", kind="pair_shift", description="Valid", values={"x": 1.0}, source="NSE")
 
     with pytest.raises(ValidationError):
         EvidenceItem(

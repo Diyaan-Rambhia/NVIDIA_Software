@@ -226,3 +226,69 @@ def validate_window_consistency(params: dict[str, Any], history_length: int) -> 
         )
 
     return True
+
+
+def get_risk_free_rate(
+    params_config: ParametersConfig | None = None,
+    config_dir: Path | None = None,
+) -> float:
+    """Retrieve the configured risk-free rate value converted explicitly to decimal.
+
+    Raises ParameterError if the configured risk-free rate is null, or if unit is
+    missing or unknown.
+    """
+    if params_config is None:
+        if config_dir is None:
+            config_dir = Path("config")
+        params_config = load_config_file(config_dir / "parameters.yaml", ParametersConfig)
+
+    rf = params_config.risk_free
+    if rf.value is None:
+        raise ParameterError(
+            field="risk_free",
+            value=rf.value,
+            allowed_range="non-null float",
+            reason=f"Risk-free rate is null with status '{rf.status}'",
+        )
+    if not rf.unit:
+        raise ParameterError(
+            field="unit",
+            value=rf.unit,
+            allowed_range="['percent per annum', 'decimal per annum']",
+            reason="Risk-free rate unit is missing",
+        )
+    if rf.unit == "percent per annum":
+        return round(float(rf.value) / 100.0, 10)
+    elif rf.unit == "decimal per annum":
+        return float(rf.value)
+    else:
+        raise ParameterError(
+            field="unit",
+            value=rf.unit,
+            allowed_range="['percent per annum', 'decimal per annum']",
+            reason=f"Unknown risk-free rate unit '{rf.unit}'",
+        )
+
+
+def get_risk_free_rate_parameters(
+    params_config: ParametersConfig | None = None,
+    config_dir: Path | None = None,
+) -> dict[str, Any]:
+    """Retrieve recorded parameters for the risk-free rate (value, unit, source, as_of).
+
+    Raises ParameterError if the configured risk-free rate is null or unit is missing/unknown.
+    """
+    if params_config is None:
+        if config_dir is None:
+            config_dir = Path("config")
+        params_config = load_config_file(config_dir / "parameters.yaml", ParametersConfig)
+
+    rf = params_config.risk_free
+    decimal_rate = get_risk_free_rate(params_config, config_dir)
+    return {
+        "value": rf.value,
+        "unit": rf.unit,
+        "source": rf.source,
+        "as_of": rf.as_of,
+        "decimal_rate": decimal_rate,
+    }

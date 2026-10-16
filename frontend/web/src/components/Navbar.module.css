@@ -1,0 +1,145 @@
+.header {
+  border-bottom: var(--hairline);
+  background-color: var(--color-surface);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.brandLink {
+  display: flex;
+  align-items: center;
+}
+
+.brandLogo {
+  height: 28px;
+  width: auto;
+}
+
+.headerTagline {
+  font-size: 11px;
+  color: var(--color-muted);
+  border-left: var(--hairline);
+  padding-left: var(--space-3);
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .headerTagline {
+    display: inline-block;
+  }
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.navLink {
+  font-size: 13px;
+  font-weight: 500;
+  padding: var(--space-1) var(--space-2);
+  color: var(--color-muted);
+  border-bottom: 2px solid transparent;
+}
+
+.navLink:hover {
+  color: var(--color-text);
+}
+
+.navLinkActive {
+  color: #FFFFFF;
+  border-bottom-color: var(--color-accent);
+}
+
+.userSection {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.metaBadges {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.planBadge {
+  font-size: 11px;
+  padding: 2px 6px;
+  background-color: var(--color-bg);
+  border: var(--hairline);
+  color: var(--color-accent);
+}
+
+.quotaBadge {
+  font-size: 11px;
+  color: var(--color-muted);
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .quotaBadge {
+    display: inline-block;
+  }
+}
+
+.accountLink {
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.logoutBtn {
+  font-size: 12px;
+  background: transparent;
+  border: var(--hairline);
+  color: var(--color-muted);
+  padding: var(--space-1) var(--space-2);
+  cursor: pointer;
+}
+
+.logoutBtn:hover {
+  color: var(--color-fail);
+  border-color: var(--color-fail);
+}
+
+.authActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.loginLink {
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.signupBtn {
+  font-size: 13px;
+  background-color: var(--color-border);
+  color: #FFFFFF;
+  padding: 4px 12px;
+  border: var(--hairline);
+}
+
+.signupBtn:hover {
+  background-color: var(--color-accent);
+}

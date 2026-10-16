@@ -134,8 +134,7 @@ def disposition_effect(
             value=sale_count,
             allowed_range=f">= min_sales ({min_sales})",
             reason=(
-                f"Sale count {sale_count} is less than required minimum sales "
-                f"threshold {min_sales}"
+                f"Sale count {sale_count} is less than required minimum sales threshold {min_sales}"
             ),
         )
 

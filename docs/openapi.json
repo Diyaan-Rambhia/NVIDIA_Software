@@ -1,0 +1,2119 @@
+{
+  "components": {
+    "schemas": {
+      "AgentAskRequest": {
+        "additionalProperties": false,
+        "description": "Request payload for POST /agent/ask.",
+        "properties": {
+          "budget_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Usd"
+          },
+          "max_steps": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Steps"
+          },
+          "query": {
+            "minLength": 1,
+            "title": "Query",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "title": "AgentAskRequest",
+        "type": "object"
+      },
+      "AgentAskResponse": {
+        "additionalProperties": false,
+        "description": "Response payload for POST /agent/ask.",
+        "properties": {
+          "answer": {
+            "title": "Answer",
+            "type": "string"
+          },
+          "disclaimer": {
+            "default": "Educational and research review only. FinInsight does not provide investment recommendations or financial advice.",
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "duration_ms": {
+            "minimum": 0.0,
+            "title": "Duration Ms",
+            "type": "number"
+          },
+          "is_placeholder": {
+            "default": false,
+            "title": "Is Placeholder",
+            "type": "boolean"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/AgentStep"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "total_cost_usd": {
+            "minimum": 0.0,
+            "title": "Total Cost Usd",
+            "type": "number"
+          }
+        },
+        "required": [
+          "query",
+          "answer",
+          "steps",
+          "total_cost_usd",
+          "duration_ms"
+        ],
+        "title": "AgentAskResponse",
+        "type": "object"
+      },
+      "AgentStep": {
+        "additionalProperties": false,
+        "description": "Single execution step in an agent tool loop per Batch X10.",
+        "properties": {
+          "duration_ms": {
+            "minimum": 0.0,
+            "title": "Duration Ms",
+            "type": "number"
+          },
+          "est_cost_usd": {
+            "minimum": 0.0,
+            "title": "Est Cost Usd",
+            "type": "number"
+          },
+          "input_summary": {
+            "title": "Input Summary",
+            "type": "string"
+          },
+          "output_summary": {
+            "title": "Output Summary",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "success",
+              "denied",
+              "error"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "step_number": {
+            "minimum": 1.0,
+            "title": "Step Number",
+            "type": "integer"
+          },
+          "tool_name": {
+            "title": "Tool Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "step_number",
+          "tool_name",
+          "input_summary",
+          "output_summary",
+          "status",
+          "est_cost_usd",
+          "duration_ms"
+        ],
+        "title": "AgentStep",
+        "type": "object"
+      },
+      "BenchmarkReplay": {
+        "additionalProperties": false,
+        "description": "Cash flow replay into a benchmark series.",
+        "properties": {
+          "benchmark_name": {
+            "title": "Benchmark Name",
+            "type": "string"
+          },
+          "partial_shortfall": {
+            "default": false,
+            "title": "Partial Shortfall",
+            "type": "boolean"
+          },
+          "terminal_value": {
+            "title": "Terminal Value",
+            "type": "number"
+          },
+          "xirr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Xirr"
+          }
+        },
+        "required": [
+          "benchmark_name",
+          "terminal_value"
+        ],
+        "title": "BenchmarkReplay",
+        "type": "object"
+      },
+      "ColumnMapping": {
+        "additionalProperties": false,
+        "description": "Explicit mapping from raw CSV headers to canonical trade fields.",
+        "properties": {
+          "charges": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Charges"
+          },
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "exchange": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exchange"
+          },
+          "fees": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fees"
+          },
+          "marker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Marker"
+          },
+          "price": {
+            "title": "Price",
+            "type": "string"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "string"
+          },
+          "segment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Segment"
+          },
+          "side": {
+            "title": "Side",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "symbol",
+          "side",
+          "quantity",
+          "price"
+        ],
+        "title": "ColumnMapping",
+        "type": "object"
+      },
+      "DecisionReview": {
+        "additionalProperties": false,
+        "description": "Complete Feature 3 decision review output.",
+        "properties": {
+          "benchmark_replays": {
+            "items": {
+              "$ref": "#/components/schemas/BenchmarkReplay"
+            },
+            "title": "Benchmark Replays",
+            "type": "array"
+          },
+          "disclaimer": {
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "institutional_metrics": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InstitutionalMetrics"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "is_synthetic_demo": {
+            "default": false,
+            "title": "Is Synthetic Demo",
+            "type": "boolean"
+          },
+          "parameters_used": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "title": "Parameters Used",
+            "type": "object"
+          },
+          "portfolio": {
+            "$ref": "#/components/schemas/Portfolio"
+          },
+          "portfolio_xirr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Portfolio Xirr"
+          },
+          "process_metrics": {
+            "$ref": "#/components/schemas/ProcessMetrics"
+          },
+          "review_text": {
+            "title": "Review Text",
+            "type": "string"
+          },
+          "synthetic_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Synthetic Label"
+          }
+        },
+        "required": [
+          "portfolio",
+          "benchmark_replays",
+          "process_metrics",
+          "review_text",
+          "disclaimer",
+          "parameters_used"
+        ],
+        "title": "DecisionReview",
+        "type": "object"
+      },
+      "EntitlementsResponse": {
+        "additionalProperties": false,
+        "description": "Response payload for GET /api/entitlements.",
+        "properties": {
+          "features": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/FeatureEntitlementDetail"
+            },
+            "title": "Features",
+            "type": "object"
+          },
+          "plan": {
+            "title": "Plan",
+            "type": "string"
+          },
+          "segment": {
+            "title": "Segment",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "plan",
+          "segment",
+          "features"
+        ],
+        "title": "EntitlementsResponse",
+        "type": "object"
+      },
+      "F3ReviewRequest": {
+        "additionalProperties": false,
+        "description": "Payload for POST /f3/review.",
+        "properties": {
+          "benchmark_symbol": {
+            "default": "NSEI",
+            "title": "Benchmark Symbol",
+            "type": "string"
+          },
+          "consent_given": {
+            "default": false,
+            "title": "Consent Given",
+            "type": "boolean"
+          },
+          "csv_text": {
+            "title": "Csv Text",
+            "type": "string"
+          },
+          "mapping": {
+            "$ref": "#/components/schemas/ColumnMapping"
+          },
+          "matched_index_symbol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Matched Index Symbol"
+          }
+        },
+        "required": [
+          "csv_text",
+          "mapping"
+        ],
+        "title": "F3ReviewRequest",
+        "type": "object"
+      },
+      "FeatureEntitlementDetail": {
+        "additionalProperties": false,
+        "description": "Status of a specific feature entitlement.",
+        "properties": {
+          "allowed": {
+            "title": "Allowed",
+            "type": "boolean"
+          },
+          "decision": {
+            "title": "Decision",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "remaining_quota": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remaining Quota"
+          },
+          "reset_time": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reset Time"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "integer"
+          },
+          "upgrade_targets": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Upgrade Targets"
+          }
+        },
+        "required": [
+          "state",
+          "decision",
+          "status",
+          "allowed"
+        ],
+        "title": "FeatureEntitlementDetail",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "InstitutionalMetrics": {
+        "additionalProperties": false,
+        "description": "Institutional relative performance metrics.",
+        "properties": {
+          "alpha": {
+            "title": "Alpha",
+            "type": "number"
+          },
+          "beta": {
+            "title": "Beta",
+            "type": "number"
+          },
+          "information_ratio": {
+            "title": "Information Ratio",
+            "type": "number"
+          },
+          "tracking_error": {
+            "title": "Tracking Error",
+            "type": "number"
+          }
+        },
+        "required": [
+          "beta",
+          "alpha",
+          "tracking_error",
+          "information_ratio"
+        ],
+        "title": "InstitutionalMetrics",
+        "type": "object"
+      },
+      "LoginRequest": {
+        "additionalProperties": false,
+        "description": "User login payload.",
+        "properties": {
+          "email": {
+            "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "minLength": 1,
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginRequest",
+        "type": "object"
+      },
+      "LoginResponse": {
+        "additionalProperties": false,
+        "description": "User login response.",
+        "properties": {
+          "access_token": {
+            "title": "Access Token",
+            "type": "string"
+          },
+          "token_type": {
+            "default": "bearer",
+            "title": "Token Type",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token",
+          "user_id"
+        ],
+        "title": "LoginResponse",
+        "type": "object"
+      },
+      "NemotronCallRequest": {
+        "description": "Payload for executing a live runtime call to Nemotron.",
+        "properties": {
+          "alias": {
+            "default": "fast",
+            "description": "Model alias (fast, mid, deep)",
+            "title": "Alias",
+            "type": "string"
+          },
+          "prompt": {
+            "description": "User prompt",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Prompt",
+            "type": "string"
+          }
+        },
+        "required": [
+          "prompt"
+        ],
+        "title": "NemotronCallRequest",
+        "type": "object"
+      },
+      "NemotronCallResponse": {
+        "description": "Response containing live Nemotron completion.",
+        "properties": {
+          "alias": {
+            "title": "Alias",
+            "type": "string"
+          },
+          "model_id": {
+            "title": "Model Id",
+            "type": "string"
+          },
+          "response": {
+            "title": "Response",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "unverified_note": {
+            "title": "Unverified Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "alias",
+          "model_id",
+          "response",
+          "unverified_note"
+        ],
+        "title": "NemotronCallResponse",
+        "type": "object"
+      },
+      "Portfolio": {
+        "additionalProperties": false,
+        "description": "Aggregated portfolio positions and valuations.",
+        "properties": {
+          "cash_balance": {
+            "default": 0.0,
+            "title": "Cash Balance",
+            "type": "number"
+          },
+          "positions": {
+            "items": {
+              "$ref": "#/components/schemas/Position"
+            },
+            "title": "Positions",
+            "type": "array"
+          },
+          "total_cost": {
+            "title": "Total Cost",
+            "type": "number"
+          },
+          "total_market_value": {
+            "title": "Total Market Value",
+            "type": "number"
+          },
+          "total_realized_pnl": {
+            "title": "Total Realized Pnl",
+            "type": "number"
+          },
+          "total_unrealized_pnl": {
+            "title": "Total Unrealized Pnl",
+            "type": "number"
+          }
+        },
+        "required": [
+          "positions",
+          "total_cost",
+          "total_market_value",
+          "total_realized_pnl",
+          "total_unrealized_pnl"
+        ],
+        "title": "Portfolio",
+        "type": "object"
+      },
+      "Position": {
+        "additionalProperties": false,
+        "description": "Open or closed position summary for a single instrument.",
+        "properties": {
+          "average_buy_price": {
+            "title": "Average Buy Price",
+            "type": "number"
+          },
+          "current_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Price"
+          },
+          "current_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Value"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "number"
+          },
+          "realized_pnl": {
+            "title": "Realized Pnl",
+            "type": "number"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "unrealized_pnl": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unrealized Pnl"
+          }
+        },
+        "required": [
+          "symbol",
+          "quantity",
+          "average_buy_price",
+          "realized_pnl"
+        ],
+        "title": "Position",
+        "type": "object"
+      },
+      "ProcessMetrics": {
+        "additionalProperties": false,
+        "description": "Execution and decision process metrics.",
+        "properties": {
+          "concentration_hhi": {
+            "title": "Concentration Hhi",
+            "type": "number"
+          },
+          "disposition_effect": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Disposition Effect",
+            "type": "object"
+          },
+          "max_drawdown": {
+            "title": "Max Drawdown",
+            "type": "number"
+          },
+          "process_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Process Label"
+          },
+          "turnover": {
+            "title": "Turnover",
+            "type": "number"
+          }
+        },
+        "required": [
+          "concentration_hhi",
+          "turnover",
+          "disposition_effect",
+          "max_drawdown"
+        ],
+        "title": "ProcessMetrics",
+        "type": "object"
+      },
+      "ReviewVerificationRequest": {
+        "additionalProperties": false,
+        "description": "Admin review decision payload.",
+        "properties": {
+          "action": {
+            "enum": [
+              "approve",
+              "reject"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "review_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Notes"
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "title": "ReviewVerificationRequest",
+        "type": "object"
+      },
+      "SignUpRequest": {
+        "additionalProperties": false,
+        "description": "Sign up payload.",
+        "properties": {
+          "email": {
+            "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "minLength": 8,
+            "title": "Password",
+            "type": "string"
+          },
+          "segment": {
+            "enum": [
+              "retail",
+              "institutional"
+            ],
+            "title": "Segment",
+            "type": "string"
+          },
+          "tos_accepted": {
+            "description": "Must accept Terms of Service and educational disclaimer",
+            "title": "Tos Accepted",
+            "type": "boolean"
+          },
+          "tos_version": {
+            "default": "v1",
+            "title": "Tos Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "segment",
+          "tos_accepted"
+        ],
+        "title": "SignUpRequest",
+        "type": "object"
+      },
+      "SignUpResponse": {
+        "additionalProperties": false,
+        "description": "Sign up response.",
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "plan": {
+            "title": "Plan",
+            "type": "string"
+          },
+          "requires_email_verification": {
+            "default": true,
+            "title": "Requires Email Verification",
+            "type": "boolean"
+          },
+          "segment": {
+            "title": "Segment",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "email",
+          "segment",
+          "plan",
+          "message"
+        ],
+        "title": "SignUpResponse",
+        "type": "object"
+      },
+      "SubmitVerificationRequest": {
+        "additionalProperties": false,
+        "description": "Institutional regulator registration submission payload.",
+        "properties": {
+          "registration_number": {
+            "maxLength": 100,
+            "minLength": 3,
+            "title": "Registration Number",
+            "type": "string"
+          },
+          "regulator": {
+            "description": "Regulator name, e.g. SEBI, RBI",
+            "maxLength": 50,
+            "minLength": 2,
+            "title": "Regulator",
+            "type": "string"
+          }
+        },
+        "required": [
+          "regulator",
+          "registration_number"
+        ],
+        "title": "SubmitVerificationRequest",
+        "type": "object"
+      },
+      "UserProfileResponse": {
+        "additionalProperties": false,
+        "description": "User profile response.",
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "plan": {
+            "title": "Plan",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "segment": {
+            "title": "Segment",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "tos_accepted_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tos Accepted Version"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "email",
+          "segment",
+          "plan",
+          "role",
+          "status"
+        ],
+        "title": "UserProfileResponse",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "VerificationResponse": {
+        "additionalProperties": false,
+        "description": "Institutional verification record response.",
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "registration_number": {
+            "title": "Registration Number",
+            "type": "string"
+          },
+          "regulator": {
+            "title": "Regulator",
+            "type": "string"
+          },
+          "review_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Notes"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "user_id",
+          "regulator",
+          "registration_number",
+          "status"
+        ],
+        "title": "VerificationResponse",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "FinInsight",
+    "version": "ae0167c"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "root_redirect__get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Root Redirect"
+      }
+    },
+    "/agent/ask": {
+      "post": {
+        "description": "Execute multi-step agent query across analytical features with entitlement verification.",
+        "operationId": "ask_agent_agent_ask_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentAskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentAskResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ask Agent",
+        "tags": [
+          "agent"
+        ]
+      }
+    },
+    "/api/admin/verifications/{verification_id}/review": {
+      "post": {
+        "description": "Review and approve/reject institutional verification.\n\nUpon approval, upgrades user profile to institutional_paid.",
+        "operationId": "review_verification_api_admin_verifications__verification_id__review_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "verification_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Verification Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewVerificationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Review Verification",
+        "tags": [
+          "verifications"
+        ]
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "description": "Return profile details for authenticated user.",
+        "operationId": "get_me_api_auth_me_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Me",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/signup": {
+      "post": {
+        "description": "Create account via Supabase Auth and initialize public profile.",
+        "operationId": "signup_api_auth_signup_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignUpRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignUpResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Signup",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/token": {
+      "post": {
+        "description": "Exchange email and password for Supabase access token.",
+        "operationId": "login_api_auth_token_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Login",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/entitlements": {
+      "get": {
+        "description": "Return entitlement statuses and remaining quotas for authenticated user.",
+        "operationId": "get_user_entitlements_api_entitlements_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntitlementsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get User Entitlements",
+        "tags": [
+          "entitlements"
+        ]
+      }
+    },
+    "/api/verifications": {
+      "post": {
+        "description": "Submit regulator registration for institutional account verification.",
+        "operationId": "submit_verification_api_verifications_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitVerificationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Submit Verification",
+        "tags": [
+          "verifications"
+        ]
+      }
+    },
+    "/console": {
+      "get": {
+        "operationId": "console_index_console_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Console Index"
+      }
+    },
+    "/console/": {
+      "get": {
+        "operationId": "console_index_console__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Console Index"
+      }
+    },
+    "/console/config.html": {
+      "get": {
+        "operationId": "console_config_console_config_html_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Console Config"
+      }
+    },
+    "/console/index.html": {
+      "get": {
+        "operationId": "console_index_console_index_html_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Console Index"
+      }
+    },
+    "/f1/demo": {
+      "get": {
+        "description": "Return precomputed Feature 1 correlation scan demo JSON.",
+        "operationId": "get_f1_demo_f1_demo_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get F1 Demo F1 Demo Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get F1 Demo",
+        "tags": [
+          "feature1_contagion"
+        ]
+      }
+    },
+    "/f2/demo": {
+      "get": {
+        "description": "Return precomputed Feature 2 filings consistency demo JSON.",
+        "operationId": "get_f2_demo_f2_demo_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get F2 Demo F2 Demo Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get F2 Demo",
+        "tags": [
+          "feature2_filings"
+        ]
+      }
+    },
+    "/f3/demo": {
+      "get": {
+        "description": "Return precomputed Feature 3 review demo JSON.",
+        "operationId": "get_f3_demo_f3_demo_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecisionReview"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get F3 Demo",
+        "tags": [
+          "feature3_forensic"
+        ]
+      }
+    },
+    "/f3/review": {
+      "post": {
+        "description": "Parse uploaded real trade log CSV, compute XIRR and metrics, and return DecisionReview.",
+        "operationId": "review_trade_log_f3_review_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/F3ReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecisionReview"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Review Trade Log",
+        "tags": [
+          "feature3_forensic"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "description": "Liveness probe.",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Health Health Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health"
+      }
+    },
+    "/llm/runtime_call": {
+      "post": {
+        "description": "Execute a live, budget-guarded Nemotron runtime call via Nebius Token Factory.\n\nReturns a loud failure if NEBIUS_API_KEY is unconfigured. Never falls back to placeholder.\nMarked unverified until a real call succeeds.",
+        "operationId": "call_nemotron_runtime_llm_runtime_call_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NemotronCallRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NemotronCallResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Call Nemotron Runtime",
+        "tags": [
+          "llm_runtime"
+        ]
+      }
+    },
+    "/ops/activity/events": {
+      "get": {
+        "description": "Return recent system events. Never exposes prompts, emails, or keys.",
+        "operationId": "get_ops_activity_events_ops_activity_events_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response Get Ops Activity Events Ops Activity Events Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Ops Activity Events",
+        "tags": [
+          "ops"
+        ]
+      }
+    },
+    "/ops/activity/llm": {
+      "get": {
+        "description": "Return recent LLM ledger rows. Never exposes prompts, user emails, or keys.",
+        "operationId": "get_ops_activity_llm_ops_activity_llm_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response Get Ops Activity Llm Ops Activity Llm Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Ops Activity Llm",
+        "tags": [
+          "ops"
+        ]
+      }
+    },
+    "/ops/config": {
+      "get": {
+        "description": "Return environment variables grouped with presence and required-when-enabled status.\n\nNever exposes actual variable values.",
+        "operationId": "get_ops_config_ops_config_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Ops Config Ops Config Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Ops Config",
+        "tags": [
+          "ops"
+        ]
+      }
+    },
+    "/ops/parameters": {
+      "get": {
+        "description": "Return the loaded parameter register table with bounds and defaults.",
+        "operationId": "get_ops_parameters_ops_parameters_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Ops Parameters Ops Parameters Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Ops Parameters",
+        "tags": [
+          "ops"
+        ]
+      }
+    },
+    "/ops/status": {
+      "get": {
+        "description": "Return operational status, versions, uptime, and enabled groups.",
+        "operationId": "get_ops_status_ops_status_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Ops Status Ops Status Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Ops Status",
+        "tags": [
+          "ops"
+        ]
+      }
+    },
+    "/ready": {
+      "get": {
+        "description": "Readiness probe checking configuration and enabled groups.",
+        "operationId": "ready_ready_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Ready Ready Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Ready"
+      }
+    }
+  }
+}

@@ -8,6 +8,8 @@ import yaml
 from backend.app.config.env import ConfigError
 from backend.app.config.loader import (
     ParameterError,
+    get_risk_free_rate,
+    get_risk_free_rate_parameters,
     load_all_config,
     load_config_file,
     resolve_parameters,
@@ -18,6 +20,7 @@ from backend.app.config.models import (
     LexiconConfig,
     ParametersConfig,
     PlansConfig,
+    RiskFreeConfig,
     ThresholdsConfig,
     UniverseConfig,
 )
@@ -27,6 +30,11 @@ def test_load_all_config_success() -> None:
     """Verify that all six real config files load through load_all_config()."""
     config = load_all_config(Path("config"))
     assert "W" in config.parameters.parameters
+    assert config.parameters.risk_free.value == 5.7281
+    assert config.parameters.risk_free.unit == "percent per annum"
+    assert config.parameters.risk_free.status == "provisional, no advisor review"
+    assert config.parameters.risk_free.source == "RBI 91-day T-bill auction cut-off yield (Treasury Bills: Full Auction Result, press release 2026-2027/1326)"
+    assert config.parameters.risk_free.as_of == "14 October 2026 auction"
     assert "chunk_size" in config.parameters.parameters
     assert config.parameters.parameters["chunk_size"].default == 1200
     assert "chunk_overlap" in config.parameters.parameters
@@ -49,6 +57,79 @@ def test_load_all_config_success() -> None:
     assert "fmcg" in config.universe.sectors
     assert "ilfs_crisis" in config.episodes.episodes
     assert len(config.lexicon.positive_phrases) > 0
+
+
+def test_risk_free_rate_null_raises() -> None:
+    """Accessing risk-free rate when null must raise ParameterError."""
+    cfg = ParametersConfig(
+        risk_free=RiskFreeConfig(value=None, status="pending", source=None, as_of=None),
+        parameters={},
+    )
+    with pytest.raises(ParameterError, match="Risk-free rate is null"):
+        get_risk_free_rate(cfg)
+
+
+def test_risk_free_rate_percent_to_decimal_conversion() -> None:
+    """Config converts percent per annum rate to decimal explicitly (5.7281 -> 0.057281)."""
+    # Test on default loaded config
+    assert get_risk_free_rate() == 0.057281
+
+    # Test on explicit config
+    cfg = ParametersConfig(
+        risk_free=RiskFreeConfig(
+            value=5.7281,
+            unit="percent per annum",
+            status="provisional, no advisor review",
+            source="RBI 91-day T-bill auction cut-off yield (Treasury Bills: Full Auction Result, press release 2026-2027/1326)",
+            as_of="14 October 2026 auction",
+        ),
+        parameters={},
+    )
+    assert get_risk_free_rate(cfg) == 0.057281
+
+    params = get_risk_free_rate_parameters(cfg)
+    assert params["value"] == 5.7281
+    assert params["unit"] == "percent per annum"
+    assert params["source"] == "RBI 91-day T-bill auction cut-off yield (Treasury Bills: Full Auction Result, press release 2026-2027/1326)"
+    assert params["as_of"] == "14 October 2026 auction"
+    assert params["decimal_rate"] == 0.057281
+
+
+def test_risk_free_rate_missing_or_unknown_unit_raises() -> None:
+    """Missing or unknown unit for non-null risk-free rate must raise ParameterError."""
+    # Missing unit
+    cfg_missing = ParametersConfig(
+        risk_free=RiskFreeConfig(
+            value=5.2624,
+            unit=None,
+            status="provisional, no advisor review",
+            source="RBI 91-day T-bill auction cut-off yield",
+            as_of="August 2026 auction",
+        ),
+        parameters={},
+    )
+    with pytest.raises(ParameterError, match="unit is missing"):
+        get_risk_free_rate(cfg_missing)
+
+    # Unknown unit
+    cfg_unknown = ParametersConfig(
+        risk_free=RiskFreeConfig(
+            value=5.2624,
+            unit="basis points",
+            status="provisional, no advisor review",
+            source="RBI 91-day T-bill auction cut-off yield",
+            as_of="August 2026 auction",
+        ),
+        parameters={},
+    )
+    with pytest.raises(ParameterError, match="Unknown risk-free rate unit"):
+        get_risk_free_rate(cfg_unknown)
+
+
+def test_risk_free_pending_with_value_rejected() -> None:
+    """RiskFreeConfig with pending status and non-null value is rejected."""
+    with pytest.raises(ValueError, match="Pending risk-free rate must have null value"):
+        RiskFreeConfig(value=0.05, status="pending", source=None, as_of=None)
 
 
 # ---------------------------------------------------------------------------

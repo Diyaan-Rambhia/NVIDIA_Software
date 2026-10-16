@@ -1,0 +1,10 @@
+<!-- logo-horizontal.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 64" width="240" height="64" role="img" aria-label="FinFriend">
+  <title>FinFriend</title>
+  <rect width="240" height="64" fill="#0F1318"/>
+  <rect x="2.5" y="2.5" width="59" height="59" fill="none" stroke="#8A94A3" stroke-width="1"/>
+  <polyline points="8,40 20,48 32,50 42,44 52,32" fill="none" stroke="#8A94A3" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="10"/>
+  <polyline points="8,22 14,16 20,24 27,12 34,22 40,18 46,26 52,32" fill="none" stroke="#D3D9E0" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="10"/>
+  <rect x="50" y="30" width="4" height="4" fill="#7C8CA0"/>
+  <text x="80" y="41" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="28" font-weight="600" letter-spacing="-0.5"><tspan fill="#D3D9E0">Fin</tspan><tspan fill="#8A94A3">Friend</tspan></text>
+</svg>

@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from backend.app.config.env import (
+    REGISTRY,
     REGISTRY_BY_NAME,
     ConfigError,
     SecretRedactionFilter,
@@ -19,8 +20,30 @@ from backend.app.config.env import (
 
 
 def test_registry_matches_example() -> None:
-    """Verify registry exactly matches the repository .env.example file."""
+    """Verify registry exactly matches the repository .env.example file and variable count."""
     verify_registry_against_example()
+    assert len(REGISTRY) == 28
+
+
+def test_supabase_password_registry_and_validation(tmp_path: Path) -> None:
+    """Verify SUPABASE_PASSWORD definition in registry, settings loading, and validation."""
+    pw_def = REGISTRY_BY_NAME["SUPABASE_PASSWORD"]
+    assert pw_def.group == "supabase"
+    assert pw_def.secret is True
+    assert pw_def.required_when_group_enabled is True
+
+    env_file = tmp_path / "supabase.env"
+    env_file.write_text("SUPABASE_PASSWORD=pg_super_secret_password\n", encoding="utf-8")
+    settings = load_settings(env_file=env_file)
+    assert settings.supabase_password is not None
+    assert settings.supabase_password.get_secret_value() == "pg_super_secret_password"
+
+    empty_env = tmp_path / "empty.env"
+    empty_env.write_text("", encoding="utf-8")
+    empty_settings = load_settings(env_file=empty_env)
+    with pytest.raises(ConfigError) as exc_info:
+        validate_enabled_groups(empty_settings, ["supabase"])
+    assert "SUPABASE_PASSWORD" in str(exc_info.value)
 
 
 def test_registry_mismatch_detection(tmp_path: Path) -> None:
@@ -75,7 +98,7 @@ def test_process_env_overrides_file(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     """Verify process environment variables take precedence over file values."""
     env_file = tmp_path / "test.env"
     env_file.write_text(
-        "APP_ENV=from_file\n" "NEBIUS_BASE_URL=https://file.example.com\n",
+        "APP_ENV=from_file\nNEBIUS_BASE_URL=https://file.example.com\n",
         encoding="utf-8",
     )
 
@@ -101,7 +124,7 @@ def test_presence_mapping(tmp_path: Path) -> None:
     """Verify presence returns correct boolean mapping per group and variable."""
     env_file = tmp_path / "presence.env"
     env_file.write_text(
-        "APP_ENV=production\n" "TAVILY_API_KEY=tavily_secret_key_123456\n",
+        "APP_ENV=production\nTAVILY_API_KEY=tavily_secret_key_123456\n",
         encoding="utf-8",
     )
 

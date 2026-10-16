@@ -3,9 +3,9 @@
 .env.*
 !.env.example
 
-# Sensitive data and local archives
-private/
-data/
+# Sensitive data and local archives (project root only)
+/private/
+/data/
 
 # Python caches
 __pycache__/
@@ -24,3 +24,18 @@ env/
 # OS / Editor artifacts
 .DS_Store
 Thumbs.db
+
+# Node and Next.js
+node_modules/
+.next/
+out/
+coverage/
+test-results/
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+
+# Frontend env files
+frontend/web/.env
+frontend/web/.env.*
+!frontend/web/.env.example

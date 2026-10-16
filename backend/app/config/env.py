@@ -45,6 +45,7 @@ REGISTRY: tuple[EnvVarDef, ...] = (
     ),
     EnvVarDef("SUPABASE_JWT_SECRET", "supabase", secret=True, required_when_group_enabled=True),
     EnvVarDef("DATABASE_URL", "supabase", secret=True, required_when_group_enabled=True),
+    EnvVarDef("SUPABASE_PASSWORD", "supabase", secret=True, required_when_group_enabled=True),
     # Market data group
     EnvVarDef("PRICE_API_KEY", "market_data", secret=True, required_when_group_enabled=True),
     EnvVarDef("FRED_API_KEY", "market_data", secret=True, required_when_group_enabled=True),
@@ -141,6 +142,7 @@ class Settings(BaseSettings):
     supabase_service_role_key: Optional[SecretStr] = None
     supabase_jwt_secret: Optional[SecretStr] = None
     database_url: Optional[SecretStr] = None
+    supabase_password: Optional[SecretStr] = None
 
     # Market data group
     price_api_key: Optional[SecretStr] = None
@@ -260,9 +262,7 @@ def load_runtime_config(config_path: Optional[Path | str] = None) -> list[str]:
 
     enabled = data["enabled_groups"]
     if not isinstance(enabled, list):
-        raise ConfigError(
-            f"Runtime configuration file {target}: 'enabled_groups' must be a list"
-        )
+        raise ConfigError(f"Runtime configuration file {target}: 'enabled_groups' must be a list")
 
     for item in enabled:
         if not isinstance(item, str):
@@ -346,8 +346,7 @@ class SecretRedactionFilter(logging.Filter):
                 record.args = tuple(self._redact_value(arg) for arg in record.args)
             elif isinstance(record.args, dict):
                 record.args = {
-                    self._redact_value(k): self._redact_value(v)
-                    for k, v in record.args.items()
+                    self._redact_value(k): self._redact_value(v) for k, v in record.args.items()
                 }
             else:
                 record.args = self._redact_value(record.args)

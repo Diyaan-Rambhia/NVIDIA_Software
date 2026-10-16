@@ -1,0 +1,171 @@
+{
+  "$defs": {
+    "Trade": {
+      "additionalProperties": false,
+      "description": "Single trade execution record.",
+      "properties": {
+        "charges": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Charges"
+        },
+        "date": {
+          "title": "Date",
+          "type": "string"
+        },
+        "exchange": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exchange"
+        },
+        "fees": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fees"
+        },
+        "marker": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Marker"
+        },
+        "price": {
+          "exclusiveMinimum": 0,
+          "title": "Price",
+          "type": "number"
+        },
+        "quantity": {
+          "exclusiveMinimum": 0,
+          "title": "Quantity",
+          "type": "number"
+        },
+        "segment": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Segment"
+        },
+        "side": {
+          "enum": [
+            "BUY",
+            "SELL"
+          ],
+          "title": "Side",
+          "type": "string"
+        },
+        "symbol": {
+          "title": "Symbol",
+          "type": "string"
+        }
+      },
+      "required": [
+        "date",
+        "symbol",
+        "side",
+        "quantity",
+        "price"
+      ],
+      "title": "Trade",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Container for parsed trades and retention metadata.",
+  "properties": {
+    "consent_given": {
+      "default": false,
+      "title": "Consent Given",
+      "type": "boolean"
+    },
+    "end_date": {
+      "title": "End Date",
+      "type": "string"
+    },
+    "is_retained": {
+      "default": false,
+      "title": "Is Retained",
+      "type": "boolean"
+    },
+    "is_synthetic_demo": {
+      "default": false,
+      "title": "Is Synthetic Demo",
+      "type": "boolean"
+    },
+    "start_date": {
+      "title": "Start Date",
+      "type": "string"
+    },
+    "symbols": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Symbols",
+      "type": "array"
+    },
+    "synthetic_marker": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Synthetic Marker"
+    },
+    "total_trades": {
+      "title": "Total Trades",
+      "type": "integer"
+    },
+    "trades": {
+      "items": {
+        "$ref": "#/$defs/Trade"
+      },
+      "title": "Trades",
+      "type": "array"
+    }
+  },
+  "required": [
+    "trades",
+    "total_trades",
+    "symbols",
+    "start_date",
+    "end_date"
+  ],
+  "title": "TradeLog",
+  "type": "object"
+}

@@ -1,0 +1,53 @@
+{
+  "additionalProperties": false,
+  "description": "Single execution step in an agent tool loop per Batch X10.",
+  "properties": {
+    "duration_ms": {
+      "minimum": 0.0,
+      "title": "Duration Ms",
+      "type": "number"
+    },
+    "est_cost_usd": {
+      "minimum": 0.0,
+      "title": "Est Cost Usd",
+      "type": "number"
+    },
+    "input_summary": {
+      "title": "Input Summary",
+      "type": "string"
+    },
+    "output_summary": {
+      "title": "Output Summary",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "success",
+        "denied",
+        "error"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "step_number": {
+      "minimum": 1,
+      "title": "Step Number",
+      "type": "integer"
+    },
+    "tool_name": {
+      "title": "Tool Name",
+      "type": "string"
+    }
+  },
+  "required": [
+    "step_number",
+    "tool_name",
+    "input_summary",
+    "output_summary",
+    "status",
+    "est_cost_usd",
+    "duration_ms"
+  ],
+  "title": "AgentStep",
+  "type": "object"
+}

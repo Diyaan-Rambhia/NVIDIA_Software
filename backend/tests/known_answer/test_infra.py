@@ -108,18 +108,24 @@ def test_cache_key_sensitivity_to_each_input() -> None:
 def test_budget_guard_under_limit_passes() -> None:
     """Spend below limit minus one cent passes."""
     # Spend $0.99, call cost $0.00, limit $1.00 -> total $0.99 < $1.00
-    assert check_budget_guard(
-        spend_so_far=0.99,
-        estimated_cost=0.00,
-        daily_limit=1.00,
-    ) is True
+    assert (
+        check_budget_guard(
+            spend_so_far=0.99,
+            estimated_cost=0.00,
+            daily_limit=1.00,
+        )
+        is True
+    )
 
     # Spend $0.50, call cost $0.49, limit $1.00 -> total $0.99 < $1.00
-    assert check_budget_guard(
-        spend_so_far=0.50,
-        estimated_cost=0.49,
-        daily_limit=1.00,
-    ) is True
+    assert (
+        check_budget_guard(
+            spend_so_far=0.50,
+            estimated_cost=0.49,
+            daily_limit=1.00,
+        )
+        is True
+    )
 
 
 def test_budget_guard_at_limit_refuses() -> None:

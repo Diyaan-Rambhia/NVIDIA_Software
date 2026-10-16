@@ -103,9 +103,7 @@ def test_adjusted_figure_guard(base_claim: Claim, base_metric: FilingMetric) -> 
 def test_r0_stated_number_pass(base_claim: Claim, base_metric: FilingMetric) -> None:
     """R0 passes when stated figure is within tolerance of filed figure."""
     # Stated 10.2% vs filed 10.0%, tolerance 0.5 pp -> diff 0.2 <= 0.5
-    res = evaluate_r0_stated_number(
-        base_claim, base_metric, stated_value=10.2, tolerance_pp=0.5
-    )
+    res = evaluate_r0_stated_number(base_claim, base_metric, stated_value=10.2, tolerance_pp=0.5)
     assert res.rule_id == "R0"
     assert res.status == "pass"
     assert res.severity == "none"
@@ -114,17 +112,13 @@ def test_r0_stated_number_pass(base_claim: Claim, base_metric: FilingMetric) -> 
 def test_r0_stated_number_flag(base_claim: Claim, base_metric: FilingMetric) -> None:
     """R0 flags when stated figure differs from filed figure by more than tolerance."""
     # Stated 12.0% vs filed 10.0%, diff 2.0 > 0.5 pp
-    res = evaluate_r0_stated_number(
-        base_claim, base_metric, stated_value=12.0, tolerance_pp=0.5
-    )
+    res = evaluate_r0_stated_number(base_claim, base_metric, stated_value=12.0, tolerance_pp=0.5)
     assert res.rule_id == "R0"
     assert res.status == "flag"
     assert res.severity == "high"
 
 
-def test_r0_stated_number_not_applicable(
-    base_claim: Claim, base_metric: FilingMetric
-) -> None:
+def test_r0_stated_number_not_applicable(base_claim: Claim, base_metric: FilingMetric) -> None:
     """R0 returns not_applicable when no stated number is provided."""
     res = evaluate_r0_stated_number(base_claim, base_metric, stated_value=None)
     assert res.rule_id == "R0"
@@ -158,9 +152,7 @@ def test_r1_direction_flag(base_claim: Claim, base_metric: FilingMetric) -> None
     assert res_dec.severity == "high"
 
 
-def test_r1_direction_not_applicable(
-    base_claim: Claim, base_metric: FilingMetric
-) -> None:
+def test_r1_direction_not_applicable(base_claim: Claim, base_metric: FilingMetric) -> None:
     """R1 returns not_applicable when direction is neutral or filing change is missing."""
     neutral_claim = base_claim.model_copy(update={"direction": "stable"})
     res = evaluate_r1_direction(neutral_claim, base_metric, filing_change=1.0)
@@ -179,9 +171,7 @@ def test_r1_direction_not_applicable(
 def test_r2_magnitude_pass(base_claim: Claim, base_metric: FilingMetric) -> None:
     """R2 passes when growth meets or exceeds strong growth threshold."""
     # "strong" descriptor with growth 0.12 >= strong_threshold 0.08
-    res = evaluate_r2_magnitude(
-        base_claim, base_metric, growth=0.12, strong_threshold=0.08
-    )
+    res = evaluate_r2_magnitude(base_claim, base_metric, growth=0.12, strong_threshold=0.08)
     assert res.rule_id == "R2"
     assert res.status == "pass"
 
@@ -189,9 +179,7 @@ def test_r2_magnitude_pass(base_claim: Claim, base_metric: FilingMetric) -> None
 def test_r2_magnitude_flag(base_claim: Claim, base_metric: FilingMetric) -> None:
     """R2 flags when growth is below strong growth threshold."""
     # "strong" descriptor with growth 0.03 < 0.08
-    res = evaluate_r2_magnitude(
-        base_claim, base_metric, growth=0.03, strong_threshold=0.08
-    )
+    res = evaluate_r2_magnitude(base_claim, base_metric, growth=0.03, strong_threshold=0.08)
     assert res.rule_id == "R2"
     assert res.status == "flag"
     assert res.severity == "medium"
@@ -214,21 +202,15 @@ def test_r2_magnitude_flag_with_sector_provisional_label(
     assert "provisional threshold" in (res.reason or "")
 
 
-def test_r2_magnitude_not_applicable(
-    base_claim: Claim, base_metric: FilingMetric
-) -> None:
+def test_r2_magnitude_not_applicable(base_claim: Claim, base_metric: FilingMetric) -> None:
     """R2 returns not_applicable when descriptor is not a strong word."""
     modest_claim = base_claim.model_copy(update={"descriptor": "modest"})
-    res = evaluate_r2_magnitude(
-        modest_claim, base_metric, growth=0.04, strong_threshold=0.08
-    )
+    res = evaluate_r2_magnitude(modest_claim, base_metric, growth=0.04, strong_threshold=0.08)
     assert res.rule_id == "R2"
     assert res.status == "not_applicable"
 
 
-def test_r2_magnitude_pending_threshold(
-    base_claim: Claim, base_metric: FilingMetric
-) -> None:
+def test_r2_magnitude_pending_threshold(base_claim: Claim, base_metric: FilingMetric) -> None:
     """R2 returns not_applicable with reason 'threshold pending' when threshold is unconfigured."""
     # Unlisted sector "aerospace"
     res = evaluate_r2_magnitude(
@@ -251,9 +233,7 @@ def test_r2_magnitude_pending_threshold(
 def test_r3_trend_pass(base_claim: Claim, base_metric: FilingMetric) -> None:
     """R3 passes when growth accelerated compared to prior period."""
     trend_claim = base_claim.model_copy(update={"descriptor": "accelerating"})
-    res = evaluate_r3_trend(
-        trend_claim, base_metric, current_growth=0.10, prior_growth=0.07
-    )
+    res = evaluate_r3_trend(trend_claim, base_metric, current_growth=0.10, prior_growth=0.07)
     assert res.rule_id == "R3"
     assert res.status == "pass"
 
@@ -261,9 +241,7 @@ def test_r3_trend_pass(base_claim: Claim, base_metric: FilingMetric) -> None:
 def test_r3_trend_flag(base_claim: Claim, base_metric: FilingMetric) -> None:
     """R3 flags when growth decelerated despite claim of accelerating momentum."""
     trend_claim = base_claim.model_copy(update={"descriptor": "accelerating"})
-    res = evaluate_r3_trend(
-        trend_claim, base_metric, current_growth=0.05, prior_growth=0.08
-    )
+    res = evaluate_r3_trend(trend_claim, base_metric, current_growth=0.05, prior_growth=0.08)
     assert res.rule_id == "R3"
     assert res.status == "flag"
     assert res.severity == "medium"
@@ -272,9 +250,7 @@ def test_r3_trend_flag(base_claim: Claim, base_metric: FilingMetric) -> None:
 def test_r3_trend_not_applicable(base_claim: Claim, base_metric: FilingMetric) -> None:
     """R3 returns not_applicable when descriptor is not a trend word or prior growth is missing."""
     non_trend_claim = base_claim.model_copy(update={"descriptor": "steady"})
-    res = evaluate_r3_trend(
-        non_trend_claim, base_metric, current_growth=0.08, prior_growth=0.05
-    )
+    res = evaluate_r3_trend(non_trend_claim, base_metric, current_growth=0.08, prior_growth=0.05)
     assert res.rule_id == "R3"
     assert res.status == "not_applicable"
 
@@ -316,13 +292,9 @@ def test_r4_profitability_flag(base_claim: Claim, base_metric: FilingMetric) -> 
     assert res.severity == "high"
 
 
-def test_r4_profitability_not_applicable(
-    base_claim: Claim, base_metric: FilingMetric
-) -> None:
+def test_r4_profitability_not_applicable(base_claim: Claim, base_metric: FilingMetric) -> None:
     """R4 returns not_applicable for non-margin claims or missing data."""
-    non_margin_claim = base_claim.model_copy(
-        update={"descriptor": "strong", "metric": "revenue"}
-    )
+    non_margin_claim = base_claim.model_copy(update={"descriptor": "strong", "metric": "revenue"})
     res = evaluate_r4_profitability(non_margin_claim, base_metric, margin_change=0.01)
     assert res.rule_id == "R4"
     assert res.status == "not_applicable"
@@ -367,9 +339,7 @@ def test_r5_cash_quality_flag(base_claim: Claim, base_metric: FilingMetric) -> N
     assert res.severity == "medium"
 
 
-def test_r5_cash_quality_not_applicable(
-    base_claim: Claim, base_metric: FilingMetric
-) -> None:
+def test_r5_cash_quality_not_applicable(base_claim: Claim, base_metric: FilingMetric) -> None:
     """R5 returns not_applicable for non-cash claims or missing inputs."""
     res = evaluate_r5_cash_quality(
         base_claim, base_metric, ocf_yoy_growth=0.10, ocf_conversion=0.80
@@ -433,9 +403,7 @@ def test_r6_working_capital_flag(base_claim: Claim, base_metric: FilingMetric) -
     assert res_dso.status == "flag"
 
 
-def test_r6_working_capital_not_applicable(
-    base_claim: Claim, base_metric: FilingMetric
-) -> None:
+def test_r6_working_capital_not_applicable(base_claim: Claim, base_metric: FilingMetric) -> None:
     """R6 returns not_applicable for non-WC claims or missing metrics."""
     res = evaluate_r6_working_capital(
         base_claim, base_metric, inventory_growth=0.10, revenue_growth=0.10
@@ -479,20 +447,14 @@ def test_r7_understatement_flag(base_claim: Claim, base_metric: FilingMetric) ->
     assert res.severity == "low"
 
 
-def test_r7_understatement_not_applicable(
-    base_claim: Claim, base_metric: FilingMetric
-) -> None:
+def test_r7_understatement_not_applicable(base_claim: Claim, base_metric: FilingMetric) -> None:
     """R7 returns not_applicable when descriptor is not cautious."""
-    res = evaluate_r7_understatement(
-        base_claim, base_metric, growth=0.25, strong_threshold=0.08
-    )
+    res = evaluate_r7_understatement(base_claim, base_metric, growth=0.25, strong_threshold=0.08)
     assert res.rule_id == "R7"
     assert res.status == "not_applicable"
 
 
-def test_r7_understatement_pending_threshold(
-    base_claim: Claim, base_metric: FilingMetric
-) -> None:
+def test_r7_understatement_pending_threshold(base_claim: Claim, base_metric: FilingMetric) -> None:
     """R7 returns not_applicable with reason 'threshold pending' when threshold is missing."""
     cautious_claim = base_claim.model_copy(update={"descriptor": "muted"})
     res = evaluate_r7_understatement(

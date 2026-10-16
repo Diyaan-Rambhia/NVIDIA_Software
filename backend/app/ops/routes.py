@@ -5,12 +5,14 @@ import sys
 import time
 from typing import Any
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 
+from backend.app.auth.dependencies import require_admin
 from backend.app.config.env import REGISTRY_BY_GROUP, is_var_present
+from backend.app.db.connection import get_connection
 from backend.app.version import get_code_version
 
-router = APIRouter(prefix="/ops", tags=["ops"])
+router = APIRouter(prefix="/ops", tags=["ops"], dependencies=[Depends(require_admin)])
 
 # Record server boot timestamp (relative monotonic or epoch for uptime seconds)
 SERVER_START_TIME = time.monotonic()
@@ -85,3 +87,69 @@ async def get_ops_parameters(request: Request) -> dict[str, Any]:
     return {
         "parameters": params_data,
     }
+
+
+@router.get("/activity/events")
+async def get_ops_activity_events(request: Request) -> list[dict[str, Any]]:
+    """Return recent system events. Never exposes prompts, emails, or keys."""
+    settings = request.app.state.settings
+    conn = get_connection(settings)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, ts, kind, subject, status, duration_ms
+                FROM public.events
+                ORDER BY ts DESC
+                LIMIT 50;
+                """
+            )
+            rows = cur.fetchall()
+            return [
+                {
+                    "id": str(r[0]),
+                    "ts": r[1].isoformat() if r[1] else None,
+                    "kind": str(r[2]),
+                    "subject": str(r[3]),
+                    "status": str(r[4]),
+                    "duration_ms": r[5],
+                }
+                for r in rows
+            ]
+    finally:
+        conn.close()
+
+
+@router.get("/activity/llm")
+async def get_ops_activity_llm(request: Request) -> list[dict[str, Any]]:
+    """Return recent LLM ledger rows. Never exposes prompts, user emails, or keys."""
+    settings = request.app.state.settings
+    conn = get_connection(settings)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, ts, route, alias, model_id,
+                       input_tokens, output_tokens, est_cost_usd, cache_hit
+                FROM public.llm_ledger
+                ORDER BY ts DESC
+                LIMIT 50;
+                """
+            )
+            rows = cur.fetchall()
+            return [
+                {
+                    "id": str(r[0]),
+                    "ts": r[1].isoformat() if r[1] else None,
+                    "route": str(r[2]),
+                    "alias": str(r[3]),
+                    "model_id": str(r[4]),
+                    "input_tokens": int(r[5]),
+                    "output_tokens": int(r[6]),
+                    "est_cost_usd": float(r[7]),
+                    "cache_hit": bool(r[8]),
+                }
+                for r in rows
+            ]
+    finally:
+        conn.close()

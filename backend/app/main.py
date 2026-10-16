@@ -6,13 +6,14 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request, Response, status
+from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
+from backend.app.auth.dependencies import require_admin
 from backend.app.config import (
     REGISTRY_BY_GROUP,
     AllConfig,
@@ -101,7 +102,17 @@ def create_app(
     # Initialize structured JSON logging with secret redaction
     configure_logging(settings)
 
-    app = FastAPI(title="FinInsight", version=get_code_version())
+    docs_url = None if settings.app_env == "production" else "/docs"
+    redoc_url = None if settings.app_env == "production" else "/redoc"
+    openapi_url = None if settings.app_env == "production" else "/openapi.json"
+
+    app = FastAPI(
+        title="FinInsight",
+        version=get_code_version(),
+        docs_url=docs_url,
+        redoc_url=redoc_url,
+        openapi_url=openapi_url,
+    )
 
     # Store loaded configs in app state
     app.state.settings = settings
@@ -111,6 +122,26 @@ def create_app(
 
     # Add Request-ID middleware
     app.add_middleware(RequestIDMiddleware)
+
+    # CORS origins loaded from config; never defaults to "*"
+    from fastapi.middleware.cors import CORSMiddleware
+
+    cors_origins: list[str] = []
+    if all_config and "cors_origins" in all_config.parameters.parameters:
+        val = all_config.parameters.parameters["cors_origins"].default
+        if isinstance(val, str):
+            cors_origins = [o.strip() for o in val.split(",") if o.strip() and o.strip() != "*"]
+        elif isinstance(val, list):
+            cors_origins = [str(o).strip() for o in val if str(o).strip() != "*"]
+
+    if cors_origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=cors_origins,
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
     # -----------------------------------------------------------------------
     # Exception Handlers with ErrorEnvelope
@@ -141,19 +172,35 @@ def create_app(
     @app.exception_handler(HTTPException)
     async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
         req_id = _get_request_id(request)
-        code = f"HTTP_{exc.status_code}"
-        message = str(exc.detail)
+        resp_headers = {"X-Request-ID": req_id}
+        if isinstance(exc.detail, dict):
+            code = str(exc.detail.get("code", f"HTTP_{exc.status_code}"))
+            message = str(exc.detail.get("message", "Error"))
+            upstream = exc.detail.get("upstream")
+            upgrade_targets = exc.detail.get("upgrade_targets")
+            reset_time = exc.detail.get("reset_time")
+        else:
+            code = f"HTTP_{exc.status_code}"
+            message = str(exc.detail)
+            upstream = None
+            upgrade_targets = None
+            reset_time = None
         envelope = ErrorEnvelope(
             error=ErrorDetail(
                 code=code,
                 message=message,
                 request_id=req_id,
+                upstream=upstream,
+                upgrade_targets=upgrade_targets,
+                reset_time=reset_time,
             )
         )
+        if reset_time:
+            resp_headers["X-Reset-Time"] = str(reset_time)
         return JSONResponse(
             status_code=exc.status_code,
             content=envelope.model_dump(),
-            headers={"X-Request-ID": req_id},
+            headers=resp_headers,
         )
 
     @app.exception_handler(RequestValidationError)
@@ -223,20 +270,61 @@ def create_app(
         }
 
     # -----------------------------------------------------------------------
-    # Interim Guard: /ops, /console static mount, and / redirect
-    # Active only when APP_ENV == "development" (Decision D-10)
+    # Production Admin Guard: /ops, /console, and / redirect
+    # Protected by require_admin (Decision D-45, superseding D-10)
     # -----------------------------------------------------------------------
-    if settings.app_env.lower() == "development":
-        app.include_router(ops_router)
+    app.include_router(ops_router)
 
-        console_dir = Path(__file__).resolve().parent.parent.parent / "frontend" / "console"
-        if console_dir.is_dir():
+    console_dir = Path(__file__).resolve().parent.parent.parent / "frontend" / "console"
+    if console_dir.is_dir():
+        assets_dir = console_dir / "assets"
+        if assets_dir.is_dir():
             app.mount(
-                "/console", StaticFiles(directory=str(console_dir), html=True), name="console"
+                "/console/assets",
+                StaticFiles(directory=str(assets_dir)),
+                name="console_assets",
             )
 
-        @app.get("/")
-        async def root_redirect() -> RedirectResponse:
-            return RedirectResponse(url="/console/")
+        @app.get("/console", response_class=FileResponse)
+        @app.get("/console/", response_class=FileResponse)
+        @app.get(
+            "/console/index.html",
+            response_class=FileResponse,
+        )
+        async def console_index() -> FileResponse:
+            return FileResponse(console_dir / "index.html", media_type="text/html")
+
+        @app.get(
+            "/console/config.html",
+            response_class=FileResponse,
+        )
+        async def console_config() -> FileResponse:
+            return FileResponse(console_dir / "config.html", media_type="text/html")
+
+    @app.get("/")
+    async def root_redirect() -> RedirectResponse:
+        return RedirectResponse(url="/app")
+
+    from backend.app.admin.router import router as admin_router
+    from backend.app.agent.router import router as agent_router
+    from backend.app.auth.router import router as auth_router
+    from backend.app.entitlements.router import router as entitlements_router
+    from backend.app.features.f1_contagion.router import router as f1_router
+    from backend.app.features.f2_filings.router import router as f2_router
+    from backend.app.features.f3_log.router import router as f3_router
+    from backend.app.llm.router import router as llm_router
+
+    app.include_router(auth_router)
+    app.include_router(entitlements_router)
+    app.include_router(admin_router)
+    app.include_router(f1_router)
+    app.include_router(f2_router)
+    app.include_router(f3_router)
+    app.include_router(llm_router)
+    app.include_router(agent_router)
+
+    app_dir = Path(__file__).resolve().parent.parent.parent / "frontend" / "app"
+    if app_dir.is_dir():
+        app.mount("/app", StaticFiles(directory=str(app_dir), html=True), name="frontend_app")
 
     return app

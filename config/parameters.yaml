@@ -1,3 +1,10 @@
+risk_free:
+  value: 5.7281
+  unit: "percent per annum"
+  status: "provisional, no advisor review"
+  source: "RBI 91-day T-bill auction cut-off yield (Treasury Bills: Full Auction Result, press release 2026-2027/1326)"
+  as_of: "14 October 2026 auction"
+
 parameters:
   W:
     type: int
@@ -219,3 +226,90 @@ parameters:
     max: 10000
     override_allowed: true
     unit: "grid points"
+  synthetic_log_trades:
+    type: int
+    default: 20
+    min: 5
+    max: 200
+    override_allowed: true
+    unit: "trades"
+  synthetic_log_qty_min:
+    type: float
+    default: 10.0
+    min: 1.0
+    max: 1000.0
+    override_allowed: true
+    unit: "shares"
+  synthetic_log_qty_max:
+    type: float
+    default: 100.0
+    min: 1.0
+    max: 10000.0
+    override_allowed: true
+    unit: "shares"
+  synthetic_log_seed:
+    type: int
+    default: 42
+    min: 1
+    max: 1000000
+    override_allowed: true
+    unit: "seed"
+  llm_placeholder_price_per_1m:
+    type: float
+    default: 0.0
+    min: 0.0
+    max: 100.0
+    override_allowed: false
+    unit: "usd_placeholder_only"
+  fiscal_year_min:
+    type: int
+    default: 2020
+    min: 2000
+    max: 2050
+    override_allowed: true
+    unit: "year"
+  fiscal_year_max:
+    type: int
+    default: 2030
+    min: 2020
+    max: 2099
+    override_allowed: true
+    unit: "year"
+  cors_origins:
+    type: str
+    default: "http://localhost:8000,http://127.0.0.1:8000,http://localhost:3000"
+    min: null
+    max: null
+    override_allowed: true
+    unit: "comma_separated_origins"
+  agent_max_steps:
+    type: int
+    default: 5
+    min: 1
+    max: 20
+    override_allowed: true
+    unit: "steps"
+  agent_budget_usd:
+    type: float
+    default: 0.05
+    min: 0.0001
+    max: 5.0
+    override_allowed: true
+    unit: "USD"
+  agent_timeout_seconds:
+    type: float
+    default: 30.0
+    min: 1.0
+    max: 120.0
+    override_allowed: true
+    unit: "seconds"
+  hosted_demo_mode:
+    type: bool
+    default: true
+    min: null
+    max: null
+    override_allowed: true
+    unit: "mode"
+
+
+

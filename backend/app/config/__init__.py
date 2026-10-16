@@ -18,6 +18,8 @@ from backend.app.config.env import (
 )
 from backend.app.config.loader import (
     ParameterError,
+    get_risk_free_rate,
+    get_risk_free_rate_parameters,
     load_all_config,
     load_config_file,
     resolve_parameters,
@@ -33,6 +35,7 @@ from backend.app.config.models import (
     ParametersConfig,
     PlanEntry,
     PlansConfig,
+    RiskFreeConfig,
     ThresholdsConfig,
     UniverseConfig,
 )
@@ -53,11 +56,14 @@ __all__ = [
     "ParametersConfig",
     "PlanEntry",
     "PlansConfig",
+    "RiskFreeConfig",
     "SecretRedactionFilter",
     "Settings",
     "ThresholdsConfig",
     "UniverseConfig",
     "get_repo_root",
+    "get_risk_free_rate",
+    "get_risk_free_rate_parameters",
     "is_var_present",
     "load_all_config",
     "load_config_file",

@@ -1,1 +1,2 @@
-enabled_groups: []
+enabled_groups:
+  - supabase

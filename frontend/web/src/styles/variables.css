@@ -1,0 +1,36 @@
+:root {
+  --color-bg: #0F1318;
+  --color-surface: #161B22;
+  --color-surface-hover: #1c222b;
+  --color-border: #2A313C;
+  --color-border-subtle: #202630;
+  --color-text: #D3D9E0;
+  --color-muted: #8A94A3;
+  --color-accent: #7C8CA0;
+  --color-accent-dim: #38414e;
+
+  --color-ok: #3E9B6B;
+  --color-ok-bg: #12281e;
+  --color-warn: #C29A3A;
+  --color-warn-bg: #2d2412;
+  --color-fail: #C4524D;
+  --color-fail-bg: #2d1414;
+
+  --font-serif: var(--font-heading, "Newsreader", "Georgia", serif);
+  --font-sans: var(--font-body, "Source Sans 3", "Segoe UI", sans-serif);
+  --font-mono: var(--font-code, "JetBrains Mono", "Consolas", monospace);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  --max-width: 1200px;
+  --hairline: 1px solid var(--color-border);
+}

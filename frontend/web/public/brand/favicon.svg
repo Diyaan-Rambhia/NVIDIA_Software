@@ -1,0 +1,8 @@
+<!-- favicon.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="FinFriend">
+  <title>FinFriend</title>
+  <rect width="32" height="32" fill="#0F1318"/>
+  <polyline points="4,22 12,26 20,24 27,16" fill="none" stroke="#8A94A3" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="10"/>
+  <polyline points="4,10 9,6 14,13 19,8 27,16" fill="none" stroke="#D3D9E0" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter" stroke-miterlimit="10"/>
+  <rect x="25" y="14" width="4" height="4" fill="#7C8CA0"/>
+</svg>
