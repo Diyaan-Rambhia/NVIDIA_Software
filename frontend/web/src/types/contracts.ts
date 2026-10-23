@@ -22,6 +22,8 @@ export interface CorrelationScan {
   seed?: number | string;
   code_version?: string;
   hypotheses?: Array<{ id: string; text: string; evidence_ids?: string[] }>;
+  failed_tickers?: string[];
+  scan_duration_seconds?: number;
 }
 
 export interface AuditedCompany {
@@ -42,13 +44,6 @@ export interface FilingCheck {
   rationale?: string;
 }
 
-export interface FilingsDemo {
-  as_of?: string;
-  companies_audited?: AuditedCompany[];
-  checks?: FilingCheck[];
-  verifier_status?: string;
-  limits_note?: string;
-}
 
 export interface ColumnMapping {
   date: string;
@@ -125,6 +120,6 @@ export interface DecisionReview {
   review_text: string;
   disclaimer: string;
   parameters_used?: Record<string, unknown>;
-  is_synthetic_demo?: boolean;
+  is_synthetic?: boolean;
   synthetic_label?: string | null;
 }

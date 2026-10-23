@@ -211,22 +211,27 @@ def parse_trade_log_csv(
 
 
 def load_benchmark_price_history(symbol: str) -> dict[str, float]:
-    """Load date-to-price series from data/yfinance/ for an index or stock."""
-    candidate_paths = [
-        DATA_YFINANCE_DIR / f"{symbol}.json",
-        DATA_YFINANCE_DIR / f"{symbol}.NS.json",
-        DATA_YFINANCE_DIR / f"^{symbol}.json",
-    ]
-    target_path: Path | None = None
-    for p in candidate_paths:
-        if p.is_file():
-            target_path = p
-            break
+    """Retrieve date-to-price series via live yfinance at request time with server TTL cache."""
+    try:
+        from backend.app.data.yfinance_client import fetch_live_ticker_history
+        return fetch_live_ticker_history(symbol)
+    except Exception as live_err:
+        candidate_paths = [
+            DATA_YFINANCE_DIR / f"{symbol}.json",
+            DATA_YFINANCE_DIR / f"{symbol}.NS.json",
+            DATA_YFINANCE_DIR / f"^{symbol}.json",
+        ]
+        target_path: Path | None = None
+        for p in candidate_paths:
+            if p.is_file():
+                target_path = p
+                break
 
-    if target_path is None:
-        raise ValueError(
-            f"Missing benchmark price data: no cached history for '{symbol}' in data/yfinance/"
-        )
+        if target_path is None:
+            raise ValueError(
+                f"Missing benchmark price data: Failed to fetch market data from yfinance for ticker '{symbol}' (unofficial source, delayed): {live_err}"
+            ) from live_err
+
 
     import json
 

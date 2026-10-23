@@ -29,8 +29,8 @@ from backend.app.features.f2_filings.adjudication import (
 from backend.app.features.f3_log.review_llm import generate_decision_review_narrative
 from backend.app.llm.exceptions import BudgetExceededError, FinancialAdviceError, LLMError
 from backend.app.llm.guard import assert_no_financial_advice
-from backend.app.llm.placeholder import PLACEHOLDER_MARKER, PlaceholderProvider
 from backend.app.llm.structured import complete_structured
+from backend.tests.helpers.placeholder import PLACEHOLDER_MARKER, PlaceholderProvider
 
 
 def test_placeholder_refuses_in_production(tmp_path: Path) -> None:
@@ -74,7 +74,7 @@ def test_placeholder_budget_guard_exercises_real_path() -> None:
     provider = PlaceholderProvider(conn=mock_conn)
     with pytest.MonkeyPatch.context() as mp:
         mp.setattr(
-            "backend.app.llm.placeholder.check_budget_guard",
+            "backend.tests.helpers.placeholder.check_budget_guard",
             MagicMock(side_effect=BudgetExceededError("Daily LLM budget exceeded")),
         )
         with pytest.raises(BudgetExceededError, match="Daily LLM budget exceeded"):
@@ -114,8 +114,9 @@ def test_x7_f1_hypotheses_and_tavily_step() -> None:
     assert pack.items[0].id == "E1"
     assert pack.items[1].id == "E2"
 
-    # 3. Generate hypotheses
-    hypotheses = generate_hypotheses(pack)
+    # 3. Generate hypotheses with injected test placeholder provider
+    provider = PlaceholderProvider()
+    hypotheses = generate_hypotheses(pack, provider=provider)
     assert 2 <= len(hypotheses) <= 4
     for h in hypotheses:
         assert isinstance(h, Hypothesis)
@@ -151,7 +152,8 @@ def test_x8_f2_claim_extraction_and_adjudication() -> None:
             retrieval_time="10:00:00",
         )
     ]
-    inconsistencies = match_and_adjudicate(claims, metrics, source_text)
+    provider = PlaceholderProvider()
+    inconsistencies = match_and_adjudicate(claims, metrics, source_text, provider=provider)
     assert len(inconsistencies) == 1
     inc = inconsistencies[0]
     assert inc.rule_id == "R0"
@@ -279,7 +281,8 @@ def test_x9_f3_decision_review_narrative() -> None:
         is_synthetic_demo=True,
         synthetic_label="SYNTHETIC DEMO LOG, not a real investor",
     )
-    narrative = generate_decision_review_narrative(review_synthetic)
+    provider = PlaceholderProvider()
+    narrative = generate_decision_review_narrative(review_synthetic, provider=provider)
 
     assert "SYNTHETIC DEMO LOG, not a real investor" in narrative
     assert PLACEHOLDER_MARKER in narrative

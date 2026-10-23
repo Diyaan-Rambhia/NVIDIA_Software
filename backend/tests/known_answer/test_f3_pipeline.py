@@ -225,9 +225,11 @@ def test_missing_risk_free_value_raises() -> None:
 
 def test_synthetic_log_marker_detected() -> None:
     """Synthetic demo log marker is detected and recorded on TradeLog."""
-    synthetic_file = Path("private") / "logs" / "demo_synthetic_log.csv"
-    assert synthetic_file.is_file(), "Demo synthetic log must exist on disk"
-    csv_text = synthetic_file.read_text(encoding="utf-8")
+    csv_text = (
+        "Date,Symbol,Side,Quantity,Price,Marker\n"
+        "2025-01-10,INFY,BUY,10,1500.0,SYNTHETIC_DEMO\n"
+        "2025-01-15,INFY,SELL,5,1600.0,SYNTHETIC_DEMO\n"
+    )
 
     mapping = ColumnMapping(
         date="Date",
@@ -240,13 +242,16 @@ def test_synthetic_log_marker_detected() -> None:
     log = parse_trade_log_csv(csv_text, mapping, consent_given=False)
     assert log.is_synthetic_demo is True
     assert log.synthetic_marker == "SYNTHETIC_DEMO"
-    assert log.total_trades > 0
+    assert log.total_trades == 2
 
 
 def test_synthetic_log_labels_present_in_result() -> None:
     """Synthetic demo log produces explicit disclosure labels in DecisionReview and ProcessMetrics."""
-    synthetic_file = Path("private") / "logs" / "demo_synthetic_log.csv"
-    csv_text = synthetic_file.read_text(encoding="utf-8")
+    csv_text = (
+        "Date,Symbol,Side,Quantity,Price,Marker\n"
+        "2025-01-10,INFY,BUY,10,1500.0,SYNTHETIC_DEMO\n"
+        "2025-01-15,INFY,SELL,5,1600.0,SYNTHETIC_DEMO\n"
+    )
     mapping = ColumnMapping(
         date="Date",
         symbol="Symbol",
@@ -266,8 +271,11 @@ def test_synthetic_log_labels_present_in_result() -> None:
 
 def test_synthetic_log_rejected_under_real_consent_flag() -> None:
     """Synthetic demo log is rejected if consent_given is True; never stored as real."""
-    synthetic_file = Path("private") / "logs" / "demo_synthetic_log.csv"
-    csv_text = synthetic_file.read_text(encoding="utf-8")
+    csv_text = (
+        "Date,Symbol,Side,Quantity,Price,Marker\n"
+        "2025-01-10,INFY,BUY,10,1500.0,SYNTHETIC_DEMO\n"
+        "2025-01-15,INFY,SELL,5,1600.0,SYNTHETIC_DEMO\n"
+    )
     mapping = ColumnMapping(
         date="Date",
         symbol="Symbol",
@@ -281,24 +289,3 @@ def test_synthetic_log_rejected_under_real_consent_flag() -> None:
         match="Synthetic demo trade log cannot be accepted with real-log retention consent flag",
     ):
         parse_trade_log_csv(csv_text, mapping, consent_given=True)
-
-
-def test_synthetic_log_missing_price_raises(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Missing price series or date raises ValueError during synthetic log generation."""
-    from scripts import make_demo_trade_log
-
-    monkeypatch.setattr(make_demo_trade_log, "load_symbol_prices", lambda: {})
-    with pytest.raises(ValueError, match="No stored price series found"):
-        make_demo_trade_log.generate_synthetic_log(num_trades=5)
-
-
-def test_synthetic_log_same_seed_gives_same_file(tmp_path: Path) -> None:
-    """Synthetic demo log generator with identical seed outputs byte-for-byte identical files."""
-    from scripts.make_demo_trade_log import generate_synthetic_log
-
-    f1 = tmp_path / "run1.csv"
-    f2 = tmp_path / "run2.csv"
-    generate_synthetic_log(output_path=f1, seed=99, num_trades=5)
-    generate_synthetic_log(output_path=f2, seed=99, num_trades=5)
-
-    assert f1.read_bytes() == f2.read_bytes()

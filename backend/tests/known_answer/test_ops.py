@@ -64,7 +64,7 @@ def test_ops_routes_with_admin_auth() -> None:
     # 5. / redirect
     res_root = client.get("/", headers=headers, follow_redirects=False)
     assert res_root.status_code in (307, 302)
-    assert res_root.headers["location"] == "/app"
+    assert res_root.headers["location"] == "/console"
 
 
 def test_ops_routes_401_when_unauthenticated() -> None:
@@ -77,10 +77,10 @@ def test_ops_routes_401_when_unauthenticated() -> None:
     res_console = client.get("/console/", follow_redirects=False)
     assert res_console.status_code == 200
 
-    # Root redirects to /app without token
+    # Root redirects to /console without token
     res_root = client.get("/", follow_redirects=False)
     assert res_root.status_code in (307, 302)
-    assert res_root.headers["location"] == "/app"
+    assert res_root.headers["location"] == "/console"
 
     routes_to_test = [
         "/ops/status",

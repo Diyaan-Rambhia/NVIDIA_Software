@@ -20,6 +20,8 @@ export interface LoginResponse {
   access_token: string;
   token_type: string;
   user_id: string;
+  refresh_token?: string | null;
+  expires_in?: number;
 }
 
 export interface SignUpRequest {

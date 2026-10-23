@@ -23,7 +23,7 @@ interface ToolRow {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { token, isAuthenticated, refreshSession } = useAuth();
+  const { token, isAuthenticated, sessionChecked, refreshSession } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfileResponse | null>(null);
@@ -32,8 +32,11 @@ export default function DashboardPage() {
   const [httpStatus, setHttpStatus] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (sessionChecked && !isAuthenticated) {
       router.push("/login");
+      return;
+    }
+    if (!isAuthenticated) {
       return;
     }
 
@@ -72,7 +75,7 @@ export default function DashboardPage() {
     return () => {
       isMounted = false;
     };
-  }, [isAuthenticated, token, router]);
+  }, [isAuthenticated, sessionChecked, token, router]);
 
   // Transform entitlements into tool rows
   const tools: ToolRow[] = React.useMemo(() => {
@@ -85,17 +88,17 @@ export default function DashboardPage() {
         key: "feature1",
         name: "Feature 1: Systemic Contagion & Absorption",
         route: "/contagion",
-        state: f1 ? (f1.status === 403 ? "403 Denied" : f1.status === 402 ? "402 Upgrade" : f1.decision.toUpperCase()) : "UNKNOWN",
+        state: f1 ? (f1.status === 403 ? "403 Denied" : f1.status === 402 ? "402 Institutional" : f1.decision.toUpperCase()) : "UNKNOWN",
         status: f1?.status || 0,
         remainingQuota: f1?.remaining_quota ?? null,
-        reason: f1?.reason || (f1?.status === 403 ? "Segment restricted: Institutional plan required" : f1?.status === 402 ? "Upgrade required" : "Granted by plan"),
+        reason: f1?.reason || (f1?.status === 403 ? "Segment restricted: Institutional plan required" : f1?.status === 402 ? "Requires the institutional plan. Plan changes are not available yet." : "Granted by plan"),
         allowed: Boolean(f1?.allowed),
       },
       {
         key: "feature2",
         name: "Feature 2: XBRL Filings Consistency Auditor",
         route: "/filings",
-        state: f2 ? (f2.status === 402 ? "402 Upgrade" : f2.decision.toUpperCase()) : "UNKNOWN",
+        state: f2 ? (f2.status === 402 ? "402 Institutional" : f2.decision.toUpperCase()) : "UNKNOWN",
         status: f2?.status || 0,
         remainingQuota: f2?.remaining_quota ?? null,
         reason: f2?.reason || "Daily quota applies",
@@ -105,7 +108,7 @@ export default function DashboardPage() {
         key: "feature3",
         name: "Feature 3: Trade Log Forensic Review & XIRR",
         route: "/trade-log",
-        state: f3 ? (f3.status === 402 ? "402 Upgrade" : f3.decision.toUpperCase()) : "UNKNOWN",
+        state: f3 ? (f3.status === 402 ? "402 Institutional" : f3.decision.toUpperCase()) : "UNKNOWN",
         status: f3?.status || 0,
         remainingQuota: f3?.remaining_quota ?? null,
         reason: f3?.reason || "Daily quota applies",

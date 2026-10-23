@@ -147,8 +147,8 @@ export default function LandingPage() {
 
         <div className={styles.limitsGrid}>
           <div className={styles.limitItem}>
-            <strong>Unofficial Market Prices:</strong> Market data sourced from development feeds
-            for technical demonstration; not intended for real-time order routing or trade execution.
+            <strong>Unofficial Market Prices:</strong> Market data sourced from historical exchange feeds
+            for research and analytical evaluation; not intended for real-time order routing or trade execution.
           </div>
           <div className={styles.limitItem}>
             <strong>No Flow Data:</strong> Analysis does not incorporate intraday institutional order
@@ -173,7 +173,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Subscription Plans */}
+      {/* Access Tiers */}
       <section className={styles.plansSection}>
         <div className={styles.sectionHeader}>
           <span className={styles.sectionIndex}>05 / SEGMENTS & ACCESS TIERS</span>
@@ -183,7 +183,7 @@ export default function LandingPage() {
         <div className={styles.plansGrid}>
           <div className={styles.planCard}>
             <div className={styles.planBadge} data-mono>SEGMENT: RETAIL</div>
-            <h3>Retail Free & Paid</h3>
+            <h3>Retail Tier</h3>
             <p>Designed for individual market participants studying portfolio process discipline.</p>
             <ul className={styles.planFeatures}>
               <li>Feature 2 Filings Consistency engine (daily quota governed)</li>
@@ -195,7 +195,7 @@ export default function LandingPage() {
 
           <div className={styles.planCard}>
             <div className={styles.planBadge} data-mono>SEGMENT: INSTITUTIONAL</div>
-            <h3>Institutional Free & Paid</h3>
+            <h3>Institutional Tier</h3>
             <p>Designed for regulated asset managers, family offices, and institutional desks.</p>
             <ul className={styles.planFeatures}>
               <li>Systemic Contagion & Absorption scanner (full correlation matrix)</li>

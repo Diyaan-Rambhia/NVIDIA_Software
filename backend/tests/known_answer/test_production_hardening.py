@@ -7,8 +7,8 @@ from fastapi.testclient import TestClient
 
 from backend.app.config.env import Settings
 from backend.app.config.loader import load_all_config
-from backend.app.llm.placeholder import PlaceholderProvider
 from backend.app.main import create_app
+from backend.tests.helpers.placeholder import PlaceholderProvider
 
 
 def test_production_docs_and_openapi_disabled() -> None:

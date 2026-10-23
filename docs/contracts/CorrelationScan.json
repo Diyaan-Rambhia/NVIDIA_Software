@@ -112,6 +112,11 @@
       "title": "Regime Flag",
       "type": "string"
     },
+    "scan_duration_seconds": {
+      "default": 0.0,
+      "title": "Scan Duration Seconds",
+      "type": "number"
+    },
     "seed": {
       "title": "Seed",
       "type": "integer"
@@ -121,7 +126,7 @@
       "type": "integer"
     },
     "source_label": {
-      "default": "unofficial source, demo only",
+      "default": "market data, third-party, delayed",
       "title": "Source Label",
       "type": "string"
     },

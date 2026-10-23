@@ -12,11 +12,14 @@ from backend.app.auth.dependencies import get_current_user
 from backend.app.auth.models import (
     LoginRequest,
     LoginResponse,
+    RefreshRequest,
+    RefreshResponse,
     SignUpRequest,
     SignUpResponse,
     UserClaims,
     UserProfileResponse,
 )
+
 from backend.app.config.env import load_settings
 from backend.app.db.connection import get_connection
 
@@ -265,6 +268,7 @@ def login(payload: LoginRequest, request: Request) -> LoginResponse:
                 access_token=data["access_token"],
                 token_type=data.get("token_type", "bearer"),
                 user_id=uuid.UUID(data["user"]["id"]),
+                refresh_token=data.get("refresh_token"),
             )
     except HTTPError as exc:
         raw_body = exc.read().decode("utf-8", errors="replace")
@@ -288,5 +292,72 @@ def login(payload: LoginRequest, request: Request) -> LoginResponse:
             status_code=500,
             detail={"code": "auth_error", "message": str(exc)},
         ) from exc
+
+
+@router.post("/refresh", response_model=RefreshResponse)
+def refresh_token_endpoint(payload: RefreshRequest, request: Request) -> RefreshResponse:
+    """Exchange Supabase refresh token for fresh access token and refresh token."""
+    settings = getattr(request.app.state, "settings", None) or load_settings()
+    supabase_url = settings.get_var_value("SUPABASE_URL")
+    anon_key = (
+        settings.get_var_value("SUPABASE_ANON_KEY")
+        or settings.get_var_value("SUPABASE_SERVICE_ROLE_KEY")
+    )
+
+    if not supabase_url or not anon_key:
+        raise HTTPException(
+            status_code=500,
+            detail={"code": "config_error", "message": "Supabase credentials are not configured"},
+        )
+
+    import uuid
+
+    refresh_url = f"{supabase_url.rstrip('/')}/auth/v1/token?grant_type=refresh_token"
+    auth_payload = {
+        "refresh_token": payload.refresh_token,
+    }
+    req = urllib.request.Request(
+        refresh_url,
+        data=json.dumps(auth_payload).encode("utf-8"),
+        headers={
+            "apikey": anon_key,
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            user_id_str = data.get("user", {}).get("id")
+            if not user_id_str:
+                raise ValueError("Missing user id in refresh response")
+            return RefreshResponse(
+                access_token=data["access_token"],
+                token_type=data.get("token_type", "bearer"),
+                refresh_token=data.get("refresh_token"),
+                user_id=uuid.UUID(user_id_str),
+            )
+    except HTTPError as exc:
+        # Any bad/expired refresh token returns 401 per specification; never log token
+        logger.warning("Supabase token refresh failed with HTTP %s", exc.code)
+        raise HTTPException(
+            status_code=401,
+            detail={"code": "invalid_refresh_token", "message": "Invalid or expired refresh token"},
+        ) from exc
+    except urllib.error.URLError as exc:
+        logger.error("Supabase network failure during token refresh: %s", exc)
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "network_failure",
+                "message": "Network failure connecting to authentication server. Please check your connection.",
+            },
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail={"code": "auth_error", "message": str(exc)},
+        ) from exc
+
 
 

@@ -12,11 +12,8 @@ from backend.app.features.f2_filings.quote_verifier import verify_quote
 from backend.app.features.f2_filings.rules import evaluate_r0_stated_number, evaluate_r1_direction
 from backend.app.llm.exceptions import FinancialAdviceError
 from backend.app.llm.guard import assert_no_financial_advice
-from backend.app.llm.placeholder import PlaceholderProvider
 
 logger = logging.getLogger("backend.app.features.f2_filings.adjudication")
-
-PLACEHOLDER_MARKER = "PLACEHOLDER TEMPLATE, not Nemotron"
 
 
 def extract_claims_from_text(source_text: str, fiscal_period: str) -> list[Claim]:
@@ -115,12 +112,9 @@ def match_and_adjudicate(
     claims: list[Claim],
     metrics: list[FilingMetric],
     source_text: str,
-    llm_client: Any = None,
+    provider: Any = None,
 ) -> list[Inconsistency]:
     """Match claims against normalized XBRL filing metrics, adjudicate, and verify."""
-    if llm_client is None:
-        llm_client = PlaceholderProvider()
-
     inconsistencies: list[Inconsistency] = []
     metrics_by_name = {m.metric.lower(): m for m in metrics}
 
@@ -156,11 +150,13 @@ def match_and_adjudicate(
                     filed_value=matched_metric.value,
                     difference_value=round(diff, 2),
                     explanation=(
-                        f"{PLACEHOLDER_MARKER}. Stated figure {stated_num} in announcement "
+                        f"Stated figure {stated_num} in announcement "
                         f"differs from filed XBRL value {matched_metric.value} by {diff:.2f} percentage points."
                     ),
-                    is_placeholder=True,
-                    placeholder_label=PLACEHOLDER_MARKER,
+                    is_placeholder=bool(getattr(provider, "is_placeholder", False)),
+                    placeholder_label=getattr(provider, "placeholder_label", "PLACEHOLDER TEMPLATE, not Nemotron")
+                    if getattr(provider, "is_placeholder", False)
+                    else None,
                 )
                 # Verify deterministically before adding
                 verify_inconsistency_flag(inc, source_text)

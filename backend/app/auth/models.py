@@ -74,4 +74,21 @@ class LoginResponse(StrictAuthModel):
     access_token: str
     token_type: str = "bearer"
     user_id: uuid.UUID
+    refresh_token: str | None = None
+
+
+class RefreshRequest(StrictAuthModel):
+    """Token refresh payload."""
+
+    refresh_token: str = Field(min_length=1)
+
+
+class RefreshResponse(StrictAuthModel):
+    """Token refresh response."""
+
+    access_token: str
+    token_type: str = "bearer"
+    user_id: uuid.UUID
+    refresh_token: str | None = None
+
 

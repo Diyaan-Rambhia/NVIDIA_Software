@@ -2,7 +2,7 @@ import React from "react";
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { StatusBanner } from "@/components/StatusBanner";
-import { CorrelationScan, FilingsDemo, DecisionReview } from "@/types/contracts";
+import { CorrelationScan, DecisionReview } from "@/types/contracts";
 
 describe("Phase 3 Features Structural & State Rendering", () => {
   it("renders Contagion headline metrics and table structurally", () => {
@@ -40,7 +40,7 @@ describe("Phase 3 Features Structural & State Rendering", () => {
   });
 
   it("renders Filings rule statuses R0-R7 structurally", () => {
-    const mockFilings: FilingsDemo = {
+    const mockFilings: { companies_audited?: any[]; checks?: any[]; verifier_status?: string } = {
       companies_audited: [{ symbol: "INFY", periods_audited: ["Q1 FY27"] }],
       checks: [
         {
@@ -75,7 +75,7 @@ describe("Phase 3 Features Structural & State Rendering", () => {
 
   it("renders Trade Log portfolio XIRR, synthetic banner, and process metrics structurally", () => {
     const mockReview: DecisionReview = {
-      is_synthetic_demo: true,
+      is_synthetic: true,
       synthetic_label: "SYNTHETIC DEMO LOG, not a real investor",
       portfolio_xirr: 0.1425,
       portfolio: {
@@ -109,7 +109,7 @@ describe("Phase 3 Features Structural & State Rendering", () => {
       disclaimer: "Educational review only. Not investment advice.",
     };
 
-    expect(mockReview.is_synthetic_demo).toBe(true);
+    expect(mockReview.is_synthetic).toBe(true);
     expect(mockReview.portfolio_xirr).toBe(0.1425);
     expect(mockReview.institutional_metrics?.beta).toBe(0.92);
   });

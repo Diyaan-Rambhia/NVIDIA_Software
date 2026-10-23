@@ -12,10 +12,11 @@ from backend.app.main import create_app
 
 def test_live_entitlements_seeded_accounts() -> None:
     """Verify live entitlements with three seeded accounts:
-    - demo_retail on Feature 1 gives 403
-    - demo_institutional on Feature 1 gives 402 with upgrade target
-    - judge gives 200 on all features
+    - demo_retail on Feature 1 gives 403 (denial without data fetch)
+    - demo_institutional on Feature 1 gives 402 with upgrade target (denial without data fetch)
+    - judge gives 200 on one live endpoint per feature (/f1/scan, /f2/lookup, /f3/review)
     - 429 with reset time at daily quota (removes test usage rows after)
+    Without a database: skips with 'not run'.
     Never prints passwords or tokens.
     """
     settings = load_settings()
@@ -26,6 +27,13 @@ def test_live_entitlements_seeded_accounts() -> None:
     judge_pw = settings.get_var_value("JUDGE_PASSWORD")
     retail_pw = settings.get_var_value("DEMO_RETAIL_PASSWORD")
     inst_pw = settings.get_var_value("DEMO_INSTITUTIONAL_PASSWORD")
+
+    # Without a database or environment: 'not run'
+    try:
+        conn = get_connection(settings)
+        conn.close()
+    except Exception:
+        pytest.skip("not run: database connection unavailable")
 
     if not (supabase_url and anon_key and service_key and judge_pw and retail_pw and inst_pw):
         pytest.skip("not run: missing required live environment keys or seeded passwords")
@@ -55,24 +63,49 @@ def test_live_entitlements_seeded_accounts() -> None:
     app = create_app()
     client = TestClient(app)
 
-    # 1. demo_retail on Feature 1 gives 403
-    r_retail_f1 = client.get("/f1/demo", headers={"Authorization": f"Bearer {tokens['demo_retail']}"})
+    # 1. demo_retail on Feature 1 live endpoint gives 403 (no data fetch)
+    r_retail_f1 = client.get("/f1/scan", headers={"Authorization": f"Bearer {tokens['demo_retail']}"})
     assert r_retail_f1.status_code == 403
-    assert r_retail_f1.json()["error"]["code"] == "denied"
+    retail_err = r_retail_f1.json().get("detail", r_retail_f1.json().get("error", {}))
+    assert retail_err.get("code") == "denied"
 
-    # 2. demo_institutional on Feature 1 gives 402 with upgrade target
-    r_inst_f1 = client.get("/f1/demo", headers={"Authorization": f"Bearer {tokens['demo_institutional']}"})
+    # 2. demo_institutional on Feature 1 live endpoint gives 402 with upgrade target (no data fetch)
+    r_inst_f1 = client.get("/f1/scan", headers={"Authorization": f"Bearer {tokens['demo_institutional']}"})
     assert r_inst_f1.status_code == 402
-    inst_data = r_inst_f1.json()
-    assert "upgrade_targets" in inst_data["error"]
-    assert "institutional_paid" in inst_data["error"]["upgrade_targets"]
+    inst_err = r_inst_f1.json().get("detail", r_inst_f1.json().get("error", {}))
+    assert "upgrade_targets" in inst_err
+    assert "institutional_paid" in inst_err["upgrade_targets"]
 
-    # 3. judge gives 200 on all features
-    r_judge_f1 = client.get("/f1/demo", headers={"Authorization": f"Bearer {tokens['judge']}"})
-    r_judge_f2 = client.get("/f2/demo", headers={"Authorization": f"Bearer {tokens['judge']}"})
-    r_judge_f3 = client.get("/f3/demo", headers={"Authorization": f"Bearer {tokens['judge']}"})
+    # 3. Judge check calls one endpoint per feature
+    # Feature 1: /f1/scan
+    r_judge_f1 = client.get("/f1/scan", headers={"Authorization": f"Bearer {tokens['judge']}"})
     assert r_judge_f1.status_code == 200
+
+    # Feature 2: /f2/lookup
+    r_judge_f2 = client.get(
+        "/f2/lookup?company=RELIANCE&period=Annual",
+        headers={"Authorization": f"Bearer {tokens['judge']}"},
+    )
     assert r_judge_f2.status_code == 200
+
+    # Feature 3: /f3/review
+    f3_payload = {
+        "csv_text": "Date,Side,Symbol,Quantity,Price\n2025-01-02,BUY,RELIANCE,10,1200.0\n2025-02-02,SELL,RELIANCE,10,1300.0\n",
+        "mapping": {
+            "date": "Date",
+            "side": "Side",
+            "symbol": "Symbol",
+            "quantity": "Quantity",
+            "price": "Price",
+        },
+        "consent_given": True,
+        "benchmark_symbol": "NSEI",
+    }
+    r_judge_f3 = client.post(
+        "/f3/review",
+        json=f3_payload,
+        headers={"Authorization": f"Bearer {tokens['judge']}"},
+    )
     assert r_judge_f3.status_code == 200
 
     # 4. 429 with reset time at daily quota (clean up test usage rows after)
@@ -96,12 +129,15 @@ def test_live_entitlements_seeded_accounts() -> None:
             )
             conn.commit()
 
-        r_quota = client.get("/f2/demo", headers={"Authorization": f"Bearer {tokens['demo_retail']}"})
+        r_quota = client.get(
+            "/f2/lookup?company=RELIANCE&period=Annual",
+            headers={"Authorization": f"Bearer {tokens['demo_retail']}"},
+        )
         assert r_quota.status_code == 429
-        quota_data = r_quota.json()
-        assert quota_data["error"]["code"] == "denied"
-        assert quota_data["error"]["reset_time"] is not None
-        assert "Daily quota of 3 exceeded" in quota_data["error"]["message"]
+        quota_data = r_quota.json().get("detail", r_quota.json().get("error", {}))
+        assert quota_data["code"] == "denied"
+        assert quota_data["reset_time"] is not None
+        assert "Daily quota of 3 exceeded" in quota_data["message"]
     finally:
         if retail_user_id:
             with conn.cursor() as cur:

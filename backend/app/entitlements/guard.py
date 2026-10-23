@@ -28,9 +28,6 @@ def require_feature(feature_key: str) -> Callable[..., UserClaims]:
         request: Request,
         user: Annotated[UserClaims, Depends(get_current_user)],
     ) -> UserClaims:
-        if user.plan == "judge_all":
-            return user
-
         settings = getattr(request.app.state, "settings", None) or load_settings()
         all_cfg = getattr(request.app.state, "all_config", None) or load_all_config()
 

@@ -76,7 +76,16 @@ def parse_xbrl_file(file_path: Path) -> dict[str, Any]:
                 continue
 
     # Canonical fiscal period label
-    fiscal_period = f"Q3 {end_date[:4]}" if end_date else reporting_quarter
+    from backend.app.data.fiscal import date_to_fiscal_period
+    if end_date:
+        try:
+            dt = datetime.strptime(end_date[:10], "%Y-%m-%d").date()
+            fiscal_period = date_to_fiscal_period(dt)
+        except Exception:
+            fiscal_period = "Q3 FY25"
+    else:
+        fiscal_period = reporting_quarter or "Q3 FY25"
+
 
     parsed_result = {
         "company": company_name or symbol,

@@ -71,10 +71,10 @@ def test_calculate_reset_time_rejects_unknown_rule(sample_now):
         ("institutional_paid", "feature1_contagion", 200, "full", True),
         ("institutional_paid", "feature2_filings", 200, "limited", True),
         ("institutional_paid", "feature3_forensic", 200, "limited", True),
-        # Judge All
-        ("judge_all", "feature1_contagion", 200, "full", True),
-        ("judge_all", "feature2_filings", 200, "full", True),
-        ("judge_all", "feature3_forensic", 200, "full", True),
+        # Judge All (finite provisional limits from config)
+        ("judge_all", "feature1_contagion", 200, "limited", True),
+        ("judge_all", "feature2_filings", 200, "limited", True),
+        ("judge_all", "feature3_forensic", 200, "limited", True),
     ],
 )
 def test_all_plan_x_feature_combinations(

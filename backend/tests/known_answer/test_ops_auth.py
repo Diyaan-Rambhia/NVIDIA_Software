@@ -85,10 +85,10 @@ def test_console_static_routes_return_200_without_token() -> None:
     assert res_cfg.status_code == 200
     assert "ENVIRONMENT VARIABLES REGISTRY" in res_cfg.text
 
-    # 5. Root / redirects unauthenticated browser directly to /app
+    # 5. Root / redirects unauthenticated browser directly to /console
     res_root = client.get("/", follow_redirects=False)
     assert res_root.status_code in (307, 302)
-    assert res_root.headers["location"] == "/app"
+    assert res_root.headers["location"] == "/console"
 
 
 def test_ops_status_auth_matrix(
@@ -197,10 +197,10 @@ def test_admin_token_returns_200_or_redirect_on_all_routes(
     assert res.status_code == 200
     assert "ENVIRONMENT VARIABLES REGISTRY" in res.text
 
-    # 9. / redirect to /app
+    # 9. / redirect to /console
     res = client.get("/", headers=headers, follow_redirects=False)
     assert res.status_code in (307, 302)
-    assert res.headers["location"] == "/app"
+    assert res.headers["location"] == "/console"
 
 
 def test_console_frontend_source_compliance() -> None:
@@ -238,22 +238,10 @@ def test_console_frontend_source_compliance() -> None:
 
 
 def test_frontend_element_ids_and_login_forms_exist() -> None:
-    """Every element ID used in app.js and console.js exists in matching HTML, and login forms exist."""
+    """Every element ID used in console.js exists in matching HTML, and login forms exist."""
     root = Path(__file__).resolve().parent.parent.parent.parent
 
-    # 1. /app/ validation
-    app_html = (root / "frontend" / "app" / "index.html").read_text(encoding="utf-8")
-    app_js = (root / "frontend" / "app" / "app.js").read_text(encoding="utf-8")
-
-    app_html_ids = set(re.findall(r'id=["\']([^"\']+)["\']', app_html))
-    app_js_ids = set(re.findall(r'getElementById\(["\']([^"\']+)["\']\)', app_js))
-
-    missing_app_ids = app_js_ids - app_html_ids
-    assert not missing_app_ids, f"Missing IDs in frontend/app/index.html: {missing_app_ids}"
-    assert "form-login" in app_html_ids
-    assert "screen-login" in app_html_ids
-
-    # 2. /console/ validation
+    # /console/ validation
     console_index_html = (root / "frontend" / "console" / "index.html").read_text(encoding="utf-8")
     console_config_html = (root / "frontend" / "console" / "config.html").read_text(encoding="utf-8")
     console_js = (root / "frontend" / "console" / "assets" / "console.js").read_text(encoding="utf-8")

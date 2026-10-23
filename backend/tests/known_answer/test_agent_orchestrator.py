@@ -26,9 +26,10 @@ from backend.app.llm.exceptions import (
     BudgetExceededError,
     FinancialAdviceError,
     LLMTimeoutError,
+    ProviderNotConfiguredError,
 )
-from backend.app.llm.placeholder import PLACEHOLDER_MARKER
 from backend.app.main import create_app
+from backend.tests.helpers.placeholder import PLACEHOLDER_MARKER, PlaceholderProvider
 
 
 @pytest.fixture
@@ -69,6 +70,11 @@ def dev_settings(tmp_path: Path) -> Settings:
     env_file = tmp_path / "dev.env"
     env_file.write_text("APP_ENV=development\n", encoding="utf-8")
     return Settings(_env_file=env_file)
+
+
+@pytest.fixture
+def test_provider(dev_settings: Settings) -> PlaceholderProvider:
+    return PlaceholderProvider(settings=dev_settings)
 
 
 def test_tool_definitions_and_schema_registry() -> None:
@@ -112,7 +118,7 @@ def test_tool_access_per_segment_and_plan(
 
 
 def test_agent_loop_execution_and_step_recording(
-    judge_user: UserClaims, dev_settings: Settings
+    judge_user: UserClaims, dev_settings: Settings, test_provider: PlaceholderProvider
 ) -> None:
     """Agent orchestrator executes planned steps, computes cost, and returns AgentAskResponse."""
     all_cfg = load_all_config()
@@ -123,6 +129,7 @@ def test_agent_loop_execution_and_step_recording(
         user=judge_user,
         settings=dev_settings,
         all_config=all_cfg,
+        provider=test_provider,
     )
 
     assert isinstance(resp, AgentAskResponse)
@@ -143,7 +150,7 @@ def test_agent_loop_execution_and_step_recording(
 
 
 def test_agent_loop_denied_tool_handled_without_crash(
-    retail_user: UserClaims, dev_settings: Settings
+    retail_user: UserClaims, dev_settings: Settings, test_provider: PlaceholderProvider
 ) -> None:
     """When a tool is denied, step is recorded as denied and loop finishes cleanly."""
     all_cfg = load_all_config()
@@ -154,6 +161,7 @@ def test_agent_loop_denied_tool_handled_without_crash(
         user=retail_user,
         settings=dev_settings,
         all_config=all_cfg,
+        provider=test_provider,
     )
 
     assert len(resp.steps) == 1
@@ -163,7 +171,7 @@ def test_agent_loop_denied_tool_handled_without_crash(
 
 
 def test_agent_loop_step_limit_enforced(
-    judge_user: UserClaims, dev_settings: Settings
+    judge_user: UserClaims, dev_settings: Settings, test_provider: PlaceholderProvider
 ) -> None:
     """Loop exceeding configured or overridden step limit raises RuntimeError."""
     all_cfg = load_all_config()
@@ -176,11 +184,12 @@ def test_agent_loop_step_limit_enforced(
             settings=dev_settings,
             all_config=all_cfg,
             max_steps_override=1,
+            provider=test_provider,
         )
 
 
 def test_agent_loop_budget_guard_enforced(
-    judge_user: UserClaims, dev_settings: Settings
+    judge_user: UserClaims, dev_settings: Settings, test_provider: PlaceholderProvider
 ) -> None:
     """Projected step cost exceeding budget limit raises BudgetExceededError."""
     all_cfg = load_all_config()
@@ -193,11 +202,12 @@ def test_agent_loop_budget_guard_enforced(
             settings=dev_settings,
             all_config=all_cfg,
             budget_usd_override=0.0001,
+            provider=test_provider,
         )
 
 
 def test_agent_loop_timeout_guard_enforced(
-    judge_user: UserClaims, dev_settings: Settings, monkeypatch: pytest.MonkeyPatch
+    judge_user: UserClaims, dev_settings: Settings, test_provider: PlaceholderProvider, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Loop exceeding timeout limit raises LLMTimeoutError."""
     all_cfg = load_all_config()
@@ -222,11 +232,12 @@ def test_agent_loop_timeout_guard_enforced(
             user=judge_user,
             settings=dev_settings,
             all_config=all_cfg,
+            provider=test_provider,
         )
 
 
 def test_agent_loop_advice_guard_refusal(
-    judge_user: UserClaims, dev_settings: Settings, monkeypatch: pytest.MonkeyPatch
+    judge_user: UserClaims, dev_settings: Settings, test_provider: PlaceholderProvider, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Model output containing prohibited financial advice is refused loudly."""
     all_cfg = load_all_config()
@@ -254,17 +265,18 @@ def test_agent_loop_advice_guard_refusal(
                 user=judge_user,
                 settings=dev_settings,
                 all_config=all_cfg,
+                provider=test_provider,
             )
 
 
 def test_agent_loop_refuses_in_production(tmp_path: Path, judge_user: UserClaims) -> None:
-    """Agent loop strictly refuses placeholder provider execution under APP_ENV=production."""
+    """Agent loop strictly refuses execution under APP_ENV=production without configured provider."""
     prod_env = tmp_path / "prod.env"
     prod_env.write_text("APP_ENV=production\n", encoding="utf-8")
     prod_settings = Settings(_env_file=prod_env)
     all_cfg = load_all_config()
 
-    with pytest.raises(RuntimeError, match="Production mode requires a verified LLM provider"):
+    with pytest.raises((RuntimeError, ProviderNotConfiguredError)):
         run_agent_loop(
             query="Analyze contagion",
             user=judge_user,
@@ -274,7 +286,7 @@ def test_agent_loop_refuses_in_production(tmp_path: Path, judge_user: UserClaims
 
 
 def test_agent_loop_records_to_ledger_when_conn_provided(
-    judge_user: UserClaims, dev_settings: Settings
+    judge_user: UserClaims, dev_settings: Settings, test_provider: PlaceholderProvider
 ) -> None:
     """When a db connection is present, each executed step records to the ledger."""
     all_cfg = load_all_config()
@@ -288,6 +300,7 @@ def test_agent_loop_records_to_ledger_when_conn_provided(
         settings=dev_settings,
         all_config=all_cfg,
         conn=mock_conn,
+        provider=test_provider,
     )
 
     assert resp.is_placeholder is True
@@ -295,9 +308,12 @@ def test_agent_loop_records_to_ledger_when_conn_provided(
     assert "INSERT INTO public.llm_ledger" in mock_cur.execute.call_args[0][0]
 
 
-def test_agent_ask_api_route(dev_settings: Settings, judge_user: UserClaims) -> None:
+def test_agent_ask_api_route(
+    dev_settings: Settings, judge_user: UserClaims, test_provider: PlaceholderProvider
+) -> None:
     """POST /agent/ask returns 200 with AgentAskResponse for authenticated user, 401 without."""
     app = create_app(settings=dev_settings, runtime_groups=[])
+    app.state.llm_provider = test_provider
     client = TestClient(app)
 
     # 1. Unauthenticated request gives 401
@@ -319,10 +335,11 @@ def test_agent_ask_api_route(dev_settings: Settings, judge_user: UserClaims) -> 
 
 
 def test_agent_ask_retail_denied_403_in_loop(
-    dev_settings: Settings, retail_user: UserClaims
+    dev_settings: Settings, retail_user: UserClaims, test_provider: PlaceholderProvider
 ) -> None:
     """demo_retail asks for Feature 1 through /agent/ask and gets 403 inside the tool loop."""
     app = create_app(settings=dev_settings, runtime_groups=[])
+    app.state.llm_provider = test_provider
     app.dependency_overrides[get_current_user] = lambda: retail_user
     client = TestClient(app)
 
@@ -340,7 +357,7 @@ def test_agent_ask_retail_denied_403_in_loop(
 
 
 def test_agent_loop_quota_exceeded_429_in_loop(
-    retail_user: UserClaims, dev_settings: Settings, monkeypatch: pytest.MonkeyPatch
+    retail_user: UserClaims, dev_settings: Settings, test_provider: PlaceholderProvider, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """User at daily quota for a feature gets 429 inside the agent tool loop."""
     all_cfg = load_all_config()
@@ -358,6 +375,7 @@ def test_agent_loop_quota_exceeded_429_in_loop(
         settings=dev_settings,
         all_config=all_cfg,
         conn=mock_conn,
+        provider=test_provider,
     )
     assert len(resp.steps) >= 1
     f2_step = [s for s in resp.steps if s.tool_name == "f2_filings"][0]
@@ -367,7 +385,7 @@ def test_agent_loop_quota_exceeded_429_in_loop(
 
 
 def test_agent_loop_invalid_tool_output_raises(
-    judge_user: UserClaims, dev_settings: Settings, monkeypatch: pytest.MonkeyPatch
+    judge_user: UserClaims, dev_settings: Settings, test_provider: PlaceholderProvider, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Invalid tool output raises a clear RuntimeError and returns no guessed answer."""
     all_cfg = load_all_config()
@@ -385,6 +403,7 @@ def test_agent_loop_invalid_tool_output_raises(
             user=judge_user,
             settings=dev_settings,
             all_config=all_cfg,
+            provider=test_provider,
         )
 
 
@@ -409,7 +428,7 @@ def test_agent_ask_refuses_placeholder_in_production(
 
 
 def test_agent_loop_ledger_holds_no_user_data_or_prompts(
-    judge_user: UserClaims, dev_settings: Settings
+    judge_user: UserClaims, dev_settings: Settings, test_provider: PlaceholderProvider
 ) -> None:
     """Ledger holds no user query text, no prompt contents, and no keys."""
     all_cfg = load_all_config()
@@ -424,6 +443,7 @@ def test_agent_loop_ledger_holds_no_user_data_or_prompts(
         settings=dev_settings,
         all_config=all_cfg,
         conn=mock_conn,
+        provider=test_provider,
     )
 
     assert resp.is_placeholder is True

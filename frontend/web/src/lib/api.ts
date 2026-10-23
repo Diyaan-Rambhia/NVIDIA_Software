@@ -30,7 +30,7 @@ export async function apiFetch<T = unknown>(
   options: RequestInit = {},
   tokenOverride?: string | null
 ): Promise<T> {
-  // Ensure the route is routed through Next.js proxy prefix /backend
+  // Ensure the route is routed through local proxy prefix /backend
   const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
   const proxiedUrl = cleanEndpoint.startsWith("/backend/") ? cleanEndpoint : `/backend${cleanEndpoint}`;
 

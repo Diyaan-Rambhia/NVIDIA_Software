@@ -65,3 +65,32 @@ class ProviderNotConfiguredError(RuntimeError, LLMError):
         self.code = "provider_not_configured"
         self.status_code = 503
 
+
+class TierUnavailableError(LLMError):
+    """Raised when a requested model tier is unavailable."""
+
+    def __init__(self, tier: str, reason: str) -> None:
+        message = f"Model tier '{tier}' is unavailable: {reason}"
+        super().__init__(message=message, code="TIER_UNAVAILABLE", status_code=503)
+        self.tier = tier
+        self.reason = reason
+
+
+class NonProseAnswerError(LLMError):
+    """Raised when model returns code, JSON, or non-prose output."""
+
+    def __init__(self, message: str = "model returned a non-prose answer") -> None:
+        super().__init__(message=message, code="NON_PROSE_ANSWER", status_code=422)
+
+
+class PriceNotSetError(LLMError):
+    """Raised when a model tier's pricing is not configured in config/models.yaml."""
+
+    def __init__(self, tier: str) -> None:
+        message = f"Pricing for model tier '{tier}' is not set. Calls to this model are refused."
+        super().__init__(message=message, code="price_not_set", status_code=503)
+        self.tier = tier
+
+
+
+

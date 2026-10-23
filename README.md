@@ -1,48 +1,67 @@
 # FinInsight
 
-FinInsight is a forensic financial intelligence and audit platform for Indian equities (NSE/BSE). It assists analysts and investors in detecting systemic market contagion, cross-checking company disclosures against XBRL filings, and reviewing personal investment logs for behavioral pitfalls.
+FinInsight is a forensic financial intelligence and audit platform for Indian equities.
+The platform analyzes stocks on the National Stock Exchange (NSE) and Bombay Stock Exchange (BSE).
+It helps investors detect market contagion, verify disclosures against XBRL filings, and review trade logs.
 
-**Disclaimer: Educational and research use only.** FinInsight is strictly an analytical and educational research tool. It does not provide investment recommendations, financial advice, price targets, or buy/sell/hold calls. It is not registered as a SEBI Research Analyst or Investment Adviser.
-
----
-
-## What It Is
-
-The system provides three integrated features:
-1. **Feature 1 — Market Contagion & Systemic Stress:** Estimates systemic absorption ratio (AR), Forbes-Rigobon volatility-adjusted correlation shifts, and moving-block bootstrap significance across Indian equity sectors.
-2. **Feature 2 — XBRL Filing Consistency:** Audits management press releases and disclosure claims against official Ind AS quarterly XBRL filings, flagging discrepancies with deterministic rule checks (R0-R7).
-3. **Feature 3 — Investment Log Forensics:** Analyzes trade execution history, calculates portfolio XIRR against benchmark replays (NIFTY 50, SENSEX), and evaluates behavioral process metrics (concentration HHI, portfolio turnover, disposition effect PGR/PLR, and maximum drawdown).
+**Disclaimer: Educational and research use only.**
+FinInsight is strictly an analytical research tool.
+It does not provide investment advice or price targets.
+It does not issue buy, sell, or hold recommendations.
+The system is not registered as a SEBI Research Analyst or Investment Adviser.
 
 ---
 
-## Setup & Local Run
+## 1. System Features
 
-### Prerequisites
+The platform provides three integrated features:
+1. **Feature 1 — Market Contagion Detector:**
+Calculates the systemic absorption ratio (AR) across Indian equity sectors.
+Computes Forbes-Rigobon volatility-adjusted correlation shifts.
+Applies moving-block bootstrap tests for statistical significance.
+2. **Feature 2 — XBRL Filing Consistency Checker:**
+Audits management announcements against official Ind AS quarterly XBRL filings.
+Flags discrepancies using deterministic audit rules R0 through R7.
+3. **Feature 3 — Investment Log Forensics:**
+Analyzes historical trade logs.
+Calculates portfolio XIRR against NIFTY 50 and SENSEX benchmark replays.
+Evaluates behavioral process metrics including concentration HHI, portfolio turnover, and disposition effect (PGR and PLR).
 
-- Python 3.11+
+---
+
+## 2. Documentation Architecture
+
+Normative technical and financial specifications reside in `project_docs/`:
+- [project.md](file:///c:/Users/diyaa/OneDrive/Desktop/Nebius%20x%20NVIDIA/project_docs/project.md): System purpose, user segments, plans, quotas, hackathon compliance, and requirements register.
+- [tech_stack.md](file:///c:/Users/diyaa/OneDrive/Desktop/Nebius%20x%20NVIDIA/project_docs/tech_stack.md): Software architecture, backend modules, database schema, contracts, endpoints, frontend, and tests.
+- [finance_stack.md](file:///c:/Users/diyaa/OneDrive/Desktop/Nebius%20x%20NVIDIA/project_docs/finance_stack.md): Mathematical formulas, arithmetic examples, parameter register, and audit rules.
+
+---
+
+## 3. Installation and Setup
+
+### 3.1 Prerequisites
+- Python 3.11 or newer
 - Git
 
-### Installation
+### 3.2 Installation Steps
+1. Install Python dependencies:
+   ```bash
+   make install
+   ```
+2. Configure pre-commit verification hooks:
+   ```bash
+   git config core.hooksPath .githooks
+   ```
+3. Create local environment configuration:
+   ```bash
+   cp .env.example .env
+   ```
+4. Configure operational variables in `.env`.
 
-```bash
-make install
-```
+---
 
-Configure pre-commit hooks:
-
-```bash
-git config core.hooksPath .githooks
-```
-
-Copy the environment template:
-
-```bash
-cp .env.example .env
-```
-
-Fill in required operational variables in `.env` (kept strictly gitignored).
-
-### Environment Variables
+## 4. Environment Variables
 
 <!-- ENV_VARS_START -->
 #### Always Needed on a Host
@@ -98,96 +117,99 @@ Fill in required operational variables in `.env` (kept strictly gitignored).
 - `SMTP_PASSWORD`
 <!-- ENV_VARS_END -->
 
-### Running Locally
+---
 
-Run development server:
+## 5. Running the Application
 
+### 5.1 Local Development Server
+Start the FastAPI development server:
 ```bash
 make run
 ```
 
-Run test suite:
-
+### 5.2 Test Suite Execution
+Execute the test suite:
 ```bash
 make test
 ```
 
-Check configuration and secrets:
-
+### 5.3 Configuration Verification
+Check environment variable configuration and secrets:
 ```bash
 make check-env
 ```
 
 ---
 
-## Architecture: Verified vs Unverified Boundary
+## 6. Architecture Boundaries: Verified vs Unverified
 
-FinInsight is designed with strict mathematical isolation between deterministic audit pipelines and semi-agentic language models:
+FinInsight isolates deterministic calculations from language model generation:
 
-- **Verified (Deterministic Core):**
-  - Contagion math: PCA absorption ratio, Forbes-Rigobon adjustment, moving-block bootstrap.
-  - Accounting checks: XBRL XML extraction, metric normalization, tolerance-bound rules R0-R7.
-  - Performance math: Newton-Raphson / bisection XIRR solver, benchmark time-series alignment, HHI concentration, turnover, disposition effect.
-  - Security & access: HMAC/JWT verification, role and tier entitlement enforcement, atomic quota decrements, secret redaction filter.
-  - Guardrails: Prohibited financial advice filter (lexicon-backed), budget cap enforcement, response caching.
+### 6.1 Verified Deterministic Core
+- Contagion mathematics: PCA absorption ratio, Forbes-Rigobon adjustment, and block bootstrap.
+- Accounting audits: XBRL XML extraction and tolerance-bound rules R0 to R7.
+- Performance analytics: XIRR solver, benchmark replay, concentration HHI, turnover, and disposition effect.
+- Security and access: JWT authentication, role entitlements, atomic daily quotas, and secret redaction.
+- Guardrails: Prohibited advice lexicon filter and daily LLM budget enforcement.
 
-- **Unverified (Pending Upstream Verification):**
-  - **Nemotron runtime output:** Live generation via Nebius Token Factory inference endpoints.
-  - **Tool calling on Token Factory:** Upstream function-calling mechanics for Nemotron models.
-  - **JSON schema structured output:** Native structured output enforcement on Token Factory.
-  - **Tavily search:** Live external news retrieval (fails cleanly with explicit error when key is unconfigured).
-  - **Live external database:** Production Supabase Postgres instance under sustained concurrency.
+### 6.2 Unverified Inference Boundaries
+- Natural language generation from Nebius Token Factory endpoints.
+- External web search retrieval through Tavily.
+- Live database persistence under sustained external concurrency.
 
 ---
 
-## Data Limitations
+## 7. Data Limitations
 
-1. **Unofficial price sources:** Daily equity and benchmark prices are sourced via `yfinance` for development and demo mode. This relies on unofficial endpoints that are subject to schema changes, unannounced rate limiting, and Terms of Service constraints prohibiting commercial use.
-2. **No institutional flow data:** Programmatic feeds for FII/DII and FPI net investment flows from NSDL and NSE are unavailable; institutional flow factors are omitted from contagion macro factor attribution.
-3. **Provisional risk-free rate:** The risk-free rate configuration entry in `config/parameters.yaml` is provisional with a null value and pending status. Calculations requiring sovereign yield use explicit fallback parameter configuration.
-4. **Revenue and profit checks only:** Automated quarterly filing consistency checks (Feature 2) are scoped exclusively to revenue from operations and profit metrics (PBT, PAT, EPS) from quarterly Ind AS XBRL filings. Balance sheet receivables and cash flow statement metrics are not present in quarterly filings.
-5. **Google login and payments not implemented:** Google OAuth authentication and live payment gateway processing are not implemented; authentication is scoped to Supabase email signup with email verification, and payments are mocked/stub-free with judge accounts granted free access.
-6. **Synthetic demo log:** Generated by `scripts/make_demo_trade_log.py` using real trading dates and close prices from `data/yfinance/` to evaluate Feature 3 pipeline mechanics without collecting real investor data. Explicitly labeled `SYNTHETIC_DEMO` on every row and marked in pipeline results; rejected under real-log retention consent.
-
----
-
-## Provisional Parameters, Not Reviewed by a Finance Professional
-
-Educational only. The following values are provisional working parameters pending formal financial advisor review (DECISIONS.md D-26):
-1. **Absorption ratio component count:** `k_fraction` 0.20 in `config/parameters.yaml` (`k` derived as `max(1, ceil(N * 0.20))`).
-2. **Institutional performance metrics:** Daily return frequency, annualisation factor 252, and risk-free series "91-day T-bill yield".
-3. **XIRR solver configuration:** Bracket `[-0.99, 10.0]`, tolerance `1e-9`, max iterations 200, grid points 1000.
-4. **Quotas:** `institutional_paid` Feature 3 daily quota set to 5 (5x the `institutional_free` daily quota).
-5. **Sector growth thresholds:** Conservative YoY strong-growth baseline floors in `config/thresholds.yaml` (FMCG 6%, IT services 8%, Autos 10%, Capital goods 12%, Metals 10%, Energy 8%, Telecom 8%, Consumer durables 10%, Other 8%), with provisional threshold labelling applied to candidate flags.
-6. **Text chunker parameters:** `chunk_size` 1200 and `chunk_overlap` 150 in `config/parameters.yaml` (DECISIONS.md D-26).
+1. **Unofficial price sources:** Daily equity prices use `yfinance` for development and demo mode. This relies on unofficial endpoints.
+2. **No institutional flow data:** Programmatic feeds for FII and DII net investment flows are unavailable.
+3. **Provisional risk-free rate:** The risk-free rate is set to 5.7281 percent from RBI press release 2026-2027/1326.
+4. **Revenue and profit checks only:** Quarterly filing checks are scoped to revenue and profit. Quarterly filings omit cash flow statements.
+5. **Google login and payments deferred:** Authentication uses email and password. Live payments are deferred.
+6. **Synthetic demo log:** Generated for pipeline testing. Every demo row is tagged `SYNTHETIC_DEMO`.
 
 ---
 
-## Frontend Web Application
+## 8. Provisional Parameters
 
-A Next.js (TypeScript, App Router) frontend is located in `frontend/web/`.
+Every finance parameter is provisional, no advisor review (DECISIONS.md D-26):
+1. **Absorption ratio component fraction:** `k_fraction` set to 0.20 in `config/parameters.yaml`.
+2. **Institutional performance metrics:** Annualization factor 252 and risk-free series set to 91-day T-bill.
+3. **XIRR solver parameters:** Bracket `[-0.99, 10.0]`, tolerance `1e-9`, and max iterations 200.
+4. **Quotas:** Daily usage limits configured in `config/plans.yaml`.
+5. **Sector growth baselines:** Growth floors configured in `config/thresholds.yaml`.
+6. **Text chunker parameters:** `chunk_size` 1200 and `chunk_overlap` 150.
 
-### Architecture & Security
-- **In-Memory Token Lifecycle:** Supabase JWT session tokens are held exclusively in React runtime memory (`AuthContext`). Tokens are never written to `localStorage`, `sessionStorage`, cookies, URLs, or console logs. Reloading the page clears the session by design.
-- **Backend API Proxy:** All API communication uses the single prefix `/backend/:path*`, rewritten server-side in `next.config.ts` to `BACKEND_URL/:path*` (default `http://127.0.0.1:8000`).
-- **Zero-Backend Landing Page:** The landing page makes no backend calls and renders purely static educational and overview content.
-- **Navigation:** All internal navigation uses `next/link` to preserve in-memory token state across views.
+---
 
-### Running Frontend Locally
+## 9. Frontend Web Application
 
+The frontend application is in `frontend/web/`.
+It is built with Next.js 15, React 19, and TypeScript.
+
+### 9.1 Security and Proxy Routing
+- **In-Memory Token Lifecycle:** Supabase JWT tokens reside exclusively in React runtime memory (`AuthContext`). Tokens never enter `localStorage`, `sessionStorage`, or cookies. Closing the page evaporates the token.
+- **Backend API Proxy:** All API requests route through the prefix `/backend/:path*`. Next.js rewrites this prefix server-side to `BACKEND_URL/:path*`.
+- **Zero-Backend Landing Page:** The landing page makes no backend calls and renders static content.
+
+### 9.2 Running Frontend Locally
 ```bash
 cd frontend/web
 npm install
 npm run dev
 ```
 
-### Verification & Testing
+---
 
-```bash
-cd frontend/web
-npm run typecheck
-npm run lint
-npm run test
-npm run build
-```
+## 10. Glossary
 
+- **AR:** Absorption Ratio measuring the fraction of variance explained by top principal components.
+- **BSE:** Bombay Stock Exchange.
+- **HHI:** Herfindahl-Hirschman Index measuring portfolio concentration.
+- **Ind AS:** Indian Accounting Standards converged with IFRS.
+- **NSE:** National Stock Exchange of India.
+- **PGR / PLR:** Proportion of Gains Realized and Proportion of Losses Realized.
+- **Provisional:** Working value adopted in code without human financial advisor review.
+- **SEBI:** Securities and Exchange Board of India.
+- **XBRL:** Extensible Business Reporting Language for electronic regulatory filings.
+- **XIRR:** Extended Internal Rate of Return for irregular cash flows.

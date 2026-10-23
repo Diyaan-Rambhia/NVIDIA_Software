@@ -223,8 +223,14 @@
 }
 
 .presMissing {
-  color: var(--color-fail);
-  background-color: var(--color-fail-bg);
+  color: var(--color-warn);
+  background-color: var(--color-warn-bg);
+}
+
+.presNotEnabled {
+  color: var(--color-muted);
+  background-color: var(--color-bg);
+  border-color: var(--color-border-subtle);
 }
 
 .table {

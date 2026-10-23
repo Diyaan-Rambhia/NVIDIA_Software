@@ -303,13 +303,112 @@ parameters:
     max: 120.0
     override_allowed: true
     unit: "seconds"
-  hosted_demo_mode:
+  f3_hosted_upload_enabled:
     type: bool
     default: true
     min: null
     max: null
     override_allowed: true
-    unit: "mode"
+    unit: "boolean_flag"
+  non_prose_max_code_density:
+    type: float
+    default: 0.20
+    min: 0.05
+    max: 0.80
+    override_allowed: true
+    unit: "ratio"
+  file_extract_max_bytes:
+    type: int
+    default: 10485760
+    min: 1024
+    max: 52428800
+    override_allowed: true
+    unit: "bytes"
+  file_extract_max_pages:
+    type: int
+    default: 50
+    min: 1
+    max: 500
+    override_allowed: true
+    unit: "pages"
+  file_extract_max_rows:
+    type: int
+    default: 5000
+    min: 10
+    max: 50000
+    override_allowed: true
+    unit: "rows"
+  file_extract_max_chars:
+    type: int
+    default: 200000
+    min: 100
+    max: 1000000
+    override_allowed: true
+    unit: "characters"
+  file_extract_timeout_seconds:
+    type: float
+    default: 20.0
+    min: 1.0
+    max: 60.0
+    override_allowed: true
+    unit: "seconds"
+  file_extract_max_uncompressed_bytes:
+    type: int
+    default: 52428800
+    min: 1048576
+    max: 209715200
+    override_allowed: true
+    unit: "bytes"
+  file_extract_max_zip_entries:
+    type: int
+    default: 200
+    min: 1
+    max: 1000
+    override_allowed: true
+    unit: "entries"
+  yfinance_cache_ttl_seconds:
+    type: int
+    default: 3600
+    min: 60
+    max: 86400
+    override_allowed: true
+    unit: "seconds"
+  yfinance_max_tickers_per_request:
+    type: int
+    default: 100
+    min: 1
+    max: 500
+    override_allowed: true
+    unit: "count"
+  f2_lookup_daily_limit:
+    type: int
+    default: 20
+    min: 1
+    max: 100
+    override_allowed: true
+    unit: "lookups_per_day"
+  f2_lookup_cache_ttl_seconds:
+    type: int
+    default: 86400
+    min: 3600
+    max: 604800
+    override_allowed: true
+    unit: "seconds"
+  nse_global_rate_limit_per_second:
+    type: float
+    default: 5.0
+    min: 0.5
+    max: 20.0
+    override_allowed: true
+    unit: "requests_per_second"
+  f1_news_searches_per_run:
+    type: int
+    default: 3
+    min: 1
+    max: 10
+    override_allowed: true
+    unit: "searches"
+
 
 
 

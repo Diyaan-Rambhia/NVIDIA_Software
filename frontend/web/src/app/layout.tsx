@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { siteConfig } from "@/config/site";
+import { siteConfig, UI_REVISION } from "@/config/site";
 import { AuthProvider } from "@/context/AuthContext";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -29,6 +29,9 @@ export const metadata: Metadata = {
   description: siteConfig.tagline,
   icons: {
     icon: siteConfig.logo.favicon,
+  },
+  other: {
+    "ui-revision": String(UI_REVISION),
   },
 };
 

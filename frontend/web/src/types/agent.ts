@@ -12,6 +12,8 @@ export interface AgentAskRequest {
   query: string;
   budget_usd?: number | null;
   max_steps?: number | null;
+  model_tier?: "fast" | "balanced" | "deep";
+  attachment_text?: string | null;
 }
 
 export interface AgentAskResponse {
@@ -21,20 +23,6 @@ export interface AgentAskResponse {
   total_cost_usd: number;
   duration_ms: number;
   disclaimer?: string;
-  is_placeholder?: boolean;
-}
-
-export interface NemotronCallRequest {
-  prompt: string;
-  alias?: string;
-}
-
-export interface NemotronCallResponse {
-  status: string;
-  alias: string;
-  model_id: string;
-  response: string;
-  unverified_note?: string;
 }
 
 export interface OpsStatus {

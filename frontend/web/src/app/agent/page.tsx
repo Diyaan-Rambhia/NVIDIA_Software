@@ -1,442 +1,490 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch, ApiError } from "@/lib/api";
-import { AgentAskResponse, AgentStep, NemotronCallResponse } from "@/types/agent";
-import { StatusBanner } from "@/components/StatusBanner";
+import { AgentAskResponse, AgentStep } from "@/types/agent";
 import { formatDecimal } from "@/lib/formatters";
 import styles from "./agent.module.css";
 
+type ModelTier = "fast" | "balanced" | "deep";
+
+interface ChatMessage {
+  id: string;
+  sender: "user" | "agent";
+  text?: string;
+  answer?: string;
+  tier?: ModelTier;
+  disclaimer?: string;
+  steps?: AgentStep[];
+  total_cost_usd?: number;
+  duration_ms?: number;
+  error?: {
+    status: number;
+    code: string;
+    message: string;
+  };
+}
+
+const STARTER_QUESTIONS = [
+  "Check systemic absorption ratio and Forbes-Rigobon correlation shifts for Indian equities.",
+  "Audit INFY filings for revenue discrepancies between press releases and XBRL.",
+  "Evaluate portfolio trade logs for XIRR performance and disposition effect.",
+];
+
 export default function AgentPage() {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { user } = useAuth();
 
-  // Agent Loop states
-  const [query, setQuery] = useState("");
-  const [maxSteps, setMaxSteps] = useState<number | "">("");
-  const [budgetUsd, setBudgetUsd] = useState<number | "">("");
-  const [asking, setAsking] = useState(false);
-  const [agentResponse, setAgentResponse] = useState<AgentAskResponse | null>(null);
-  const [agentError, setAgentError] = useState<string | null>(null);
-  const [agentHttpStatus, setAgentHttpStatus] = useState<number | null>(null);
+  // In-memory chat thread
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [inputQuery, setInputQuery] = useState("");
+  const [selectedTier, setSelectedTier] = useState<ModelTier>("balanced");
+  const [unavailableTiers, setUnavailableTiers] = useState<Record<ModelTier, string>>({} as Record<ModelTier, string>);
+  const [running, setRunning] = useState(false);
+  const [extractingFile, setExtractingFile] = useState(false);
+  const [attachedFile, setAttachedFile] = useState<{ name: string; text: string } | null>(null);
+  const [imageNotice, setImageNotice] = useState<string | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
 
-  // Nemotron Runtime Call states
-  const [nemotronPrompt, setNemotronPrompt] = useState("");
-  const [nemotronAlias, setNemotronAlias] = useState("fast");
-  const [nemotronCalling, setNemotronCalling] = useState(false);
-  const [nemotronResponse, setNemotronResponse] = useState<NemotronCallResponse | null>(null);
-  const [nemotronError, setNemotronError] = useState<string | null>(null);
-  const [nemotronStatus, setNemotronStatus] = useState<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Tavily Search states
-  const [tavilyQuery, setTavilyQuery] = useState("");
-  const [tavilySearching, setTavilySearching] = useState(false);
-  const [tavilyResults, setTavilyResults] = useState<Array<{ title: string; url: string; content: string }> | null>(null);
-  const [tavilyError, setTavilyError] = useState<string | null>(null);
-  const [tavilyStatus, setTavilyStatus] = useState<number | null>(null);
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setImageNotice(null);
+    setFileError(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const handleAgentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!query.trim()) return;
+    // Reset input value so same file can be selected again
+    e.target.value = "";
 
-    setAsking(true);
-    setAgentError(null);
-    setAgentHttpStatus(null);
-    setAgentResponse(null);
+    // Check for images
+    if (file.type.startsWith("image/") || /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(file.name)) {
+      setImageNotice("Images: coming later");
+      return;
+    }
 
+    // Supported document formats: PDF, Excel, Word
+    const isPdf = file.name.endsWith(".pdf") || file.type === "application/pdf";
+    const isExcel = file.name.endsWith(".xlsx") || file.name.endsWith(".xls") || file.type.includes("spreadsheetml");
+    const isWord = file.name.endsWith(".docx") || file.name.endsWith(".doc") || file.type.includes("wordprocessingml");
+
+    if (!isPdf && !isExcel && !isWord) {
+      setFileError("Supported files: PDF, Excel (.xlsx), Word (.docx)");
+      return;
+    }
+
+    setExtractingFile(true);
     try {
-      const payload = {
-        query: query.trim(),
-        max_steps: maxSteps === "" ? null : Number(maxSteps),
-        budget_usd: budgetUsd === "" ? null : Number(budgetUsd),
-      };
-
-      const res = await apiFetch<AgentAskResponse>("/agent/ask", {
+      const buffer = await file.arrayBuffer();
+      const extracted = await apiFetch<string>(`/files/extract?filename=${encodeURIComponent(file.name)}`, {
         method: "POST",
-        body: JSON.stringify(payload),
+        headers: {
+          "x-filename": file.name,
+          "content-type": file.type || "application/octet-stream",
+        },
+        body: buffer,
       });
 
-      setAgentResponse(res);
+      setAttachedFile({
+        name: file.name,
+        text: typeof extracted === "string" ? extracted : JSON.stringify(extracted),
+      });
     } catch (err: unknown) {
+      if (err instanceof ApiError) {
+        setFileError(`Extraction failed: ${err.parsed.message}`);
+      } else {
+        setFileError("Document text extraction failed.");
+      }
+    } finally {
+      setExtractingFile(false);
+    }
+  };
+
+  const removeAttachment = () => {
+    setAttachedFile(null);
+    setFileError(null);
+    setImageNotice(null);
+  };
+
+  const handleSend = async (queryToSend?: string) => {
+    const q = (queryToSend ?? inputQuery).trim();
+    if (!q || running) return;
+
+    const userMsgId = `user-${Date.now()}`;
+    const userMsg: ChatMessage = {
+      id: userMsgId,
+      sender: "user",
+      text: q,
+    };
+
+    setMessages((prev) => [...prev, userMsg]);
+    setInputQuery("");
+    setImageNotice(null);
+    setFileError(null);
+    setRunning(true);
+
+    const textToAttach = attachedFile?.text || null;
+    const tierUsed = selectedTier;
+    setAttachedFile(null);
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    try {
+      const res = await apiFetch<AgentAskResponse>("/agent/ask", {
+        method: "POST",
+        body: JSON.stringify({
+          query: q,
+          model_tier: tierUsed,
+          attachment_text: textToAttach,
+        }),
+        signal: controller.signal,
+      });
+
+      const agentMsg: ChatMessage = {
+        id: `agent-${Date.now()}`,
+        sender: "agent",
+        answer: res.answer,
+        tier: (res as any).model_tier || tierUsed,
+        disclaimer: res.disclaimer,
+        steps: res.steps || [],
+        total_cost_usd: res.total_cost_usd,
+        duration_ms: res.duration_ms,
+      };
+
+      setMessages((prev) => [...prev, agentMsg]);
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === "AbortError") {
+        const cancelMsg: ChatMessage = {
+          id: `err-${Date.now()}`,
+          sender: "agent",
+          error: {
+            status: 499,
+            code: "CLIENT_CANCELLED",
+            message: "Cancel stops waiting; the server may still finish.",
+          },
+        };
+        setMessages((prev) => [...prev, cancelMsg]);
+        return;
+      }
+
       if (err instanceof ApiError) {
         if (err.status === 401) {
           router.push("/login");
           return;
         }
-        setAgentHttpStatus(err.status);
-        setAgentError(err.parsed.message);
+
+        let code = err.parsed.code || `HTTP_${err.status}`;
+        let message = err.parsed.message;
+
+        if (err.status === 402) {
+          code = code || "UPGRADE_REQUIRED";
+          message = "Requires the institutional plan. Plan changes are not available yet.";
+        } else if (err.status === 403) {
+          code = code || "FORBIDDEN";
+          message = message || "Access restricted for your account segment.";
+        } else if (err.status === 429) {
+          code = code || "QUOTA_EXCEEDED";
+          const resetTime = err.parsed.resetTime || (err.parsed as any).reset_time;
+          if (resetTime) {
+            message = `${message} (Reset time: ${resetTime})`;
+          }
+        } else if (err.status === 503) {
+          code = code || "SERVICE_UNAVAILABLE";
+          message = message || "Model service is unconfigured or unreachable.";
+          // Mark the tier unavailable with reason
+          setUnavailableTiers((prev) => ({
+            ...prev,
+            [tierUsed]: message,
+          }));
+        }
+
+        const agentErrMsg: ChatMessage = {
+          id: `err-${Date.now()}`,
+          sender: "agent",
+          error: {
+            status: err.status,
+            code: code.toUpperCase(),
+            message: `HTTP ${err.status} [${code.toUpperCase()}]: ${message}`,
+          },
+        };
+        setMessages((prev) => [...prev, agentErrMsg]);
       } else {
-        setAgentHttpStatus(500);
-        setAgentError("Execution error communicating with autonomous agent loop.");
+        const genericErrMsg: ChatMessage = {
+          id: `err-${Date.now()}`,
+          sender: "agent",
+          error: {
+            status: 500,
+            code: "AGENT_ERROR",
+            message: "HTTP 500 [AGENT_ERROR]: Execution error communicating with autonomous agent loop.",
+          },
+        };
+        setMessages((prev) => [...prev, genericErrMsg]);
       }
     } finally {
-      setAsking(false);
+      setRunning(false);
+      abortControllerRef.current = null;
     }
   };
 
-  const handleNemotronSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!nemotronPrompt.trim()) return;
-
-    setNemotronCalling(true);
-    setNemotronError(null);
-    setNemotronStatus(null);
-    setNemotronResponse(null);
-
-    try {
-      const res = await apiFetch<NemotronCallResponse>("/llm/runtime_call", {
-        method: "POST",
-        body: JSON.stringify({
-          prompt: nemotronPrompt.trim(),
-          alias: nemotronAlias,
-        }),
-      });
-
-      setNemotronResponse(res);
-    } catch (err: unknown) {
-      if (err instanceof ApiError) {
-        setNemotronStatus(err.status);
-        setNemotronError(err.parsed.message);
-      } else {
-        setNemotronStatus(503);
-        setNemotronError("Nemotron call failed: service unreachable.");
-      }
-    } finally {
-      setNemotronCalling(false);
+  const handleCancel = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
     }
   };
 
-  const handleTavilySubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!tavilyQuery.trim()) return;
-
-    setTavilySearching(true);
-    setTavilyError(null);
-    setTavilyStatus(null);
-    setTavilyResults(null);
-
-    try {
-      const res = await apiFetch<{
-        status: string;
-        query: string;
-        results: Array<{ title: string; url: string; content: string }>;
-      }>("/llm/tavily_search", {
-        method: "POST",
-        body: JSON.stringify({ query: tavilyQuery.trim() }),
-      });
-      setTavilyResults(res.results);
-    } catch (err: unknown) {
-      if (err instanceof ApiError) {
-        setTavilyStatus(err.status);
-        setTavilyError(err.parsed.message);
-      } else {
-        setTavilyStatus(503);
-        setTavilyError("Tavily search failed: service unreachable.");
-      }
-    } finally {
-      setTavilySearching(false);
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
     }
   };
+
+  const userPlan = user?.plan || "free";
 
   return (
     <div className={styles.pageContainer}>
+      {/* Top Header */}
       <div className={styles.header}>
-        <span className={styles.badge} data-mono>AUTONOMOUS AGENT ORCHESTRATION</span>
-        <h1>Multi-Step Analytical Agent & Nemotron Runtime</h1>
-        <p className={styles.lead}>
-          Executes controlled multi-step tool loops across systemic contagion, XBRL filings,
-          and forensic portfolio analytics with strict budget guards and financial advice prevention.
-        </p>
+        <div className={styles.titleGroup}>
+          <h1 className={styles.title}>FinFriend agent</h1>
+          <span className={styles.planBadge} data-mono>
+            {userPlan}
+          </span>
+        </div>
+        <span className={styles.statelessNote} data-mono>
+          Each question is answered on its own.
+        </span>
       </div>
 
-      <div className={styles.layoutGrid}>
-        {/* Main Agent Column */}
-        <div className={styles.mainCol}>
-          <section className={styles.card}>
-            <h2>Autonomous Agent Query Box</h2>
-            <p className={styles.cardLead}>
-              Ask cross-functional financial questions. The agent breaks down the problem, executes
-              analytical tools with entitlement checks, and validates the final response.
-            </p>
+      {/* Thread Container */}
+      <div className={styles.threadContainer} data-testid="chat-thread">
+        {messages.map((msg) => {
+          const isUser = msg.sender === "user";
+          const isError = Boolean(msg.error);
 
-            {agentError && (
-              <StatusBanner
-                status={agentHttpStatus}
-                message={agentError}
-                type={agentHttpStatus === 402 || agentHttpStatus === 403 || agentHttpStatus === 429 ? "warn" : "error"}
-              />
-            )}
-
-            <form onSubmit={handleAgentSubmit} className={styles.form}>
-              <div className={styles.field}>
-                <label htmlFor="agent-query">Financial Research Question</label>
-                <textarea
-                  id="agent-query"
-                  rows={3}
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="e.g. Audit INFY revenue consistency in Q1 FY27 and evaluate portfolio beta sensitivity"
-                  required
-                  disabled={asking}
-                />
-              </div>
-
-              <div className={styles.guardRow}>
-                <div className={styles.fieldSmall}>
-                  <label htmlFor="agent-steps">Max Step Limit (Optional)</label>
-                  <input
-                    id="agent-steps"
-                    type="number"
-                    min={1}
-                    max={20}
-                    value={maxSteps}
-                    onChange={(e) => setMaxSteps(e.target.value === "" ? "" : Number(e.target.value))}
-                    placeholder="e.g. 5"
-                    disabled={asking}
-                  />
-                </div>
-
-                <div className={styles.fieldSmall}>
-                  <label htmlFor="agent-budget">Budget Guard USD (Optional)</label>
-                  <input
-                    id="agent-budget"
-                    type="number"
-                    step="0.01"
-                    min={0.01}
-                    value={budgetUsd}
-                    onChange={(e) => setBudgetUsd(e.target.value === "" ? "" : Number(e.target.value))}
-                    placeholder="e.g. 0.50"
-                    disabled={asking}
-                  />
-                </div>
-              </div>
-
-              <button type="submit" className={styles.submitBtn} disabled={asking}>
-                {asking ? "Executing Agent Tool Loop..." : "Execute Agent Loop"}
-              </button>
-            </form>
-          </section>
-
-          {/* Agent Results: Steps & Final Answer */}
-          {agentResponse && (
-            <div className={styles.resultsWrapper}>
-              {/* Step Execution Telemetry */}
-              <section className={styles.card}>
-                <div className={styles.stepsHeader}>
-                  <h2>Executed Tool Steps ({agentResponse.steps.length})</h2>
-                  <div className={styles.telemetryBadges} data-mono>
-                    <span>COST: ${formatDecimal(agentResponse.total_cost_usd, 4)}</span>
-                    <span>DURATION: {agentResponse.duration_ms} ms</span>
-                  </div>
-                </div>
-
-                <div className={styles.stepsTableWrapper}>
-                  <table className={styles.table}>
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Tool Name</th>
-                        <th>Input Summary</th>
-                        <th>Output Summary</th>
-                        <th>Status</th>
-                        <th>Cost USD</th>
-                        <th>Duration</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {agentResponse.steps.map((step: AgentStep) => (
-                        <tr key={step.step_number}>
-                          <td data-mono className={styles.stepNum}>{step.step_number}</td>
-                          <td data-mono className={styles.toolCell}>{step.tool_name}</td>
-                          <td className={styles.summaryCell}>{step.input_summary}</td>
-                          <td className={styles.summaryCell}>{step.output_summary}</td>
-                          <td>
-                            <span
-                              className={`${styles.statusBadge} ${
-                                step.status === "success"
-                                  ? styles.badgeSuccess
-                                  : step.status === "denied"
-                                  ? styles.badgeDenied
-                                  : styles.badgeError
-                              }`}
-                              data-mono
-                            >
-                              {step.status.toUpperCase()}
-                            </span>
-                          </td>
-                          <td data-mono>${formatDecimal(step.est_cost_usd, 4)}</td>
-                          <td data-mono>{step.duration_ms}ms</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-
-              {/* Final Synthesis Answer */}
-              <section className={styles.card}>
-                <h2>Synthesized Final Answer</h2>
-                <div className={styles.answerText}>{agentResponse.answer}</div>
-                {agentResponse.disclaimer && (
-                  <div className={styles.disclaimer}>{agentResponse.disclaimer}</div>
-                )}
-              </section>
-            </div>
-          )}
-        </div>
-
-        {/* Runtime Nemotron Endpoint Panel */}
-        <div className={styles.sideCol}>
-          <section className={styles.nemotronCard}>
-            <div className={styles.nemotronHeader}>
-              <span className={styles.nemotronBadge} data-mono>NEBIUS TOKEN FACTORY</span>
-              <h3>Nemotron Runtime Call</h3>
-            </div>
-            <p className={styles.nemotronLead}>
-              Direct budget-guarded endpoint for testing live NVIDIA Nemotron model inference.
-            </p>
-
-            {nemotronError && (
-              <StatusBanner
-                status={nemotronStatus}
-                message={nemotronError}
-                type="warn"
-              />
-            )}
-
-            {nemotronResponse && (
-              <div className={styles.nemotronSuccess}>
-                <div className={styles.modelMeta} data-mono>
-                  MODEL: {nemotronResponse.model_id} ({nemotronResponse.alias})
-                </div>
-                <div className={styles.rawOutput}>{nemotronResponse.response}</div>
-                {nemotronResponse.unverified_note && (
-                  <div className={styles.unverifiedNote} data-mono>
-                    {nemotronResponse.unverified_note}
-                  </div>
+          return (
+            <div
+              key={msg.id}
+              className={`${styles.messageBlock} ${
+                isUser
+                  ? styles.userMessage
+                  : isError
+                    ? styles.errorMessage
+                    : styles.agentMessage
+              }`}
+            >
+              <div className={styles.messageHeader}>
+                <span className={styles.senderLabel}>
+                  {isUser ? "You" : "FinFriend agent"}
+                </span>
+                {!isUser && msg.tier && (
+                  <span className={styles.tierBadge} data-mono>
+                    {msg.tier.charAt(0).toUpperCase() + msg.tier.slice(1)}
+                  </span>
                 )}
               </div>
-            )}
 
-            <form onSubmit={handleNemotronSubmit} className={styles.form}>
-              <div className={styles.field}>
-                <label htmlFor="nemotron-alias">Model Alias</label>
-                <select
-                  id="nemotron-alias"
-                  value={nemotronAlias}
-                  onChange={(e) => setNemotronAlias(e.target.value)}
-                  disabled={nemotronCalling}
-                >
-                  <option value="fast">Fast (Llama-3.1-Nemotron-70B)</option>
-                  <option value="mid">Mid (Nemotron-70B-Instruct)</option>
-                  <option value="deep">Deep (Nemotron Large)</option>
-                </select>
-              </div>
-
-              <div className={styles.field}>
-                <label htmlFor="nemotron-prompt">Prompt</label>
-                <textarea
-                  id="nemotron-prompt"
-                  rows={3}
-                  value={nemotronPrompt}
-                  onChange={(e) => setNemotronPrompt(e.target.value)}
-                  placeholder="Ask a specific query to the Nemotron endpoint..."
-                  required
-                  disabled={nemotronCalling}
-                />
-              </div>
-
-              <button
-                type="submit"
-                className={styles.nemotronBtn}
-                disabled={nemotronCalling}
-              >
-                {nemotronCalling ? "Calling Runtime..." : "Send Runtime Call"}
-              </button>
-            </form>
-          </section>
-
-          {/* Live Tavily Macro Search Probe */}
-          <section className={styles.nemotronCard}>
-            <div className={styles.nemotronHeader}>
-              <span className={styles.nemotronBadge} data-mono>EXTERNAL SEARCH ENGINE</span>
-              <h3>Tavily Macro Search</h3>
-            </div>
-            <p className={styles.nemotronLead}>
-              Live news search powering macro factor attribution and systemic contagion hypotheses.
-            </p>
-
-            {tavilyError && (
-              <StatusBanner
-                status={tavilyStatus}
-                message={tavilyError}
-                type="warn"
-              />
-            )}
-
-            {tavilyResults && (
-              <div className={styles.nemotronSuccess}>
-                <div className={styles.modelMeta} data-mono>
-                  RETRIEVED {tavilyResults.length} MACRO ARTICLES
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "8px" }}>
-                  {tavilyResults.map((r, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        padding: "8px",
-                        background: "rgba(255, 255, 255, 0.03)",
-                        border: "1px solid rgba(255, 255, 255, 0.08)",
-                        borderRadius: "4px",
+              {isUser ? (
+                <div className={styles.messageBody}>{msg.text}</div>
+              ) : isError ? (
+                <div className={styles.messageBody}>{msg.error?.message}</div>
+              ) : (
+                <>
+                  <div className={styles.messageBody}>
+                    <ReactMarkdown
+                      components={{
+                        pre({ children, ...props }) {
+                          return (
+                            <details className={styles.codeDetails}>
+                              <summary className={styles.codeSummary}>Code block</summary>
+                              <pre {...props}>{children}</pre>
+                            </details>
+                          );
+                        },
                       }}
                     >
-                      <a
-                        href={r.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        style={{
-                          color: "var(--color-accent)",
-                          fontWeight: 600,
-                          fontSize: "12px",
-                          textDecoration: "underline",
-                        }}
-                      >
-                        {r.title}
-                      </a>
-                      <p style={{ fontSize: "11px", color: "var(--color-muted)", marginTop: "4px", lineHeight: 1.4 }}>
-                        {r.content}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                      {msg.answer || ""}
+                    </ReactMarkdown>
+                  </div>
+
+                  {msg.disclaimer && (
+                    <div className={styles.disclaimerText}>{msg.disclaimer}</div>
+                  )}
+
+                  {msg.steps && msg.steps.length > 0 && (
+                    <details className={styles.stepsDetails}>
+                      <summary className={styles.stepsSummary} data-mono>
+                        {msg.steps.length} steps, ${formatDecimal(msg.total_cost_usd, 4)}, {msg.duration_ms}ms
+                      </summary>
+                      <div className={styles.stepsTableWrapper}>
+                        <table className={styles.stepsTable}>
+                          <thead>
+                            <tr>
+                              <th>#</th>
+                              <th>Tool</th>
+                              <th>Input Summary</th>
+                              <th>Output Summary</th>
+                              <th>Status</th>
+                              <th>Cost</th>
+                              <th>Duration</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {msg.steps.map((step) => {
+                              const statusClass =
+                                step.status === "success"
+                                  ? styles.statusSuccess
+                                  : step.status === "denied"
+                                    ? styles.statusDenied
+                                    : styles.statusError;
+
+                              return (
+                                <tr key={step.step_number}>
+                                  <td data-mono>{step.step_number}</td>
+                                  <td data-mono>{step.tool_name}</td>
+                                  <td>{step.input_summary}</td>
+                                  <td>{step.output_summary}</td>
+                                  <td>
+                                    <span className={statusClass} data-mono>
+                                      {step.status.toUpperCase()}
+                                    </span>
+                                  </td>
+                                  <td data-mono>${formatDecimal(step.est_cost_usd, 4)}</td>
+                                  <td data-mono>{step.duration_ms}ms</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </details>
+                  )}
+                </>
+              )}
+            </div>
+          );
+        })}
+
+        {running && (
+          <div className={styles.runningLine} data-mono>
+            running
+          </div>
+        )}
+      </div>
+
+      {/* Input Section at bottom */}
+      <div className={styles.inputSection}>
+        {messages.length === 0 && (
+          <div className={styles.starterChips} data-testid="starter-chips">
+            {STARTER_QUESTIONS.map((chip, idx) => (
+              <button
+                key={idx}
+                type="button"
+                className={styles.starterChip}
+                onClick={() => handleSend(chip)}
+                disabled={running}
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {attachedFile && (
+          <div className={styles.attachedChip} data-testid="attached-chip">
+            <span data-mono>{attachedFile.name}</span>
+            <button
+              type="button"
+              onClick={removeAttachment}
+              title="Remove attachment"
+              aria-label="Remove attachment"
+            >
+              x
+            </button>
+          </div>
+        )}
+
+        {imageNotice && (
+          <div className={styles.imageNotice} data-mono>
+            {imageNotice}
+          </div>
+        )}
+
+        {fileError && (
+          <div className={styles.imageNotice} data-mono>
+            {fileError}
+          </div>
+        )}
+
+        <textarea
+          className={styles.textarea}
+          value={inputQuery}
+          onChange={(e) => setInputQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Ask a question about contagion, filings discrepancies, or trade logs... (Enter to send, Shift+Enter for new line)"
+          disabled={running}
+          rows={2}
+        />
+
+        <div className={styles.inputControls}>
+          <div className={styles.leftControls}>
+            <select
+              aria-label="Model Tier"
+              className={styles.tierSelect}
+              value={selectedTier}
+              onChange={(e) => setSelectedTier(e.target.value as ModelTier)}
+              disabled={running}
+            >
+              <option value="fast" disabled={Boolean(unavailableTiers.fast)}>
+                Fast{unavailableTiers.fast ? ` (unavailable: ${unavailableTiers.fast})` : ""}
+              </option>
+              <option value="balanced" disabled={Boolean(unavailableTiers.balanced)}>
+                Balanced{unavailableTiers.balanced ? ` (unavailable: ${unavailableTiers.balanced})` : ""}
+              </option>
+              <option value="deep" disabled={Boolean(unavailableTiers.deep)}>
+                Deep{unavailableTiers.deep ? ` (unavailable: ${unavailableTiers.deep})` : ""}
+              </option>
+            </select>
+
+            <label className={styles.fileButton}>
+              {extractingFile ? "Extracting..." : "Attach file"}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.xlsx,.docx,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
+                onChange={handleFileSelect}
+                disabled={running || extractingFile}
+                hidden
+              />
+            </label>
+          </div>
+
+          <div className={styles.rightControls}>
+            {running && (
+              <button
+                type="button"
+                className={styles.cancelBtn}
+                onClick={handleCancel}
+                title="Cancel stops waiting; the server may still finish."
+              >
+                Cancel stops waiting; the server may still finish.
+              </button>
             )}
 
-            <form onSubmit={handleTavilySubmit} className={styles.form}>
-              <div className={styles.field}>
-                <label htmlFor="tavily-query">Search Query</label>
-                <input
-                  id="tavily-query"
-                  type="text"
-                  value={tavilyQuery}
-                  onChange={(e) => setTavilyQuery(e.target.value)}
-                  placeholder="e.g. Reserve Bank of India repo rate decision"
-                  required
-                  disabled={tavilySearching}
-                />
-              </div>
-
-              <button
-                type="submit"
-                className={styles.nemotronBtn}
-                disabled={tavilySearching}
-              >
-                {tavilySearching ? "Searching Tavily..." : "Search Macro News"}
-              </button>
-            </form>
-          </section>
+            <button
+              type="button"
+              className={styles.sendBtn}
+              onClick={() => handleSend()}
+              disabled={running || !inputQuery.trim()}
+            >
+              Send
+            </button>
+          </div>
         </div>
       </div>
     </div>

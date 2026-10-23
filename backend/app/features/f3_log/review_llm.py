@@ -5,24 +5,18 @@ from typing import Any
 
 from backend.app.contracts.portfolio import DecisionReview
 from backend.app.llm.guard import assert_no_financial_advice
-from backend.app.llm.placeholder import PlaceholderProvider
 
 logger = logging.getLogger("backend.app.features.f3_log.review_llm")
-
-PLACEHOLDER_MARKER = "PLACEHOLDER TEMPLATE, not Nemotron"
 
 
 def generate_decision_review_narrative(
     review: DecisionReview,
-    llm_client: Any = None,
+    provider: Any = None,
 ) -> str:
     """Generate educational process-versus-outcome review narrative from computed metrics.
 
-    Preserves synthetic demo log label if present and strictly excludes buy/sell/hold advice.
+    Strictly excludes buy/sell/hold advice.
     """
-    if llm_client is None:
-        llm_client = PlaceholderProvider()
-
     pm = review.process_metrics
     port = review.portfolio
     disp = pm.disposition_effect
@@ -32,10 +26,13 @@ def generate_decision_review_narrative(
     # Narrative framing process versus outcome
     lines: list[str] = []
 
-    if review.is_synthetic_demo or review.synthetic_label:
-        lines.append(f"{review.synthetic_label or 'SYNTHETIC DEMO LOG, not a real investor'}.")
+    if getattr(provider, "is_placeholder", False):
+        marker = getattr(provider, "placeholder_label", "PLACEHOLDER TEMPLATE, not Nemotron")
+        lines.append(f"{marker}.")
 
-    lines.append(f"{PLACEHOLDER_MARKER}.")
+    if review.is_synthetic_demo and review.synthetic_label:
+        lines.append(f"{review.synthetic_label}.")
+
     lines.append(
         "Process-versus-outcome evaluation: Portfolio turnover was recorded at "
         f"{pm.turnover:.2f} with concentration HHI of {pm.concentration_hhi:.4f}."

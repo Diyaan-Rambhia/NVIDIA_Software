@@ -11,14 +11,17 @@ from backend.app.contracts.contagion import (
     Hypothesis,
     WindowRange,
 )
-from backend.app.llm.placeholder import PlaceholderProvider
 from backend.app.version import get_code_version
 
 logger = logging.getLogger("backend.app.features.f1_contagion.explanation")
 
 
-def fetch_tavily_news(query: str, settings: Settings | None = None) -> list[dict[str, Any]]:
-    """Fetch external news context via Tavily API.
+def fetch_tavily_news(
+    query: str,
+    settings: Settings | None = None,
+    max_results: int = 3,
+) -> list[dict[str, Any]]:
+    """Fetch external news context via Tavily API at request time.
 
     Per project rules, raises 'not run: no key' when unconfigured and is never replaced with fake data.
     """
@@ -27,18 +30,56 @@ def fetch_tavily_news(query: str, settings: Settings | None = None) -> list[dict
     if not api_key:
         raise ValueError("not run: no key")
 
-    # In live mode with key, this would call Tavily endpoint
-    raise ValueError("not run: no key")
+    import json
+    import urllib.request
+    from urllib.error import HTTPError
+
+    url = "https://api.tavily.com/search"
+    payload = {
+        "api_key": api_key,
+        "query": query,
+        "search_depth": "basic",
+        "max_results": max_results,
+    }
+
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        },
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            results = data.get("results", [])
+            news_items: list[dict[str, Any]] = []
+            for r in results:
+                news_items.append({
+                    "title": r.get("title", ""),
+                    "url": r.get("url", ""),
+                    "content": r.get("content", ""),
+                })
+            return news_items
+    except HTTPError as exc:
+        raise RuntimeError(f"Tavily returned HTTP {exc.code}: {exc.read().decode('utf-8')}") from exc
+    except Exception as exc:
+        raise RuntimeError(f"Tavily search connection failed: {exc}") from exc
 
 
 def build_evidence_pack(
     scan: CorrelationScan,
     baseline_dates: list[str] | None = None,
     current_dates: list[str] | None = None,
+    news_items: list[dict[str, Any]] | None = None,
 ) -> EvidencePack:
-    """Build canonical EvidencePack container from CorrelationScan per PROJECT.md §5.8."""
+    """Build canonical EvidencePack container from CorrelationScan and live news per PROJECT.md §5.8."""
     items: list[EvidenceItem] = []
     item_idx = 1
+
 
     # 1. Systemic Absorption Ratio evidence item
     items.append(
@@ -81,10 +122,28 @@ def build_evidence_pack(
         )
         item_idx += 1
 
+    # 3. News evidence items from live search
+    if news_items:
+        for news in news_items:
+            title = news.get("title", "")
+            url = news.get("url", "")
+            content = news.get("content", "")
+            items.append(
+                EvidenceItem(
+                    id=f"E{item_idx}",
+                    kind="macro_news",
+                    description=f"{title}: {content[:120]}..." if content else title,
+                    values={"title": title, "url": url},
+                    source=url or "Tavily Search",
+                )
+            )
+            item_idx += 1
+
     # Windows
     b_dates = baseline_dates or ["baseline_start", "baseline_end"]
     c_dates = current_dates or ["current_start", "current_end"]
     window = WindowRange(baseline=b_dates[:2], current=c_dates[:2])
+
 
     return EvidencePack(
         as_of=scan.as_of,
@@ -99,12 +158,9 @@ def build_evidence_pack(
 def generate_hypotheses(
     evidence_pack: EvidencePack,
     news_items: list[dict[str, Any]] | None = None,
-    llm_client: Any = None,
+    provider: Any = None,
 ) -> list[Hypothesis]:
     """Generate 2-4 ranked, hedged mechanism hypotheses citing evidence item IDs."""
-    if llm_client is None:
-        llm_client = PlaceholderProvider()
-
     all_evidence_ids = [item.id for item in evidence_pack.items]
     if not all_evidence_ids:
         all_evidence_ids = ["E1", "E2"]
@@ -138,16 +194,23 @@ def generate_hypotheses(
         "https://www.sebi.gov.in/reports.html",
     ]
 
+    marker = (
+        getattr(provider, "placeholder_label", "PLACEHOLDER TEMPLATE, not Nemotron")
+        if getattr(provider, "is_placeholder", False)
+        else ""
+    )
+
     hypotheses: list[Hypothesis] = []
     for mech_class, sup, weak, plaus in mechanisms:
         if not sup:
             sup = [all_evidence_ids[0]]
+        final_plaus = f"{marker}. {plaus}" if marker else plaus
         hyp = Hypothesis(
             mechanism_class=mech_class,
             evidence_supporting=sup,
             evidence_weakening=weak,
             retrieved_urls=urls,
-            plausible_mechanism=f"PLACEHOLDER TEMPLATE, not Nemotron. {plaus}",
+            plausible_mechanism=final_plaus,
         )
         hypotheses.append(hyp)
 

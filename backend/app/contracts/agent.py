@@ -27,6 +27,9 @@ class AgentAskRequest(StrictContractModel):
     query: str = Field(min_length=1)
     max_steps: int | None = None
     budget_usd: float | None = None
+    model_tier: Literal["fast", "balanced", "deep"] = "balanced"
+    attachment_text: str | None = None
+
 
 
 class AgentAskResponse(StrictContractModel):
@@ -37,6 +40,7 @@ class AgentAskResponse(StrictContractModel):
     steps: list[AgentStep]
     total_cost_usd: float = Field(ge=0.0)
     duration_ms: float = Field(ge=0.0)
+    model_tier: str = "balanced"
     is_placeholder: bool = False
     disclaimer: str = (
         "Educational and research review only. FinInsight does not provide "

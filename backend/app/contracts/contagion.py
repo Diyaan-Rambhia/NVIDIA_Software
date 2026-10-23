@@ -77,7 +77,7 @@ class CorrelationScan(StrictContractModel):
     """Output contract for Feature 1 correlation scan per PROJECT.md §5.7 and §5.8."""
 
     as_of: str
-    source_label: str = "unofficial source, demo only"
+    source_label: str = "market data, third-party, delayed"
     parameters_used: dict[str, float | int | bool | str]
     regime_flag: str
     absorption_ratio: float
@@ -89,4 +89,5 @@ class CorrelationScan(StrictContractModel):
     episodes_status: str = "pending_scan_full_history"
     seed: int
     code_version: str
+    scan_duration_seconds: float = 0.0
 

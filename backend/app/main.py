@@ -303,7 +303,7 @@ def create_app(
 
     @app.get("/")
     async def root_redirect() -> RedirectResponse:
-        return RedirectResponse(url="/app")
+        return RedirectResponse(url="/console")
 
     from backend.app.admin.router import router as admin_router
     from backend.app.agent.router import router as agent_router
@@ -312,6 +312,7 @@ def create_app(
     from backend.app.features.f1_contagion.router import router as f1_router
     from backend.app.features.f2_filings.router import router as f2_router
     from backend.app.features.f3_log.router import router as f3_router
+    from backend.app.features.files.router import router as files_router
     from backend.app.llm.router import router as llm_router
 
     app.include_router(auth_router)
@@ -320,11 +321,8 @@ def create_app(
     app.include_router(f1_router)
     app.include_router(f2_router)
     app.include_router(f3_router)
+    app.include_router(files_router)
     app.include_router(llm_router)
     app.include_router(agent_router)
-
-    app_dir = Path(__file__).resolve().parent.parent.parent / "frontend" / "app"
-    if app_dir.is_dir():
-        app.mount("/app", StaticFiles(directory=str(app_dir), html=True), name="frontend_app")
 
     return app

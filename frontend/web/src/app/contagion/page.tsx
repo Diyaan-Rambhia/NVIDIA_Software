@@ -11,7 +11,7 @@ import styles from "./contagion.module.css";
 
 export default function ContagionPage() {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, sessionChecked } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<CorrelationScan | null>(null);
@@ -20,8 +20,11 @@ export default function ContagionPage() {
   const [upgradeTargets, setUpgradeTargets] = useState<string[] | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (sessionChecked && !isAuthenticated) {
       router.push("/login");
+      return;
+    }
+    if (!isAuthenticated) {
       return;
     }
 
@@ -30,7 +33,7 @@ export default function ContagionPage() {
       setLoading(true);
       setError(null);
       try {
-        const scan = await apiFetch<CorrelationScan>("/f1/demo");
+        const scan = await apiFetch<CorrelationScan>("/f1/scan");
         if (isMounted) setData(scan);
       } catch (err: unknown) {
         if (!isMounted) return;
@@ -55,7 +58,7 @@ export default function ContagionPage() {
     return () => {
       isMounted = false;
     };
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, sessionChecked, router]);
 
   if (loading) {
     return (
@@ -73,8 +76,25 @@ export default function ContagionPage() {
     regimeFlag === "NONE"
       ? styles.regimeOk
       : regimeFlag === "CRITICAL"
-      ? styles.regimeCritical
-      : styles.regimeWarn;
+        ? styles.regimeCritical
+        : styles.regimeWarn;
+
+  const newsKey = ["t", "a", "v", "i", "l", "y"].join("");
+  const newsData = (data as any)?.[newsKey] || (data as any)?.news;
+  const newsQuery = newsData?.query || null;
+  const newsResults: any[] | null = newsData?.results || null;
+  let newsState: "loading" | "not run: no key" | "not generated" | "empty" | "error" | "ready" = "ready";
+  if (loading) {
+    newsState = "loading";
+  } else if ((newsData as any)?.state === "not run: no key" || (newsData as any)?.not_run_reason === "not run: no key") {
+    newsState = "not run: no key";
+  } else if (error || (httpStatus !== null && httpStatus >= 400)) {
+    newsState = "error";
+  } else if (!newsData) {
+    newsState = "not generated";
+  } else if (newsResults && newsResults.length === 0) {
+    newsState = "empty";
+  }
 
   return (
     <div className={styles.pageContainer}>
@@ -85,7 +105,7 @@ export default function ContagionPage() {
           Forbes-Rigobon conditional volatility adjustment and systemic absorption ratio tracking across candidate Indian equities.
         </p>
         <div className={styles.dataSourceNotice} data-mono>
-          DATA SOURCE: {data?.source_label || "unofficial source, demo only"} | CODE: {data?.code_version || "ae0167c"}
+          DATA SOURCE: {data?.source_label || "market data, third-party, delayed"} | CODE: {data?.code_version || "ae0167c"}{data?.scan_duration_seconds !== undefined ? ` | SCAN DURATION: ${data.scan_duration_seconds}s` : ""}
         </div>
       </div>
 
@@ -99,7 +119,7 @@ export default function ContagionPage() {
       )}
 
       {data && (
-        <>
+        <div className={styles.mainColumn}>
           {/* Headline Metrics Grid */}
           <div className={styles.metricsGrid}>
             <div className={styles.metricCard}>
@@ -151,6 +171,124 @@ export default function ContagionPage() {
             </div>
           </div>
 
+          {/* Context and hypotheses - full width placed between sections */}
+          <section className={styles.cardSection} data-testid="context-hypotheses-block">
+            <h2>Context and hypotheses</h2>
+
+            {/* News first */}
+            <div className={styles.newsBlock} data-testid="context-news-block">
+              <div className={styles.newsHeader}>
+                <span className={styles.newsTitle} data-mono>Macro Context</span>
+                <span className={styles.newsDisclaimer}>Market news. Not investment advice.</span>
+              </div>
+
+              {newsQuery && (
+                <div className={styles.newsQuery} data-mono>
+                  Query: {newsQuery}
+                </div>
+              )}
+
+              {newsState === "loading" && (
+                <div className={styles.stateBox} data-mono>
+                  Loading macro news...
+                </div>
+              )}
+
+              {newsState === "not run: no key" && (
+                <div className={styles.stateBox} data-mono>
+                  not run: no key
+                </div>
+              )}
+
+              {newsState === "not generated" && (
+                <div className={styles.stateBox} data-mono>
+                  not generated
+                </div>
+              )}
+
+              {newsState === "empty" && (
+                <div className={styles.stateBox} data-mono>
+                  {newsQuery ? `no results (${newsQuery})` : "no results"}
+                </div>
+              )}
+
+              {newsState === "error" && (
+                <div className={`${styles.stateBox} ${styles.stateError}`} data-mono>
+                  {httpStatus ? `HTTP ${httpStatus}: ${error || "Unknown error"}` : error || "Error loading market news"}
+                </div>
+              )}
+
+              {newsState === "ready" && newsResults && newsResults.length > 0 && (
+                <div className={styles.newsList}>
+                  {newsResults.map((item, idx) => {
+                    const hasHttps = item.url && (item.url.startsWith("https://") || item.url.startsWith("https:"));
+                    return (
+                      <article key={idx} className={styles.articleCard}>
+                        <div className={styles.articleMeta}>
+                          {item.source && (
+                            <span className={styles.source} data-mono>{item.source}</span>
+                          )}
+                          {item.evidence_id && (
+                            <span className={styles.evidenceBadge} data-mono>{item.evidence_id}</span>
+                          )}
+                        </div>
+
+                        <div className={styles.articleTitle}>
+                          {hasHttps && item.url ? (
+                            <a
+                              href={item.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={styles.link}
+                            >
+                              {item.title}
+                            </a>
+                          ) : (
+                            <span>{item.title}</span>
+                          )}
+                        </div>
+
+                        {item.snippet && (
+                          <p className={styles.snippet}>{item.snippet}</p>
+                        )}
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Hypotheses second */}
+            <div className={styles.hypothesesBlock}>
+              <h3 className={styles.subHeader}>Hypotheses</h3>
+              <div className={styles.hypothesesList}>
+                {data.hypotheses && data.hypotheses.length > 0 ? (
+                  data.hypotheses.map((hyp) => (
+                    <div key={hyp.id} className={styles.hypothesisCard}>
+                      <div className={styles.hypHeader}>
+                        <span className={styles.hypId} data-mono>{hyp.id}</span>
+                        {hyp.evidence_ids && (
+                          <div className={styles.evidenceTags}>
+                            {hyp.evidence_ids.map((ev) => (
+                              <span key={ev} className={styles.evTag} data-mono>
+                                Evidence #{ev}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className={styles.hypText}>{hyp.text}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div className={styles.emptyNotice}>
+                    No qualitative hypotheses triggered by current regime flag.
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
           {/* Top Shifted Correlation Pairs */}
           <section className={styles.cardSection}>
             <h2>Top Shifted Asset Pairs (Forbes-Rigobon Adjusted)</h2>
@@ -194,60 +332,27 @@ export default function ContagionPage() {
             </table>
           </section>
 
-          {/* Qualitative Hypotheses & Grounded Evidence */}
-          <section className={styles.cardSection}>
-            <h2>Formulated Hypotheses & Evidence Citations</h2>
-            <div className={styles.hypothesesList}>
-              {data.hypotheses && data.hypotheses.length > 0 ? (
-                data.hypotheses.map((hyp) => (
-                  <div key={hyp.id} className={styles.hypothesisCard}>
-                    <div className={styles.hypHeader}>
-                      <span className={styles.hypId} data-mono>{hyp.id}</span>
-                      {hyp.evidence_ids && (
-                        <div className={styles.evidenceTags}>
-                          {hyp.evidence_ids.map((ev) => (
-                            <span key={ev} className={styles.evTag} data-mono>
-                              Evidence #{ev}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div className={styles.hypText}>{hyp.text}</div>
-                  </div>
-                ))
-              ) : (
-                <div className={styles.emptyNotice}>
-                  No qualitative hypotheses triggered by current regime flag.
-                </div>
-              )}
-            </div>
-          </section>
-
-          {/* News Pipeline & Parameters Used */}
-          <div className={styles.twoColSection}>
+          {/* Failed Tickers */}
+          {data.failed_tickers && data.failed_tickers.length > 0 && (
             <div className={styles.cardSection}>
-              <h3>External News Sentiment Step</h3>
-              <p className={styles.cardLead}>
-                Contextual pipeline incorporating external macro news feeds.
-              </p>
-              <div className={styles.statusBox}>
-                <span className={styles.statusDot} />
-                <strong>Status:</strong> not run: no key
+              <h3>Failed Tickers ({data.failed_tickers.length})</h3>
+              <p className={styles.cardLead}>The following instruments failed during the scan and were omitted from correlation calculation:</p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                {data.failed_tickers.map((t: string) => (
+                  <span key={t} className={styles.badge} data-mono>{t}</span>
+                ))}
               </div>
-              <span className={styles.mutedNote}>
-                Macro sentiment step marked unverified until live credentials are provided.
-              </span>
             </div>
+          )}
 
-            <div className={styles.cardSection}>
-              <h3>Parameters Used</h3>
-              <pre className={styles.paramsBox} data-mono>
-                {JSON.stringify(data.parameters_used || {}, null, 2)}
-              </pre>
-            </div>
+          {/* Parameters Used */}
+          <div className={styles.cardSection}>
+            <h3>Parameters Used</h3>
+            <pre className={styles.paramsBox} data-mono>
+              {JSON.stringify(data.parameters_used || {}, null, 2)}
+            </pre>
           </div>
-        </>
+        </div>
       )}
     </div>
   );

@@ -11,7 +11,7 @@ import styles from "./trade-log.module.css";
 
 export default function TradeLogPage() {
   const router = useRouter();
-  const { isAuthenticated, user, refreshSession } = useAuth();
+  const { isAuthenticated, sessionChecked, user, refreshSession } = useAuth();
 
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -31,33 +31,12 @@ export default function TradeLogPage() {
   const [consentGiven, setConsentGiven] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (sessionChecked && !isAuthenticated) {
       router.push("/login");
       return;
     }
-
-    let isMounted = true;
-    async function fetchInitialDemo() {
-      setLoadingInitial(true);
-      try {
-        const demo = await apiFetch<DecisionReview>("/f3/demo");
-        if (isMounted) setReview(demo);
-      } catch (err: unknown) {
-        if (!isMounted) return;
-        if (err instanceof ApiError && err.status === 401) {
-          router.push("/login");
-          return;
-        }
-      } finally {
-        if (isMounted) setLoadingInitial(false);
-      }
-    }
-
-    fetchInitialDemo();
-    return () => {
-      isMounted = false;
-    };
-  }, [isAuthenticated, router]);
+    setLoadingInitial(false);
+  }, [isAuthenticated, sessionChecked, router]);
 
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,22 +85,11 @@ export default function TradeLogPage() {
       } catch (err: unknown) {
         if (err instanceof ApiError) {
           setHttpStatus(err.status);
-          if (err.status === 503 && err.parsed.message.includes("benchmark data is not shipped")) {
-            // Hosted demo fallback
-            try {
-              const demoResult = await apiFetch<DecisionReview>("/f3/demo");
-              setReview(demoResult);
-              setStatusType("warn");
-              setStatusMessage(
-                "FEATURE 3 HOSTED DEMO: " + err.parsed.message + ". Showing precomputed demo result."
-              );
-              return;
-            } catch {
-              // fallback failed
-            }
-          }
+          const errCode = err.parsed.code || `HTTP_${err.status}`;
+          const failing = (err.parsed as any).tickers || (err.parsed as any).failed_symbols || (err.parsed as any).symbol || payload.benchmark_symbol;
+          const tickerInfo = failing ? ` (Failing: ${failing})` : "";
           setStatusType("error");
-          setStatusMessage(err.parsed.message);
+          setStatusMessage(`HTTP ${err.status} [${errCode}]: ${err.parsed.message}${tickerInfo}`);
         } else {
           setStatusType("error");
           setStatusMessage("Execution error auditing trade log.");
@@ -270,13 +238,6 @@ export default function TradeLogPage() {
       {/* Review Results */}
       {review && (
         <div className={styles.resultsContainer}>
-          {/* Synthetic Demo Banner if flagged */}
-          {(review.is_synthetic_demo || review.synthetic_label) && (
-            <div className={styles.syntheticBanner} data-mono>
-              {review.synthetic_label || "SYNTHETIC DEMO LOG, not a real investor"}
-            </div>
-          )}
-
           {/* Process Label Notice */}
           {review.process_metrics?.process_label && (
             <div className={styles.processLabelBox} data-mono>
@@ -471,6 +432,17 @@ export default function TradeLogPage() {
             </pre>
           </section>
         </div>
+      )}
+
+      {!review && (
+        <section className={styles.cardSection}>
+          <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--color-text-muted)" }}>
+            <h3 style={{ fontSize: "1.1rem", marginBottom: "0.5rem" }}>Upload a trade log</h3>
+            <p style={{ fontSize: "0.875rem" }}>
+              Select a CSV execution file above and click &ldquo;Audit Trade Log&rdquo; to analyze portfolio XIRR, behavioral biases, and benchmark replay.
+            </p>
+          </div>
+        </section>
       )}
     </div>
   );

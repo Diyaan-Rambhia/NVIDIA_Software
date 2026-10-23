@@ -14,8 +14,13 @@ from backend.app.db.connection import get_connection
 from backend.app.llm.exceptions import (
     BudgetExceededError,
     FinancialAdviceError,
+    LLMError,
     LLMTimeoutError,
+    LLMUpstreamError,
+    NonProseAnswerError,
+    PriceNotSetError,
     ProviderNotConfiguredError,
+    TierUnavailableError,
 )
 
 router = APIRouter(prefix="/agent", tags=["agent"])
@@ -37,21 +42,34 @@ async def ask_agent(
     except Exception:
         conn = None
 
-    raw_env = (settings.get_var_value("APP_ENV") or settings.app_env or "development").strip().lower()
-    api_key = settings.get_var_value("NEBIUS_API_KEY")
-    if raw_env in ("production", "prod") and not api_key:
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "code": "provider_not_configured",
-                "message": (
-                    "No real LLM provider is configured in production. "
-                    "Placeholder provider is strictly forbidden in production."
-                ),
-            },
-        )
-
     try:
+        provider = getattr(request.app.state, "llm_provider", None)
+        if provider is None:
+            api_key = settings.get_var_value("NEBIUS_API_KEY")
+            if not api_key:
+                raise HTTPException(
+                    status_code=503,
+                    detail={
+                        "code": "provider_not_configured",
+                        "message": (
+                            "No real LLM provider is configured in production. "
+                            "NEBIUS_API_KEY is required."
+                        ),
+                    },
+                )
+            from backend.app.llm.client import LLMClient
+            from backend.app.llm.registry import ModelRegistry
+
+            try:
+                registry = ModelRegistry(settings=settings)
+                registry.initialize()
+                provider = LLMClient(registry=registry, settings=settings)
+            except Exception as init_exc:
+                raise LLMUpstreamError(
+                    status_code=502,
+                    message=f"LLM provider initialization failed: {init_exc}",
+                ) from init_exc
+
         response = run_agent_loop(
             query=req.query,
             user=user,
@@ -60,8 +78,26 @@ async def ask_agent(
             conn=conn,
             max_steps_override=req.max_steps,
             budget_usd_override=req.budget_usd,
+            model_tier=req.model_tier,
+            attachment_text=req.attachment_text,
+            provider=provider,
         )
         return response
+    except TierUnavailableError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "tier_unavailable", "message": str(exc), "tier": exc.tier, "reason": exc.reason},
+        )
+    except PriceNotSetError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "price_not_set", "message": exc.message, "tier": exc.tier},
+        )
+    except NonProseAnswerError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail={"code": "non_prose_answer", "message": "model returned a non-prose answer"},
+        )
     except ProviderNotConfiguredError as exc:
         raise HTTPException(
             status_code=503,
@@ -77,6 +113,11 @@ async def ask_agent(
             status_code=504,
             detail={"code": "TIMEOUT", "message": str(exc)},
         )
+    except LLMUpstreamError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail={"code": exc.code, "message": str(exc), "status": exc.status_code},
+        )
     except FinancialAdviceError as exc:
         raise HTTPException(
             status_code=422,
@@ -87,15 +128,15 @@ async def ask_agent(
             status_code=422,
             detail={"code": "VALIDATION_ERROR", "message": str(exc)},
         )
-    except RuntimeError as exc:
-        if raw_env in ("production", "prod") or "production" in str(exc).lower():
-            raise HTTPException(
-                status_code=503,
-                detail={"code": "provider_not_configured", "message": str(exc)},
-            )
+    except LLMError as exc:
         raise HTTPException(
-            status_code=500,
-            detail={"code": "AGENT_ERROR", "message": str(exc)},
+            status_code=exc.status_code if exc.status_code != 500 else 503,
+            detail={"code": exc.code, "message": str(exc)},
+        )
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail={"code": "PROVIDER_ERROR", "message": str(exc), "status": 502},
         )
     finally:
         if conn is not None:

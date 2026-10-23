@@ -1,5 +1,6 @@
 import React from "react";
 import { ParsedApiError } from "@/lib/errors";
+import { sanitizeUserFacingText } from "@/lib/sanitizer";
 import { AlertIcon, CheckIcon, LockIcon } from "./Icons";
 import styles from "./StatusBanner.module.css";
 
@@ -7,15 +8,22 @@ interface StatusBannerProps {
   error?: ParsedApiError | null;
   message?: string | null;
   status?: number | string | null;
+  code?: string | null;
   type?: "error" | "warn" | "upgrade" | "ok" | "info" | "empty";
   emptyReason?: string | null;
 }
 
-export function StatusBanner({ error, message, status, type, emptyReason }: StatusBannerProps) {
+export function StatusBanner({ error, message, status, code, type, emptyReason }: StatusBannerProps) {
   if (!error && !message && !emptyReason) return null;
 
   const effectiveStatus = error ? error.status : status;
-  const effectiveMessage = error ? error.message : (message || emptyReason);
+  const effectiveCode = error?.code || code;
+  let rawMessage = error ? error.message : (message || emptyReason);
+
+  let effectiveMessage = sanitizeUserFacingText(rawMessage);
+  if (effectiveStatus === 402) {
+    effectiveMessage = "Requires the institutional plan. Plan changes are not available yet.";
+  }
   
   let effectiveType = type || "error";
   if (error) {
@@ -55,21 +63,21 @@ export function StatusBanner({ error, message, status, type, emptyReason }: Stat
               HTTP {effectiveStatus}
             </span>
           )}
-          {error?.code && (
+          {effectiveCode && (
             <span className={styles.codeBadge} data-mono>
-              {error.code}
+              {effectiveCode}
             </span>
           )}
         </div>
         <div className={styles.messageText}>{effectiveMessage}</div>
+        {error?.upgradeTargets && error.upgradeTargets.length > 0 && (
+          <div className={styles.targetsText} data-mono>
+            Targets: {error.upgradeTargets.join(", ")}
+          </div>
+        )}
         {error?.resetTime && (
           <div className={styles.resetText} data-mono>
             Quota resets at: {error.resetTime}
-          </div>
-        )}
-        {error?.upgradeTargets && error.upgradeTargets.length > 0 && (
-          <div className={styles.upgradeText}>
-            Required plan: {error.upgradeTargets.join(", ")}
           </div>
         )}
       </div>

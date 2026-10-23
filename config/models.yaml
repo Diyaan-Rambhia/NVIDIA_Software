@@ -1,30 +1,68 @@
 # Model aliases and token pricing per million tokens
 # Status: pending user pricing confirmation
 
+deny_patterns:
+  - "llama"
+
+tiers:
+  fast:
+    patterns:
+      - "Lightning"
+      - "Nano-30B"
+    price_per_1m_input_usd: null
+    price_per_1m_output_usd: null
+    status: pending_pricing
+
+  balanced:
+    patterns:
+      - "Super-120b"
+    price_per_1m_input_usd: null
+    price_per_1m_output_usd: null
+    status: pending_pricing
+
+  deep:
+    patterns:
+      - "Ultra-550b"
+    price_per_1m_input_usd: null
+    price_per_1m_output_usd: null
+    status: pending_pricing
+
+  vision:
+    patterns:
+      - "Omni"
+    enabled: false
+    status: disabled
+    reason: "vision tier scheduled for v2"
+    price_per_1m_input_usd: null
+    price_per_1m_output_usd: null
+
+# Backward compatibility alias
 aliases:
   fast:
     family: nano
     preferred_substrings:
-      - "nemotron-3-nano"
-      - "nemotron-nano"
-      - "nano"
-    price_per_1m_input_usd: 0.06
-    price_per_1m_output_usd: 0.24
+      - "Lightning"
+      - "Nano-30B"
+    price_per_1m_input_usd: null
+    price_per_1m_output_usd: null
+
+  balanced:
+    family: super
+    preferred_substrings:
+      - "Super-120b"
+    price_per_1m_input_usd: null
+    price_per_1m_output_usd: null
 
   mid:
     family: super
     preferred_substrings:
-      - "nemotron-3-super"
-      - "nemotron-super"
-      - "super"
-    price_per_1m_input_usd: 0.30
-    price_per_1m_output_usd: 0.90
+      - "Super-120b"
+    price_per_1m_input_usd: null
+    price_per_1m_output_usd: null
 
   deep:
     family: ultra
     preferred_substrings:
-      - "nemotron-3-ultra"
-      - "nemotron-ultra"
-      - "ultra"
-    price_per_1m_input_usd: 1.00
-    price_per_1m_output_usd: 3.00
+      - "Ultra-550b"
+    price_per_1m_input_usd: null
+    price_per_1m_output_usd: null

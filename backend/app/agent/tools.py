@@ -16,11 +16,6 @@ from backend.app.entitlements.decision import decide
 
 logger = logging.getLogger("backend.app.agent.tools")
 
-F1_DATA_PATH = Path("demo_data") / "f1_scan_demo.json" if (Path("demo_data") / "f1_scan_demo.json").is_file() else Path("data") / "f1_scan_demo.json"
-F2_DATA_PATH = Path("demo_data") / "f2_filings_demo.json" if (Path("demo_data") / "f2_filings_demo.json").is_file() else Path("data") / "f2_filings_demo.json"
-F3_DATA_PATH = Path("demo_data") / "f3_review_demo.json" if (Path("demo_data") / "f3_review_demo.json").is_file() else Path("data") / "f3_review_demo.json"
-
-
 def _evaluate_tool_entitlement(
     user: UserClaims,
     feature_key: str,
@@ -28,10 +23,6 @@ def _evaluate_tool_entitlement(
     conn: Any = None,
     now: datetime | None = None,
 ) -> tuple[bool, dict[str, Any] | None]:
-    """Check entitlement for feature_key. Returns (allowed, denial_dict)."""
-    if user.plan == "judge_all":
-        return True, None
-
     usage = 0
     if conn is not None:
         db_map = {
@@ -79,26 +70,21 @@ def tool_f1_contagion(
     if not allowed:
         return denial or {"status": "denied", "reason": "Entitlement denied"}
 
-    if not F1_DATA_PATH.is_file():
-        return {
-            "status": "error",
-            "reason": "Feature 1 contagion scan data not available on disk",
-        }
-
     try:
-        raw_data = json.loads(F1_DATA_PATH.read_text(encoding="utf-8"))
+        from backend.app.features.f1_contagion.pipeline import run_correlation_scan
+        scan = run_correlation_scan()
         summary = {
-            "as_of": raw_data.get("as_of"),
-            "absorption_ratio": raw_data.get("absorption_ratio"),
-            "ar_delta_std": raw_data.get("ar_delta_std"),
-            "mean_correlation": raw_data.get("mean_correlation"),
-            "significant_pairs_count": raw_data.get("significant_pairs_count"),
-            "top_shifted_pairs": raw_data.get("top_shifted_pairs", [])[:3],
-            "data_source_label": raw_data.get("data_source_label", "unofficial source, demo only"),
+            "as_of": scan.as_of,
+            "absorption_ratio": scan.absorption_ratio,
+            "ar_delta_std": scan.ar_delta_std,
+            "mean_correlation": scan.mean_correlation,
+            "significant_pairs_count": scan.significant_pairs_count,
+            "top_shifted_pairs": [p.model_dump() for p in scan.top_shifted_pairs[:3]],
+            "data_source_label": scan.source_label,
         }
         return {"status": "success", "data": summary}
     except Exception as exc:
-        logger.error("Failed to read F1 data: %s", exc)
+        logger.error("Failed to execute live F1 scan: %s", exc)
         return {"status": "error", "reason": f"F1 execution error: {exc}"}
 
 
@@ -116,36 +102,23 @@ def tool_f2_filings(
     if not allowed:
         return denial or {"status": "denied", "reason": "Entitlement denied"}
 
-    target_file = F2_DATA_PATH
-    if symbol:
-        sym_clean = symbol.strip().upper()
-        parsed_path = Path("demo_data") / f"f2_parsed_{sym_clean}.json"
-        if not parsed_path.is_file():
-            parsed_path = Path("data") / f"f2_parsed_{sym_clean}.json"
-        if parsed_path.is_file():
-            target_file = parsed_path
-
-    if not target_file.is_file():
-        return {
-            "status": "error",
-            "reason": f"Filing consistency data not found for target {target_file.name}",
-        }
-
     try:
-        raw_data = json.loads(target_file.read_text(encoding="utf-8"))
-        inconsistencies = raw_data.get("inconsistencies", [])
+        from backend.app.features.f2_filings.lookup import perform_f2_lookup
+        sym = (symbol or "INFY").strip().upper()
+        res = perform_f2_lookup(sym, "Q1 FY27")
+        rules = res.get("rules", [])
         return {
             "status": "success",
             "data": {
-                "source_file": target_file.name,
-                "inconsistency_count": len(inconsistencies),
-                "inconsistencies": inconsistencies[:5],
-                "companies_checked": raw_data.get("companies_checked", [symbol] if symbol else []),
+                "company": res.get("company_name", sym),
+                "period": res.get("fiscal_period", "Q1 FY27"),
+                "rules_evaluated": len(rules),
+                "inconsistencies": [r for r in rules if r.get("status") in ("flag", "fail")][:5],
             },
         }
     except Exception as exc:
-        logger.error("Failed to read F2 data: %s", exc)
-        return {"status": "error", "reason": f"F2 execution error: {exc}"}
+        logger.error("Failed to execute live F2 lookup: %s", exc)
+        return {"status": "error", "reason": f"F2 lookup error: {exc}"}
 
 
 def tool_f3_portfolio(
@@ -161,28 +134,13 @@ def tool_f3_portfolio(
     if not allowed:
         return denial or {"status": "denied", "reason": "Entitlement denied"}
 
-    if not F3_DATA_PATH.is_file():
-        return {
-            "status": "error",
-            "reason": "Feature 3 portfolio review demo data not found on disk",
-        }
-
-    try:
-        raw_data = json.loads(F3_DATA_PATH.read_text(encoding="utf-8"))
-        summary = {
-            "xirr": raw_data.get("xirr"),
-            "benchmark_alpha_bps": raw_data.get("benchmark_alpha_bps"),
-            "max_drawdown": raw_data.get("max_drawdown"),
-            "win_rate": raw_data.get("win_rate"),
-            "turnover_annualized": raw_data.get("turnover_annualized"),
-            "is_synthetic_demo": raw_data.get("is_synthetic_demo", False),
-            "disclosure_label": raw_data.get("disclosure_label"),
-            "process_metrics": raw_data.get("process_metrics"),
-        }
-        return {"status": "success", "data": summary}
-    except Exception as exc:
-        logger.error("Failed to read F3 data: %s", exc)
-        return {"status": "error", "reason": f"F3 execution error: {exc}"}
+    return {
+        "status": "success",
+        "data": {
+            "message": "Upload a trade log CSV in the Trade Log review view to evaluate portfolio metrics and XIRR.",
+            "metrics_available": ["FIFO lot accounting", "XIRR vs benchmark", "Disposition effect", "Turnover"],
+        },
+    }
 
 
 TOOL_DEFINITIONS: dict[str, dict[str, Any]] = {

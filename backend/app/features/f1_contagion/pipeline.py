@@ -1,6 +1,7 @@
 """Feature 1 Contagion scan pipeline running estimators over real market data."""
 
 import json
+import time
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -27,8 +28,27 @@ PARAMS_PATH = Path("config") / "parameters.yaml"
 OUTPUT_JSON_PATH = Path("data") / "f1_scan_demo.json"
 
 
-def load_price_series() -> dict[str, dict[str, float]]:
-    """Load local JSON files from data/yfinance/ and return {symbol: {date_str: adj_close}}."""
+def load_price_series(
+    symbols: list[str] | None = None,
+    live: bool = False,
+    cache_ttl_seconds: int = 3600,
+    max_tickers: int = 100,
+) -> dict[str, dict[str, float]]:
+    """Load price series via live yfinance at request time, or from local data directory.
+
+    Enforces:
+    - Never fill missing data, never fall back to old data.
+    - Clear error naming failed tickers on failure.
+    - Unofficial source, delayed label.
+    """
+    if live and symbols:
+        from backend.app.data.yfinance_client import fetch_universe_price_series
+        return fetch_universe_price_series(
+            symbols,
+            max_tickers=max_tickers,
+            cache_ttl_seconds=cache_ttl_seconds,
+        )
+
     series_map: dict[str, dict[str, float]] = {}
 
     for file_path in DATA_YFINANCE_DIR.glob("*.json"):
@@ -60,6 +80,7 @@ def load_price_series() -> dict[str, dict[str, float]]:
             continue
 
     return series_map
+
 
 
 def align_and_compute_returns(
@@ -104,8 +125,13 @@ def align_and_compute_returns(
 
 def run_correlation_scan(
     overrides: dict[str, Any] | None = None,
+    symbols: list[str] | None = None,
+    live: bool = False,
+    cache_ttl_seconds: int = 3600,
+    max_tickers: int = 100,
 ) -> CorrelationScan:
-    """Execute complete Feature 1 correlation scan on stored real market data."""
+    """Execute complete Feature 1 correlation scan on real market data."""
+    start_time = time.monotonic()
     cfg = load_config_file(PARAMS_PATH, ParametersConfig)
     params: dict[str, Any] = {
         name: entry.default for name, entry in cfg.parameters.items()
@@ -113,7 +139,12 @@ def run_correlation_scan(
     if overrides:
         params.update(overrides)
 
-    series_map = load_price_series()
+    series_map = load_price_series(
+        symbols=symbols,
+        live=live,
+        cache_ttl_seconds=cache_ttl_seconds,
+        max_tickers=max_tickers,
+    )
     symbols, returns, return_dates = align_and_compute_returns(series_map)
 
     n_obs, n_assets = returns.shape
@@ -217,9 +248,11 @@ def run_correlation_scan(
     elif sig_count >= 2:
         regime = "watch"
 
+    scan_duration = round(time.monotonic() - start_time, 3)
+
     scan_result = CorrelationScan(
         as_of=return_dates[-1] if return_dates else "current",
-        source_label="unofficial source, demo only",
+        source_label="market data, third-party, delayed",
         parameters_used={
             "W": int(params.get("W", 60)),
             "B": b_window,
@@ -242,9 +275,9 @@ def run_correlation_scan(
         episodes_status="pending_scan_full_history",
         seed=seed,
         code_version=get_code_version(),
+        scan_duration_seconds=scan_duration,
     )
 
-    OUTPUT_JSON_PATH.write_text(json.dumps(scan_result.model_dump(), indent=2), encoding="utf-8")
     return scan_result
 
 

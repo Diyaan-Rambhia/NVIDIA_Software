@@ -2,7 +2,7 @@
 
 ### D-01: Minimal package skeleton for Phase A0
 - **Status:** Accepted
-- **Context:** Initial repo layout requires non-implemented modules per PROJECT.md §3.4.
+- **Context:** Initial repo layout requires non-implemented modules per project_docs/tech_stack.md §2.
 - **Decision:** Include single-line docstrings in package `__init__.py` files without implementation logic or fake stubs.
 
 ### D-02: Core and development dependencies
@@ -27,8 +27,8 @@
 
 ### D-06: Default values for core non-secret operational variables
 - **Status:** Accepted
-- **Context:** Operational parameters APP_ENV and LOG_LEVEL establish execution mode and logging verbosity prior to any external service setup.
-- **Decision:** Assign default values in Settings (APP_ENV to 'production', LOG_LEVEL to 'INFO') and set required_when_group_enabled to False for both in the registry. Function presence() reports them as present by virtue of these defaults even when absent from .env or process environment. Secrets must never have defaults.
+- **Context:** Operational parameters APP_ENV and LOG_LEVEL establish execution mode and logging verbosity before any external service setup.
+- **Decision:** Assign default values in Settings (APP_ENV to 'production', LOG_LEVEL to 'INFO') and set required_when_group_enabled to False for both in the registry. Function presence() reports them as present through these defaults even when absent from .env or process environment. Secrets must never have defaults.
 
 ### D-07: Static configuration loading and parameter resolution (A0.4)
 - **Status:** Accepted
@@ -37,8 +37,8 @@
 
 ### D-08: Deferral of contract model definitions pending batch implementation (A0.5)
 - **Status:** Accepted
-- **Context:** PROJECT.md §7.3 lists contract models by name (`Portfolio`, `CorrelationScan`, `EvidencePack`, `Hypothesis`, `Claim`, `FilingMetric`, `Inconsistency`, `TradeLog`, `DecisionReview`, `AgentStep`, `ColumnMapping`, error envelope) without defining explicit field names, types, or schemas in §7.3. Inventing or freezing speculative schemas ahead of batch requirements risks divergence and breaking changes.
-- **Decision:** Mark contract models listed in PROJECT.md §7.3 as "contract pending". Defer concrete model definitions until their respective consuming batches:
+- **Context:** project_docs/tech_stack.md §5 lists contract models by name (`Portfolio`, `CorrelationScan`, `EvidencePack`, `Hypothesis`, `Claim`, `FilingMetric`, `Inconsistency`, `TradeLog`, `DecisionReview`, `AgentStep`, `ColumnMapping`, error envelope) without defining explicit field names, types, or schemas in §7.3. Inventing or freezing speculative schemas ahead of batch requirements risks divergence and breaking changes.
+- **Decision:** Mark contract models listed in project_docs/tech_stack.md §5 as "contract pending". Defer concrete model definitions until their respective consuming batches:
   - Error envelope: Batch A0.6 (App shell)
   - Entitlements / Plans: Batch A1
   - CorrelationScan, EvidencePack, Hypothesis: Batch X5 / X7 (Feature 1)
@@ -57,15 +57,15 @@
 - **Context:** The basic ops console and inspection endpoints (`/ops/*`, `/console/*`, `/` redirect) expose system environment presence and loaded configuration tables for internal developer visibility. In production, these should not be openly accessible before authentication and administrative RBAC are built.
 - **Decision:** Guard `/ops/status`, `/ops/config`, `/ops/parameters`, the `/console` static mount, and the `/` redirect so they are active only when `APP_ENV=development`. In any other environment, requests return 404 with the standard `ErrorEnvelope`. Batch X4 replaces this interim environment guard with full Supabase admin role verification.
 
-### D-11: Alignment of plans configuration with PROJECT.md specifications (A1)
+### D-11: Alignment of plans configuration with project_docs/project.md specifications (A1)
 - **Status:** Accepted
-- **Context:** `config/plans.yaml` previously deviated from PROJECT.md §4.3: retail tiers configured limited/full access to Feature 1 contagion scan instead of hard segment restriction, and institutional_free lacked locked upgrade linkage.
-- **Decision:** Correct `config/plans.yaml` to strictly match PROJECT.md §4.3: Feature 1 is configured with `access: none` on `retail_free` and `retail_paid`, and `access: locked` with `unlocks_with: institutional_paid` on `institutional_free`. Feature 3 on `retail_free` and `institutional_free` is configured with `access: limited`.
+- **Context:** `config/plans.yaml` previously deviated from project_docs/project.md §4: retail tiers configured limited/full access to Feature 1 contagion scan instead of hard segment restriction, and institutional_free lacked locked upgrade linkage.
+- **Decision:** Correct `config/plans.yaml` to strictly match project_docs/project.md §4: Feature 1 is configured with `access: none` on `retail_free` and `retail_paid`, and `access: locked` with `unlocks_with: institutional_paid` on `institutional_free`. Feature 3 on `retail_free` and `institutional_free` is configured with `access: limited`.
 
 ### D-12: Transition to daily quotas and configurable reset cadence (A1)
-- **Status:** Accepted (finance advisor to confirm: daily vs monthly)
-- **Context:** PROJECT.md FR-QUO-001 and PROGRESS.md A1.3 specify daily quota enforcement with UTC boundary calculation, whereas initial schema defined monthly fields.
-- **Decision:** Rename `quota_per_month` to `quota_per_day` across `FeatureRule` schema and `config/plans.yaml`. Discard all monthly figures. Use only daily values explicitly specified in PROJECT.md:
+- **Status:** Accepted (Accepted (provisional, no advisor review))
+- **Context:** project_docs/project.md FR-QUO-001 and project_docs/project.md §4 specify daily quota enforcement with UTC boundary calculation, whereas initial schema defined monthly fields.
+- **Decision:** Rename `quota_per_month` to `quota_per_day` across `FeatureRule` schema and `config/plans.yaml`. Discard all monthly figures. Use only daily values explicitly specified in project_docs/project.md:
   - `retail_free`: F2 = 3 analyses/day, F3 = 1 log/day (FR-QUO-001)
   - `institutional_free`: F2 = 3 analyses/day, F3 = 1 log/day (§4.3, same as retail_free)
   - `institutional_paid`: F3 quota is resolved by D-26 (5/day, provisional, no advisor review).
@@ -73,7 +73,7 @@
 
 ### D-13: Canonical Indian fiscal period format and trading calendar alignment policy (A2.1)
 - **Status:** Accepted
-- **Context:** Project specifications (PROJECT.md §4.1, §FR-FIL-006, and financial context notes) reference Indian quarterly periods using the pattern "Q1 FY27" (April-June 2026), while multi-asset alignment requires strict data integrity without silent dropping or forward-filling.
+- **Context:** Project specifications (project_docs/project.md §4.1, §FR-FIL-006, and financial context notes) reference Indian quarterly periods using the pattern "Q1 FY27" (April-June 2026), while multi-asset alignment requires strict data integrity without silent dropping or forward-filling.
 - **Decision:** Restrict fiscal period label parsing exclusively to the canonical format demonstrated across the specification: `Q[1-4] FY\d{2}` (e.g. `Q1 FY27`). All alternative or non-canonical formats are rejected with an explicit `ValueError`. Multi-series calendar alignment enforces an exact match against the provided trading calendar dates, surfacing missing data (gaps), dates outside the calendar, non-positive prices, and mixed naive/aware datetimes with loud failures.
 
 ### D-14: NumPy dependency for array and matrix computations (A2.2)
@@ -83,31 +83,31 @@
 
 ### D-15: SciPy dependency for rank correlation and statistics (A2.2)
 - **Status:** Accepted
-- **Context:** Robustness check against volatility bias requires Spearman rank correlation per PROJECT.md §5.4.
+- **Context:** Robustness check against volatility bias requires Spearman rank correlation per project_docs/finance_stack.md §6.
 - **Decision:** Add `scipy` to `pyproject.toml` dependencies to provide `scipy.stats.spearmanr`.
 
 ### D-16: scikit-learn dependency for Ledoit-Wolf covariance shrinkage (A2.2)
 - **Status:** Accepted
-- **Context:** High-dimensional asset covariance matrices with limited sample length require Ledoit-Wolf shrinkage per PROJECT.md §5.2.
+- **Context:** High-dimensional asset covariance matrices with limited sample length require Ledoit-Wolf shrinkage per project_docs/finance_stack.md §4.
 - **Decision:** Add `scikit-learn` to `pyproject.toml` dependencies for `sklearn.covariance.ledoit_wolf`.
 
 ### D-17: Pure estimator conventions, parameters, and pending values (A2.2)
 - **Status:** Accepted
 - **Context:** Estimators require explicit definitions for EWMA initialization, Forbes-Rigobon variance calculation, absorption-ratio matrix representation, and component count parameterization.
 - **Decision:**
-  - **EWMA initialization:** PROJECT.md §5.2 states initialization from the first W observations. Sample covariance of the first W observations (`ddof=1`) serves as initial matrix Σ_0, recursively updated via Σ_t = λ Σ_{t-1} + (1 - λ) r_t r_tᵀ with zero-mean returns (docs silent, standard choice).
-  - **Forbes-Rigobon variance definition:** PROJECT.md §5.3 defines relative variance shift δ = σ²_x,high / σ²_x,low - 1. Docs silent on sample variance degrees of freedom; standard choice: unbiased sample variance `ddof=1` (docs silent, standard choice).
-  - **Absorption-ratio matrix choice:** PROJECT.md §5.5 specifies correlation matrix, whereas parameter register notes advisor confirmation is pending; standard choice: correlation matrix (docs silent, standard choice).
-  - **Absorption ratio component count k:** Window bounds and parameter defaults come strictly from configuration (`parameters.yaml`). Integer component count `k` is not specified as a static integer in config (which provides `k_fraction`), so `k` is a required argument with no default in `absorption_ratio` and is marked pending advisor confirmation.
+  - **EWMA initialization:** project_docs/finance_stack.md §4 states initialization from the first W observations. Sample covariance of the first W observations (`ddof=1`) serves as initial matrix Σ_0, recursively updated via Σ_t = λ Σ_{t-1} + (1 - λ) r_t r_tᵀ with zero-mean returns (docs silent, standard choice).
+  - **Forbes-Rigobon variance definition:** project_docs/finance_stack.md §5 defines relative variance shift δ = σ²_x,high / σ²_x,low - 1. Docs silent on sample variance degrees of freedom; standard choice: unbiased sample variance `ddof=1` (docs silent, standard choice).
+  - **Absorption-ratio matrix choice:** project_docs/finance_stack.md §7 specifies correlation matrix, whereas parameter register notes advisor confirmation is pending; standard choice: correlation matrix (docs silent, standard choice).
+  - **Absorption ratio component count k:** Window bounds and parameter defaults come strictly from configuration (`parameters.yaml`). Integer component count `k` is not specified as a static integer in config (which provides `k_fraction`), so `k` is a required argument with no default in `absorption_ratio` and is marked provisional, no advisor review.
 
 ### D-18: Standard day-count basis named constant for XIRR (A2.3)
 - **Status:** Accepted
-- **Context:** PROJECT.md §5.11 and 10_parameters_register.md §5 establish standard spreadsheet convention of 365 days per year for XIRR cash flow discounting. Bare literals are forbidden in logic.
+- **Context:** project_docs/project.md §5.11 and 10_parameters_register.md §5 establish standard spreadsheet convention of 365 days per year for XIRR cash flow discounting. Bare literals are forbidden in logic.
 - **Decision:** Define named constant `DAYS_PER_YEAR = 365.0` in `backend/app/features/f3_log/xirr.py`.
 
 ### D-19: Moving-block bootstrap algorithm and output conventions (A2.3)
 - **Status:** Accepted
-- **Context:** PROJECT.md §5.6 specifies moving-block bootstrap with recorded seed. Block wrapping, partial block handling, and output distribution format are not explicitly detailed in finance docs.
+- **Context:** project_docs/project.md §5.6 specifies moving-block bootstrap with recorded seed. Block wrapping, partial block handling, and output distribution format are not explicitly detailed in finance docs.
 - **Decision:**
   - Block type: Moving (overlapping) blocks, docs silent, standard choice.
   - Final block truncation: When target length is not an integer multiple of block length, truncate the final sampled block, docs silent, standard choice.
@@ -137,7 +137,7 @@
 - **Decision:**
   - Degrees of freedom: Sample variance and standard deviation use `ddof=1` (docs silent, standard choice).
   - Zero tracking error: Raises `ParameterError`.
-  - Pending parameters: `annualisation_factor` (required argument without default, pending advisor confirmation on return cadence) and risk-free series specification.
+  - Pending parameters: `annualisation_factor` (required argument without default, provisional, no advisor review on return cadence) and risk-free series specification.
 
 ### D-23: Derived filing metrics and validation constraints (A2.4)
 - **Status:** Accepted
@@ -146,7 +146,7 @@
   - YoY and QoQ growth: Strict validation requiring matching prior fiscal quarter (`t - 4Q` for YoY, `t - 1Q` for QoQ); zero or negative base raises `ParameterError`.
   - DSO: Uses dynamic fiscal period calendar day count computed via A2.1 fiscal utilities (`fiscal_period_to_dates`). Non-positive revenue raises `ParameterError`.
   - Margins and OCF: Revenue from operations must be strictly positive; non-positive revenue or PAT raises `ParameterError`.
-  - Q4 derivation: Subtraction of 9M cumulative from annual figure requires matching fiscal year and identical unit. Negative derived revenue raises `ParameterError`; negative derived profit (loss) is permitted; other negative types pending advisor confirmation.
+  - Q4 derivation: Subtraction of 9M cumulative from annual figure requires matching fiscal year and identical unit. Negative derived revenue raises `ParameterError`; negative derived profit (loss) is permitted; other negative types provisional, no advisor review.
 
 ### D-24: Text chunker, verbatim-quote check, and rule engine R0-R7 (A2.5)
 - **Status:** Accepted
@@ -193,7 +193,7 @@
 
 ### D-27: Feasibility evaluation of external data sources (X1 feasibility)
 - **Status:** Accepted
-- **Context:** PROJECT.md §6.5 data register and PROGRESS.md X1.4-X1.6 require live connectivity checks and feasibility assessments of candidate Indian and macro data sources using throwaway scripts under `scripts/feasibility/`.
+- **Context:** project_docs/project.md §6.5 data register and PROGRESS.md X1.4-X1.6 require live connectivity checks and feasibility assessments of candidate Indian and macro data sources using throwaway scripts under `scripts/feasibility/`.
 - **Decision & Source Verdicts:**
   1. **NSE/BSE direct downloads:** Unusable. Direct requests to NSE endpoints are rejected with 403/503 by Akamai WAF without browser session cookies, and BSE APIs return 403; terms not read, blocked only by 403.
   2. **NSE Indices downloads (niftyindices.com):** Unusable. The website returns HTTP 200 for presentation pages but programmatic data download endpoints redirect to HTML forms requiring ASP.NET session state and interactive viewstate tokens; terms not read, blocked only by 403.
@@ -231,7 +231,7 @@
 
 ### D-33: Broker API price source evaluation (Zerodha, Upstox, Angel One, Fyers)
 - **Status:** Accepted
-- **Context:** Docs-only evaluation of official Indian retail broker APIs as alternative candidates for NSE equity and index daily price data per PROJECT.md §6.5.
+- **Context:** Docs-only evaluation of official Indian retail broker APIs as alternative candidates for NSE equity and index daily price data per project_docs/project.md §6.5.
 - **Decision & Source Verdicts:**
   1. **Zerodha Kite Connect:** Not a candidate. Paid subscription (costs ₹500/month, violating zero-budget policy), requires a personal KYC trading account, and terms prohibit public display or redistribution of market data ("live market data obtained via Kite Connect cannot be displayed to the public at large", https://kite.trade/terms).
   2. **Upstox API:** Candidate for manual research extraction only; not a candidate for autonomous production service. Free (₹0 subscription), provides historical daily candle data spanning multiple decades for NSE equities and indices, but requires personal KYC broker account credentials with daily OAuth token refreshes.
@@ -250,7 +250,7 @@
 
 ### D-36: PostgreSQL database driver dependency selection (psycopg)
 - **Status:** Accepted
-- **Context:** Database connectivity to Supabase PostgreSQL for migrations, connection health checks, and data operations requires a native PostgreSQL driver in Python per PROJECT.md §7.1 and PROGRESS.md X2.1.
+- **Context:** Database connectivity to Supabase PostgreSQL for migrations, connection health checks, and data operations requires a native PostgreSQL driver in Python per project_docs/tech_stack.md §8 and PROGRESS.md X2.1.
 - **Decision:** Add `psycopg[binary]>=3.2.0` as a production dependency in `pyproject.toml`. Psycopg 3 provides modern Python type hint support, binary protocol performance, connection pooling, client-side binding parameters, and SSL configuration required for remote Supabase connections.
 
 ### D-37: Plans database table duplication of plans.yaml
@@ -260,7 +260,7 @@
 
 ### D-38: Deferral of subscriptions and payments mutation to X11
 - **Status:** Accepted
-- **Context:** Tables `public.subscriptions` and `public.payments` were created in the initial schema per PROJECT.md §7.1. Payment gateway integration and recurring billing lifecycles belong to batch X11.
+- **Context:** Tables `public.subscriptions` and `public.payments` were created in the initial schema per project_docs/tech_stack.md §8. Payment gateway integration and recurring billing lifecycles belong to batch X11.
 - **Decision:** Confirm that `subscriptions` and `payments` remain empty in Supabase and that their RLS policies restrict all mutations exclusively to `service_role`. Runtime payment processing and state transitions are deferred to batch X11.
 
 ### D-39: Deferral of Google OAuth due to card requirement
@@ -275,7 +275,7 @@
 
 ### D-41: Email verification enforcement returning 403 email_not_verified
 - **Status:** chosen, no advisor review, provisional
-- **Context:** PROJECT.md FR-AUTH-002 mandates that unverified accounts cannot access analytical features.
+- **Context:** project_docs/project.md FR-AUTH-002 mandates that unverified accounts cannot access analytical features.
 - **Decision:** Valid tokens for accounts where email is unverified return HTTP 403 with error code `email_not_verified`. Missing, invalid, or expired tokens return HTTP 401 via `ErrorEnvelope`. If the email verification field is absent from both token and database user record, raise an explicit error rather than assuming verified status.
 
 ### D-42: Admin authorization read strictly from app_metadata
@@ -304,13 +304,13 @@
 - **Context:** Combining X5 (Market Data & Feature 1 Statistics) and X6 (Filings & Feature 2 Consistency Engine) without LLM. Resolves D-08 pending contract fields.
 - **Decision:**
   - `CorrelationScan` contract defined with fields: `as_of`, `source_label` ("unofficial source, demo only"), `parameters_used` (`W`, `B`, `G`, `C`, `lambda`, `seed`), `regime_flag` (`none`, `watch`, `warning`, `critical`), `absorption_ratio`, `ar_delta_std`, `significant_pairs_count`, `mean_correlation`, `top_shifted_pairs` (`pair`, `baseline_corr`, `current_corr`, `fr_adjusted_corr`, `p_value`, `q_value`), `matrix_summary`, `episodes_status` ("pending_scan_full_history"), `seed`, and `code_version`.
-  - Market data from Yahoo Finance chart API fetched once and cached in `data/yfinance/` (gitignored). Candidate universe from `config/universe.yaml` yielded 79 successful tickers and 2 failed tickers reported explicitly with zero synthetic fill.
+  - Market data from Yahoo Finance chart API fetched once and cached in `data/yproject_docs/` (gitignored). Candidate universe from `config/universe.yaml` yielded 79 successful tickers and 2 failed tickers reported explicitly with zero synthetic fill.
   - Feature 1 pipeline aligns returns on common trading days, runs Forbes-Rigobon volatility adjustment, computes systemic absorption ratio and moving-block bootstrap (200 iterations with recorded seed), generating `data/f1_scan_demo.json`.
   - Feature 2 engine parses 5 non-financial company XBRL XML filings (`INFY`, `ITC`, `MARUTI`, `RELIANCE`, `TATASTEEL`), derives operating metrics and margins, evaluates consistency rules R0-R7, and precomputes `data/f2_filings_demo.json` and per-company JSONs.
 
 ### D-47: Feature 3 pending contracts definition (ColumnMapping, TradeLog, Portfolio, DecisionReview)
 - **Status:** chosen, no advisor review, provisional
-- **Context:** PROJECT.md §7.3 and FR-F3-001..012 require formal contract schemas for trade log ingestion, portfolio aggregation, and decision reviews. CorrelationScan was already added to contracts in D-46.
+- **Context:** project_docs/tech_stack.md §5 and FR-F3-001..012 require formal contract schemas for trade log ingestion, portfolio aggregation, and decision reviews. CorrelationScan was already added to contracts in D-46.
 - **Decision:** Define minimal strict contract models:
   - `ColumnMapping`: explicit mapping from CSV headers to canonical fields (`date`, `symbol`, `side`, `quantity`, `price`, and optional `fees`, `charges`, `exchange`, `segment`).
   - `TradeLog`: container of parsed `Trade` items with `total_trades`, `symbols`, `start_date`, `end_date`, `consent_given`, and `is_retained`.
@@ -329,15 +329,15 @@
 - **Decision:** Implement `backend/app/features/f3_log/pipeline.py`:
   - Enforce explicit column mapping; raise row-numbered errors for unmapped, missing, or malformed rows. Never skip invalid rows.
   - Compute portfolio cash flows, FIFO lot accounting for realized PnL, and XIRR using existing A2 Brent solver (`backend/app/features/f3_log/xirr.py`).
-  - Replay exact cash flows into Nifty 50 (`^NSEI.json`) and matched sector index from `data/yfinance/`. Missing benchmark price data raises an explicit error.
+  - Replay exact cash flows into Nifty 50 (`^NSEI.json`) and matched sector index from `data/yproject_docs/`. Missing benchmark price data raises an explicit error.
   - Compute process metrics (concentration HHI, turnover, disposition effect PGR/PLR, max drawdown) and institutional metrics (beta, alpha, tracking error, information ratio) using existing A2 library functions.
   - Enforce zero persistence for uploaded logs unless `consent_given` is explicitly true.
 
 ### D-50: Owner-approved exception for synthetic demo trade log
 - **Status:** chosen, no advisor review, provisional
-- **Context:** PROJECT.md §2.7 real-data policy prohibits synthetic data standing in for live services. To allow demonstration and automated end-to-end testing of Feature 3 pipeline mechanics without collecting or requiring real investor trade logs from external users, an owner-approved exception was granted.
+- **Context:** project_docs/tech_stack.md §15 real-data policy prohibits synthetic data standing in for live services. To allow demonstration and automated end-to-end testing of Feature 3 pipeline mechanics without collecting or requiring real investor trade logs from external users, an owner-approved exception was granted.
 - **Decision:**
-  - `scripts/make_demo_trade_log.py` generates `private/logs/demo_synthetic_log.csv` using exclusively real trading dates and real close prices from `data/yfinance/`. Missing prices raise explicitly; no prices are invented.
+  - `scripts/make_demo_trade_log.py` generates `private/logs/demo_synthetic_log.csv` using exclusively real trading dates and real close prices from `data/yproject_docs/`. Missing prices raise explicitly; no prices are invented.
   - Configuration in `config/parameters.yaml` controls trade count (`synthetic_log_trades`), quantity bounds (`synthetic_log_qty_min`, `synthetic_log_qty_max`), and deterministic seed (`synthetic_log_seed`).
   - The marker `SYNTHETIC_DEMO` is stamped on every row, recorded in the header metadata comment, and stored in the filename.
   - The ingestion pipeline detects `SYNTHETIC_DEMO`, flags `is_synthetic_demo = True`, rejects upload if `consent_given` is true (synthetic logs are never retained as real data), and sets explicit disclosure labels on `DecisionReview` ("SYNTHETIC DEMO LOG, not a real investor") and `ProcessMetrics` ("describes the generator, not a real investor").
@@ -355,7 +355,7 @@
 
 ### D-52: Inconsistency contract definition for Feature 2 adjudication
 - **Status:** chosen, no advisor review, provisional
-- **Context:** PROJECT.md §5.10, §7.3, and §9 require a formal frozen contract schema for filing inconsistency findings produced by claim extraction, deterministic metric matching, and adjudicator verification.
+- **Context:** project_docs/project.md §5.10, §7.3, and §9 require a formal frozen contract schema for filing inconsistency findings produced by claim extraction, deterministic metric matching, and adjudicator verification.
 - **Decision:**
   - Define `Inconsistency` contract in `backend/app/contracts/filings.py` with fields: `rule_id`, `verdict` (`confirm`, `downgrade`, `reject`), `severity` (`high`, `medium`, `low`), `metric`, `claim_quote`, `quote_start`, `quote_end`, `stated_value`, `filed_value`, `difference_value`, `explanation`, `is_placeholder`, and `placeholder_label`.
   - Export JSON schema to `docs/contracts/Inconsistency.json` and validate schema drift via `backend/tests/known_answer/test_contracts.py`.
@@ -453,3 +453,170 @@
   - Self-host Newsreader (serif for headings), Source Sans 3 (sans for body text), and JetBrains Mono (monospace for numbers/code) locally within frontend/web/src/app/fonts/.
   - Place accompanying Open Font License (OFL) files alongside each font file.
   - Load fonts using next/font/local, eliminating all runtime and external font host requests.
+
+### D-64: Feature 1 Tavily news integration gap in precomputed demo and TavilyRail component
+- **Status:** Accepted
+- **Context:** Feature 1 correlation scan precomputed demo endpoint `/f1/demo` returns quantitative statistical metrics and shifted pairs from `demo_data/f1_scan_demo.json` without news queries, results, or macro context citations.
+- **Decision:**
+  - Build the shared `TavilyRail` component displaying real states: loading, "not run: no key", "not generated", empty ("no results" with query), and error with status and body.
+  - Surface the "not generated" state on `/contagion` when demo data lacks Tavily news items, reporting the absence as a backend gap in precomputed demo data without modifying backend logic.
+  - Require https-only links with `rel="noopener noreferrer"` and enforce zero HTML rendering.
+
+### D-65: Tavily scope restriction to Feature 1
+- **Status:** Accepted
+- **Context:** Features 2 (filings consistency) and 3 (trade log forensics) endpoints return XBRL metrics, rules, and portfolio replays without external news or search data.
+- **Decision:**
+  - Tavily exists only in Feature 1 in the backend.
+  - Do not render `TavilyRail` on `/filings` and `/trade-log` when the backend returns no Tavily data.
+
+### D-66: Hosted demo filings search and live company lookup backend gap
+- **Status:** Accepted
+- **Context:** Users require searching filings consistency audits for listed Indian equities across fiscal quarters. The hosted backend provides only `/f2/demo` serving precomputed evaluations for demo companies.
+- **Decision:**
+  - Log the backend gap "no endpoint for a live lookup of any listed company" without modifying backend services.
+  - Frontend `/filings` search dynamically populates companies and fiscal periods from the `/f2/demo` response without hardcoding company symbols or periods.
+  - When an uncataloged company is queried, display "Not in the precomputed demo. Available companies:" followed by the available companies list, and "A live lookup of any listed company is not available in the hosted demo."
+  - When an unavailable period is requested for a known company, inform the user and list available periods.
+
+### D-67: Dependency addition: openpyxl
+- **Status:** chosen, no advisor review, provisional
+- **Context:** Safe server-side parsing and tabular text extraction from `.xlsx` spreadsheets uploaded by users for financial analysis.
+- **Decision:**
+  - Add `openpyxl` as a backend dependency in `pyproject.toml`.
+  - Read cell values only (`data_only=True`), never evaluate formulas, and ignore external links.
+
+### D-68: Dependency addition: python-docx
+- **Status:** chosen, no advisor review, provisional
+- **Context:** Safe server-side text extraction from Word documents (`.docx`) provided as research briefs or financial notes.
+- **Decision:**
+  - Add `python-docx` as a backend dependency in `pyproject.toml`.
+  - Process paragraphs and tables strictly in memory, rejecting macro-enabled documents.
+
+### D-69: Dependency addition: pypdf
+- **Status:** chosen, no advisor review, provisional
+- **Context:** Safe in-memory text extraction from PDF financial reports and filing disclosures without external binary CLI dependencies.
+- **Decision:**
+  - Add `pypdf` as a backend dependency in `pyproject.toml`.
+  - Extract text per page while enforcing configured page limits and execution timeouts.
+
+### D-70: Dependency addition: yfinance
+- **Status:** chosen, no advisor review, provisional
+- **Context:** Live market price retrieval at request time for financial contagion analysis and trade log forensics.
+- **Decision:**
+  - Add `yfinance` as a backend dependency in `pyproject.toml`. It was not previously a dependency in the project.
+  - Wrap invocations in `backend/app/data/yfinance_client.py` with an in-memory TTL cache, request caps, and live error surfacing. Never return raw vendor payloads; produce derived indicators only.
+
+### D-71: Contract change: AgentAskRequest model tier and reference text
+- **Status:** chosen, no advisor review, provisional
+- **Context:** The agent orchestrator requires clients to choose an inference model tier (`fast`, `balanced`, `deep`) and optionally pass extracted attachment text as read-only reference data.
+- **Decision:**
+  - Extend `AgentAskRequest` in `backend/app/contracts/agent.py` with:
+    - `model_tier: Literal["fast", "balanced", "deep"] = "balanced"`
+    - `attachment_text: str | None = None`
+  - When an unavailable or denied tier is requested, return HTTP 503 with standard error envelope.
+
+### D-72: Contract change: Authentication refresh token and endpoint
+- **Status:** chosen, no advisor review, provisional
+- **Context:** Client authentication requires session continuity across token expiries without re-entering credentials.
+- **Decision:**
+  - Extend `LoginResponse` in `backend/app/auth/models.py` with `refresh_token: str | None = None`.
+  - Add `RefreshRequest` (`refresh_token: str`) and `RefreshResponse` (`access_token: str`, `token_type: str`, `expires_in: int`, `refresh_token: str | None`).
+  - Implement `POST /api/auth/refresh` returning HTTP 401 on expired or invalid refresh token.
+  - Redact tokens from server logs.
+
+### D-73: Live NSE corporate filing lookup and rate limiting
+- **Status:** chosen, no advisor review, provisional
+- **Context:** Feature 2 consistency audits require fetching official equity symbols and XBRL filing instances from the National Stock Exchange of India. Direct automated requests to `nseindia.com` trigger anti-bot protections, whereas the official NSE archive server `nsearchives.nseindia.com` serves equities and corporate XBRL files. NSE terms have not been read.
+- **Decision:**
+  - Log that NSE terms have not been read.
+  - Require user authentication for live lookups via `GET /f2/lookup`.
+  - Enforce a per-user daily lookup limit and a global NSE outbound request rate limit from `config/parameters.yaml`.
+  - Retrieve equity listings and XBRL instances from `nsearchives.nseindia.com`.
+  - Cache each parsed company-period result in memory with a configurable TTL. Never return raw XML or CSV files to the client.
+
+### D-74: Annual-only rule restriction for operating cash flow and working capital
+- **Status:** chosen, no advisor review, provisional
+- **Context:** Indian corporate reporting regulations (SEBI Ind AS) require full cash flow statements and detailed balance sheet schedules primarily in annual financial statements; quarterly disclosures typically omit complete cash flow schedules.
+- **Decision:**
+  - Based on code inspection of `backend/app/features/f2_filings/rules.py` and `derived_metrics.py`, exactly Rules R5 (operating cash flow quality), R6 (working capital divergence), and metric DSO (days sales outstanding) require cash flow or receivables/inventory balance sheet items. Rule R7 evaluates understatements against growth and sector thresholds and does not require cash flow data.
+  - Restrict R5, R6, and DSO to annual filings only. For quarterly filings, evaluate R5 and R6 as `not_applicable` with an explanatory reason.
+
+### D-75: File extraction safety and zip bomb defenses
+- **Status:** chosen, no advisor review, provisional
+- **Context:** User file uploads (`.pdf`, `.docx`, `.xlsx`) pose denial-of-service, macro execution, formula injection, and zip bomb risks if parsed without strict limits.
+- **Decision:**
+  - Implement safe extraction in `backend/app/features/files/extractor.py` and expose `POST /files/extract`.
+  - Reject `.xlsm` and any macro-enabled file formats immediately.
+  - Read Excel values only (`data_only=True`), never evaluate untrusted cell formulas, and ignore external links.
+  - Cap uncompressed size and entry count of `.docx` and `.xlsx` archives from `config/parameters.yaml` to defeat zip bombs.
+  - Cap maximum PDF pages from `config/parameters.yaml`.
+  - Enforce an extraction timeout from config; raise loud errors on timeout or MIME/extension mismatches. Process all uploads strictly in memory.
+
+### D-76: Feature 3 trade log upload in hosted mode
+- **Status:** chosen, no advisor review, provisional
+- **Context:** Feature 3 previously blocked upload in hosted mode due to un-shipped static benchmark data. With live benchmark price retrieval via `yfinance_client`, trade log upload can operate in hosted environments.
+- **Decision:**
+  - Introduce `f3_hosted_upload_enabled` (boolean, default true) in `config/parameters.yaml`.
+  - Allow `POST /f3/review` to process uploaded trade logs against live benchmark prices while maintaining the precomputed demo fallback `/f3/demo`.
+
+### D-77: Dependency addition: react-markdown
+- **Status:** chosen, no advisor review, provisional
+- **Context:** Agent chat responses contain structured plain prose that must be safely formatted in the React UI without injecting raw server HTML.
+- **Decision:**
+  - Add `react-markdown` as a frontend dependency in `frontend/web/package.json`.
+  - Disable raw HTML rendering completely to prevent XSS vulnerabilities.
+  - Prohibit `dangerouslySetInnerHTML` across all UI views.
+  - Format lists, bold text, inline code, and wrap long code blocks in collapsible containers.
+
+### D-78: Session management via httpOnly cookies with 5-hour idle timeout
+- **Status:** chosen, no advisor review, provisional
+- **Context:** D-60 previously stored JWT tokens strictly in JavaScript runtime memory, causing full session loss on any page refresh and lacking idle session expiration.
+- **Decision:**
+  - Store the refresh token and last-activity timestamp in a secure `httpOnly` cookie managed strictly by Next.js server routes (`/api/auth/login`, `/api/auth/session`, `/api/auth/logout`).
+  - Access tokens remain strictly in runtime memory, never written to cookies, `localStorage`, `sessionStorage`, URLs, or logs.
+  - Configure cookie with `SameSite=Lax`, `Secure` in production, `HttpOnly`, and narrow path `/api/auth`.
+  - Validate the `Origin` header on all Next.js auth server routes against server origin to prevent CSRF.
+  - Enforce a 5-hour idle timeout configured via `SESSION_IDLE_HOURS = 5`.
+  - Only deliberate user interactions (clicks, keypresses, navigation, throttled) update the last-activity timestamp via a dedicated server touch; background pre-expiry access token refreshes must never extend the idle window.
+  - After 5 hours of inactivity, the session route clears the cookie and surfaces the sign-in prompt: "Signed out after 5 hours of no use."
+
+### D-79: Model tier catalog endpoint gap
+- **Status:** Accepted
+- **Context:** The frontend agent interface provides model selection between Fast, Balanced, and Deep tiers. The backend exposes `POST /agent/ask` accepting `model_tier`, but does not provide an endpoint listing available model tiers or their live health.
+- **Decision:**
+-  - Log the absence of a `GET /llm/tiers` model tier catalog endpoint as a backend gap without changing backend code.
+-  - Frontend presents Fast, Balanced, and Deep tiers (defaulting to Balanced).
+-  - A tier is marked disabled and unavailable only upon receiving an HTTP 503 response from the backend specifying the tier unavailability reason.
+
+### D-80: Request origin verification with Host comparison, loopback config list, and protocol-aware cookie flags
+- **Status:** chosen, no advisor review, provisional
+-**Context:** Following D-78 session cookie introduction, local testing revealed origin mismatches between localhost and 127.0.0.1, rigid cookie Secure flags dropping cookies on plain HTTP test environments, and client-side unauthenticated navigation loops on initial mount prior to session verification.
+- **Decision:**
+  - Verify `Origin` header host against request `Host` header, allowing matches dynamically.
+  - Allow extra origins only from an explicit configuration list (`DEFAULT_EXTRA_ORIGINS`), ensuring localhost:3000 and 127.0.0.1:3000 interoperability without hardcoded fixed-host breakage.
+  - Reject untrusted origins with HTTP 403 and error code `origin_rejected`.
+  - Set cookie `Secure` flag only when the request protocol is https (or `x-forwarded-proto: https`) or `NODE_ENV === "production"`.
+  - Require Next.js server auth routes to return standardized JSON with HTTP status and code.
+  - Guard protected UI views with `sessionChecked` state in `AuthContext` to prevent premature redirects to `/login` during initial cookie exchange.
+  - Verify session cookie storage immediately post-login, raising `cookie_storage_failed` if the browser fails to persist the cookie.
+
+### D-81: Intentional frontend deprecation of legacy LLM endpoints
+- **Status:** chosen, no advisor review, provisional
+- **Context:** The frontend `/agent` interface was unified into a single chat interface and unrequested third-party news search components (`TavilyRail`) were eliminated in favor of clean, unified sections.
+- **Decision:**
+  - Deprecate frontend usage of `/llm/runtime_call` and `/llm/tavily_search`.
+  - Mark `/llm/runtime_call` and `/llm/tavily_search` as intentionally unused in the frontend endpoint coverage audit (`src/tests/endpoint_coverage.test.ts`).
+
+### D-82: Deletion of legacy plain HTML screens (frontend/app) and demo endpoints
+- **Status:** Accepted
+- **Context:** The legacy plain HTML screens in `frontend/app` relied on obsolete `/demo` endpoints and synthetic stubs, conflicting with the Real-Data Policy. Full modern functionality is consolidated under `frontend/web` (Next.js) and `frontend/console` (ops inspection).
+- **Decision:**
+  - Delete `frontend/app/` completely and remove its mount from `backend/app/main.py`.
+  - Redirect root path `/` to `/console`.
+  - Delete mock/demo endpoints (`/demo/*`), synthetic trade log scripts, and synthetic CSV datasets.
+  - Direct all Feature 1, Feature 2, and Feature 3 workflows through live endpoints (`/f1/scan`, `/f2/companies`, `/f2/lookup`, `/f3/review`).
+  - Provider injection applied across orchestrator, explanation, adjudication, and review modules with real provider instantiation in production and test helpers strictly isolated to tests.
+
+
+
+

@@ -18,7 +18,7 @@ import styles from "./admin.module.css";
 
 export default function AdminPage() {
   const router = useRouter();
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAuthenticated, sessionChecked, isAdmin } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,8 +42,11 @@ export default function AdminPage() {
   const [reviewError, setReviewError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (sessionChecked && !isAuthenticated) {
       router.push("/login");
+      return;
+    }
+    if (!isAuthenticated) {
       return;
     }
 
@@ -94,7 +97,7 @@ export default function AdminPage() {
     return () => {
       isMounted = false;
     };
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, sessionChecked, router]);
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -270,28 +273,52 @@ export default function AdminPage() {
 
         <div className={styles.configGroups}>
           {opsConfig?.groups &&
-            Object.entries(opsConfig.groups).map(([groupName, vars]) => (
-              <div key={groupName} className={styles.configGroupBlock}>
-                <div className={styles.groupHeader} data-mono>
-                  GROUP: {groupName.toUpperCase()}
+            Object.entries(opsConfig.groups).map(([groupName, vars]) => {
+              const visibleVars = vars.filter((v) => !v.name.startsWith("SMTP_"));
+              if (visibleVars.length === 0) return null;
+
+              return (
+                <div key={groupName} className={styles.configGroupBlock}>
+                  <div className={styles.groupHeader} data-mono>
+                    GROUP: {groupName.toUpperCase()}
+                  </div>
+                  <div className={styles.varList}>
+                    {visibleVars.map((v) => {
+                      const isGroupEnabled =
+                        v.group_enabled !== undefined
+                          ? v.group_enabled
+                          : (opsConfig.enabled_groups?.includes(groupName) ?? false);
+
+                      let badgeText = "present";
+                      let badgeClass = styles.presOk;
+
+                      if (!isGroupEnabled) {
+                        badgeText = "not used: group not enabled";
+                        badgeClass = styles.presNotEnabled;
+                      } else if (!v.present) {
+                        badgeText = "missing";
+                        badgeClass = styles.presMissing;
+                      } else {
+                        badgeText = "present";
+                        badgeClass = styles.presOk;
+                      }
+
+                      return (
+                        <div key={v.name} className={styles.varRow}>
+                          <span className={styles.varName} data-mono>{v.name}</span>
+                          <span
+                            className={`${styles.presenceBadge} ${badgeClass}`}
+                            data-mono
+                          >
+                            {badgeText}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div className={styles.varList}>
-                  {vars.map((v) => (
-                    <div key={v.name} className={styles.varRow}>
-                      <span className={styles.varName} data-mono>{v.name}</span>
-                      <span
-                        className={`${styles.presenceBadge} ${
-                          v.present ? styles.presOk : styles.presMissing
-                        }`}
-                        data-mono
-                      >
-                        {v.present ? "PRESENT" : "MISSING"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+              );
+            })}
         </div>
       </section>
 

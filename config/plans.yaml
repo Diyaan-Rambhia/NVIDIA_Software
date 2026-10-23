@@ -57,8 +57,11 @@ plans:
     price_inr_per_month: null
     features:
       feature1_contagion:
-        access: full
+        access: limited
+        quota_per_day: 1000
       feature2_filings:
-        access: full
+        access: limited
+        quota_per_day: 1000
       feature3_forensic:
-        access: full
+        access: limited
+        quota_per_day: 1000

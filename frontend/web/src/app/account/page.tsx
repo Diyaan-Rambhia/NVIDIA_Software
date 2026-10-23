@@ -10,7 +10,7 @@ import styles from "./account.module.css";
 
 export default function AccountPage() {
   const router = useRouter();
-  const { isAuthenticated, refreshSession } = useAuth();
+  const { isAuthenticated, sessionChecked, refreshSession } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfileResponse | null>(null);
@@ -26,8 +26,11 @@ export default function AccountPage() {
   const [verificationError, setVerificationError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (sessionChecked && !isAuthenticated) {
       router.push("/login");
+      return;
+    }
+    if (!isAuthenticated) {
       return;
     }
 
@@ -66,7 +69,7 @@ export default function AccountPage() {
     return () => {
       isMounted = false;
     };
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, sessionChecked, router]);
 
   const handleVerificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

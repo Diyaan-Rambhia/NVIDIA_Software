@@ -11,7 +11,7 @@ import styles from "./login.module.css";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, idleMessage, sessionError, clearSessionError } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,9 +25,12 @@ export default function LoginPage() {
     setErrorMessage(null);
     setErrorCode(null);
     setHttpStatus(null);
+    clearSessionError();
 
     const cleanEmail = email.trim();
     if (!cleanEmail || !password) {
+      setHttpStatus(400);
+      setErrorCode("validation_error");
       setErrorMessage("Please enter both email and password.");
       return;
     }
@@ -39,7 +42,21 @@ export default function LoginPage() {
         body: JSON.stringify({ email: cleanEmail, password }),
       });
 
-      await login(data.access_token);
+      if (!data.access_token) {
+        setHttpStatus(422);
+        setErrorCode("missing_access_token");
+        setErrorMessage("Authentication response missing required field: access_token.");
+        return;
+      }
+
+      if (!data.refresh_token) {
+        setHttpStatus(422);
+        setErrorCode("missing_refresh_token");
+        setErrorMessage("Authentication response missing required field: refresh_token.");
+        return;
+      }
+
+      await login(data.access_token, data.refresh_token);
       router.push("/dashboard");
     } catch (err: unknown) {
       if (err instanceof ApiError) {
@@ -68,9 +85,28 @@ export default function LoginPage() {
           <p>Deterministic forensic analytics. Enter your credentials to access your session.</p>
         </div>
 
+        {sessionError && !errorMessage && (
+          <StatusBanner
+            status={sessionError.status}
+            code={sessionError.code}
+            message={sessionError.message}
+            type="error"
+          />
+        )}
+
+        {idleMessage && !errorMessage && !sessionError && (
+          <StatusBanner
+            status={401}
+            code="idle_timeout"
+            message={idleMessage}
+            type="warn"
+          />
+        )}
+
         {errorMessage && (
           <StatusBanner
             status={httpStatus}
+            code={errorCode}
             message={errorMessage}
             type={httpStatus === 503 ? "warn" : "error"}
           />

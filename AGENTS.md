@@ -1,21 +1,33 @@
 # Agent Instructions
 
-Read `PROJECT.md` and `PROGRESS.md` first before beginning any task.
+Read `project_docs/project.md`, `project_docs/tech_stack.md`, and `project_docs/finance_stack.md` before beginning any task.
 
-## Core Rules
+---
 
-1. **Real-data policy (PROJECT.md §2.7):** No mocks, fakes, stubs, simulated services, injected faults, synthetic datasets, or recorded fixtures standing in for a live service.
-2. **Secrets & storage:** Secrets live in `.env` (gitignored). Raw logs and raw market data live in `private/` and `data/` (gitignored). Only `.env.example` is committed.
-3. **No dates anywhere:** Never write dates, timestamps, or release dates in code, comments, documentation, or commit files.
-4. **Filesystem paths:** Use Python's `pathlib` module exclusively. Do not use `os.path`.
+## 1. Core Engineering Rules
+
+1. **Real-Data Policy:** Never use mocks, fakes, stubs, or synthetic fixtures for live external services.
+2. **Secrets and Storage:** Store secrets in `.env` (gitignored). Keep raw logs and market data in `private/` and `data/`.
+3. **No Dates Anywhere:** Never write dates, timestamps, or release dates in code, comments, or documentation.
+4. **Filesystem Paths:** Use Python's `pathlib` module exclusively. Do not use `os.path`.
 5. **Dependencies:** Do not add dependencies without recording a rationale in `DECISIONS.md`.
-6. **Loud failures:** Surface upstream errors with their real status and message. No silent fallbacks.
-7. **India market context:** Instruments, exchanges (NSE/BSE), currency (INR), fiscal calendar (April-March), and regulatory context (SEBI) apply throughout.
-8. **Configurability:** Analytical thresholds and window parameters must come from configuration, never hardcoded.
-9. **Status markers in PROGRESS.md:**
+6. **Loud Failures:** Surface upstream errors with their real status and message. Never write silent fallbacks.
+7. **India Market Context:** Instruments, exchanges (NSE/BSE), currency (INR), fiscal calendar, and SEBI apply throughout.
+8. **Configurability:** Analytical thresholds and window parameters must come from configuration files, never hardcoded.
+9. **Status Markers in PROGRESS.md:**
    - `[ ]` todo
    - `[~]` in progress
    - `[x]` done (tick only after verification)
    - `[!]` blocked
-10. **Secret length for redaction:** Secrets must be at least 6 characters or they are not redacted in logs.
-11. **TASK_PROGRESS.md lifecycle:** At the start of a task, start a fresh TASK_PROGRESS.md with only that task's steps; when the task finishes, its ticks go to PROGRESS.md and the file is reset. Never put completed history in TASK_PROGRESS.md.
+10. **Secret Redaction:** Redact any secret of 6 or more characters in logs.
+11. **TASK_PROGRESS.md Lifecycle:** Start a fresh `TASK_PROGRESS.md` containing only active task steps. Transfer completed ticks to `PROGRESS.md` when finished. Never store completed history in `TASK_PROGRESS.md`.
+12. **Provisional Finance Values:** Financial values operate as provisional baselines without human financial advisor review.
+
+---
+
+## 2. Glossary
+
+- **Loud Failure:** Raising an immediate exception that reports original upstream error status and message.
+- **Provisional:** Working value adopted in code and configuration without human financial advisor review.
+- **Real-Data Policy:** Architectural rule requiring live APIs or real recorded exchange datasets instead of synthetic stubs.
+- **SEBI:** Securities and Exchange Board of India.

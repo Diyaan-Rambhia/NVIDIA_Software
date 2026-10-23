@@ -14,6 +14,8 @@ describe("OpenAPI Endpoint Coverage Audit", () => {
     "/console/",
     "/console/config.html",
     "/console/index.html",
+    "/llm/runtime_call",
+    "/llm/tavily_search",
   ]);
 
   // Read all production source code to check for endpoint references

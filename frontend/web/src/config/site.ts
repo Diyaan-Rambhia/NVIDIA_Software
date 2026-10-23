@@ -11,3 +11,5 @@ export const siteConfig = {
 } as const;
 
 export type SiteConfig = typeof siteConfig;
+
+export const UI_REVISION = 1;
