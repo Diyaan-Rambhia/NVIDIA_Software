@@ -656,3 +656,17 @@
   - Implement connection liveness detection (`is_connection_closed`) and closed-connection retry in `record_llm_call` and `increment_quota_atomic`. If an operation encounters a closed or broken connection, retry once with a freshly opened short connection. If the second attempt fails, raise a loud `LedgerError` (HTTP 500 `LEDGER_ERROR`). Never drop a write silently.
   - Apply the short-lived connection pattern across all database access paths: `/agent/ask`, `/llm/runtime_call`, `/f1/scan`, `/f2/lookup`, `/files/extract`, entitlement guards, and auth routes.
   - Report model call completion status, tier, and token counts in server logs and error messages if ledger recording fails after a successful upstream inference call. Never log API keys or user prompts.
+
+### D-87: Live agent tools, Contagion news TTL caching, and trade log file verification help
+- **Status:** chosen, no advisor review, provisional
+- **Context:**
+  1. Agent previously relied on static pack data or hardcoded symbols, failing on general company inquiries like "Rajesh Exports" and lacking live execution capability.
+  2. Contagion news search lacked caching across page loads and displayed uninformative "not generated" placeholders when inactive.
+  3. Trade log CSV uploads lacked upfront schema guidance, leading to confusing ingestion errors.
+- **Decision:**
+  - Rewire agent tools (`filings_check`, `market_scan`, `market_news`, conditional `trade_review`) directly to live lookup functions with plan checks via `decide()`. Return derived numbers only, never raw prices or raw XML files.
+  - Fail with HTTP 502 `MODEL_TOOL_CALL_FAILED` and tier name if model returns no valid tool call after retry limit. Never invent facts or numbers.
+  - Implement scan-level caching for Contagion market scan and news results adhering to `f1_cache_ttl_seconds`, eliminating per-page-load search executions.
+  - Restrict Contagion news block to four deterministic states: `ready` (with evidence IDs), `empty` (with query), `not run: no search key`, or `error` (with HTTP status). Display explicit no-flag notice for empty hypotheses.
+  - Add "Check your file" column guidance on the trade log upload view and ensure all parsing failures name the specific row number.
+

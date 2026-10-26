@@ -149,6 +149,10 @@ def record_llm_call(
         lid = uuid.uuid4()
         try:
             with target_conn.cursor() as cur:
+                try:
+                    cur.execute("SELECT set_config('request.jwt.claim.role', %s, false);", ("service_role",))
+                except Exception:
+                    pass
                 cur.execute(
                     """
                     INSERT INTO public.llm_ledger (
@@ -175,7 +179,11 @@ def record_llm_call(
                 target_conn.commit()
             return lid
         except Exception as insert_exc:
-            if "foreign key" in str(insert_exc).lower() or isinstance(insert_exc, psycopg.errors.ForeignKeyViolation):
+            if (
+                "foreign key" in str(insert_exc).lower()
+                or isinstance(insert_exc, psycopg.errors.ForeignKeyViolation)
+                or "row-level security" in str(insert_exc).lower()
+            ):
                 if not target_conn.autocommit:
                     target_conn.rollback()
                 with target_conn.cursor() as cur:

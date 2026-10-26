@@ -72,11 +72,8 @@ def test_agent_loop_with_test_provider_helper_finishes_with_unknown_cost() -> No
     all_config = load_all_config()
     conn = get_connection(settings, autocommit=True)
 
-    with conn.cursor() as cur:
-        cur.execute("SELECT id, email FROM auth.users LIMIT 1;")
-        user_row = cur.fetchone()
-        real_user_id = user_row[0] if user_row else uuid.uuid4()
-        real_email = user_row[1] if user_row else "judge@example.com"
+    real_user_id = uuid.uuid4()
+    real_email = "judge@example.com"
 
     user = UserClaims(
         user_id=real_user_id,
@@ -99,6 +96,28 @@ def test_agent_loop_with_test_provider_helper_finishes_with_unknown_cost() -> No
             self.registry = DummyRegistry()
 
         def complete(self, alias: str, messages: list[dict[str, Any]], **kwargs: Any) -> dict[str, Any]:
+            if kwargs.get("tools"):
+                return {
+                    "id": "chatcmpl-test-tool-call",
+                    "choices": [
+                        {
+                            "message": {
+                                "role": "assistant",
+                                "tool_calls": [
+                                    {
+                                        "id": "call_123",
+                                        "type": "function",
+                                        "function": {
+                                            "name": "market_scan",
+                                            "arguments": "{}",
+                                        },
+                                    }
+                                ],
+                            }
+                        }
+                    ],
+                    "usage": {"prompt_tokens": 80, "completion_tokens": 20},
+                }
             return {
                 "id": "chatcmpl-test-unset-price",
                 "choices": [
@@ -111,6 +130,7 @@ def test_agent_loop_with_test_provider_helper_finishes_with_unknown_cost() -> No
                 ],
                 "usage": {"prompt_tokens": 120, "completion_tokens": 40},
             }
+
 
     provider = UnsetPriceTestProvider()
 

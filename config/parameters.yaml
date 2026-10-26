@@ -132,6 +132,20 @@ parameters:
     max: 3
     override_allowed: true
     unit: "count of signals"
+  f1_searches_per_scan:
+    type: int
+    default: 1
+    min: 1
+    max: 5
+    override_allowed: true
+    unit: "searches per scan"
+  f1_regime_delta_threshold:
+    type: float
+    default: 1.0
+    min: 0.1
+    max: 5.0
+    override_allowed: true
+    unit: "ar_delta_std threshold"
   runup_window_days:
     type: int
     default: 20

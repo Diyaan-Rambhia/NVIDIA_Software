@@ -131,6 +131,25 @@ export default function TradeLogPage() {
           Provide a CSV export from your broker. Explicitly map your file&apos;s header names to canonical schema fields.
         </p>
 
+        <div style={{
+          padding: "var(--space-3) var(--space-4)",
+          backgroundColor: "rgba(255, 255, 255, 0.03)",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+          borderRadius: "4px",
+          fontSize: "13px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "var(--space-2)"
+        }}>
+          <h3 style={{ fontSize: "14px", fontWeight: 600, color: "var(--color-foreground)" }}>Check your file</h3>
+          <p style={{ margin: 0, color: "var(--color-muted)" }}>
+            Your CSV trade log must contain headers matching these required columns: <strong>date</strong> (YYYY-MM-DD), <strong>symbol</strong> (NSE equity ticker), <strong>side</strong> (BUY or SELL), <strong>quantity</strong> (positive number), and <strong>price</strong> (positive execution price).
+          </p>
+          <p style={{ margin: 0, color: "var(--color-muted)" }}>
+            Optional columns: <code>fees</code>, <code>charges</code>, <code>exchange</code>, <code>segment</code>, <code>marker</code>.
+          </p>
+        </div>
+
         <form onSubmit={handleUploadSubmit} className={styles.uploadForm}>
           <div className={styles.fileField}>
             <label htmlFor="csv-file">CSV Trade Log File</label>

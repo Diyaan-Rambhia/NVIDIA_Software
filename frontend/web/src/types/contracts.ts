@@ -24,6 +24,20 @@ export interface CorrelationScan {
   hypotheses?: Array<{ id: string; text: string; evidence_ids?: string[] }>;
   failed_tickers?: string[];
   scan_duration_seconds?: number;
+  news?: {
+    state: string;
+    query?: string | null;
+    results?: Array<{
+      title: string;
+      url: string;
+      content: string;
+      source?: string;
+      evidence_id?: string;
+    }> | null;
+    not_run_reason?: string | null;
+    error_status?: number | null;
+    error_message?: string | null;
+  } | null;
 }
 
 export interface AuditedCompany {

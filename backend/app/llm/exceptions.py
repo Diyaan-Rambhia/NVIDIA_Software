@@ -113,3 +113,13 @@ class ModelOutputInvalidError(LLMError):
     def __init__(self, message: str = "Model output is invalid or unparseable") -> None:
         super().__init__(message=message, code="MODEL_OUTPUT_INVALID", status_code=502)
 
+
+class ModelToolCallFailedError(LLMError):
+    """Raised when model returns no valid tool call after retry limit."""
+
+    def __init__(self, tier: str, message: str | None = None) -> None:
+        msg = message or f"502 MODEL_TOOL_CALL_FAILED: Tier '{tier}' returned no valid tool call after retry limit"
+        super().__init__(message=msg, code="MODEL_TOOL_CALL_FAILED", status_code=502)
+        self.tier = tier
+
+

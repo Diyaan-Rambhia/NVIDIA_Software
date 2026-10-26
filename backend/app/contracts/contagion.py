@@ -73,6 +73,35 @@ class ShiftedPair(StrictContractModel):
     q_value: float
 
 
+class NewsArticle(StrictContractModel):
+    """External news article carrying evidence identifier."""
+
+    title: str
+    url: str
+    content: str
+    source: str | None = None
+    evidence_id: str | None = None
+
+
+class ContagionNews(StrictContractModel):
+    """External macro news container with real execution state."""
+
+    state: str = "not_run"  # "ready" | "results" | "empty" | "not_run" | "error"
+    query: str | None = None
+    results: list[NewsArticle] | None = None
+    not_run_reason: str | None = None
+    error_status: int | None = None
+    error_message: str | None = None
+
+
+class ContagionHypothesis(StrictContractModel):
+    """Qualitative contagion hypothesis item."""
+
+    id: str
+    text: str
+    evidence_ids: list[str] | None = None
+
+
 class CorrelationScan(StrictContractModel):
     """Output contract for Feature 1 correlation scan per PROJECT.md §5.7 and §5.8."""
 
@@ -90,4 +119,7 @@ class CorrelationScan(StrictContractModel):
     seed: int
     code_version: str
     scan_duration_seconds: float = 0.0
+    news: ContagionNews | None = None
+    hypotheses: list[ContagionHypothesis] | None = None
+
 

@@ -17,6 +17,10 @@ TOOL_NAMES = [
     "f3_portfolio",
     "tavily_search",
     "f2_lookup",
+    "filings_check",
+    "market_scan",
+    "market_news",
+    "trade_review",
 ]
 
 

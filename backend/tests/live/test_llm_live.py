@@ -82,9 +82,9 @@ def test_live_structured_output(live_client: LLMClient) -> None:
     result = complete_structured(
         client=live_client,
         alias="fast",
-        messages=[{"role": "user", "content": "Symbol: INFY, Exchange: NSE."}],
+        messages=[{"role": "user", "content": "Extract entity as JSON. No advice. Symbol: INFY, Exchange: NSE."}],
         schema_model=LiveCompanyEntity,
-        max_tokens=256,
+        max_tokens=1024,
     )
     assert result.symbol == "INFY"
     assert result.exchange == "NSE"

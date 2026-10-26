@@ -2,6 +2,7 @@ import React from "react";
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { StatusBanner } from "@/components/StatusBanner";
+import { ContagionNewsBlock } from "@/components/ContagionNewsBlock";
 import { CorrelationScan, DecisionReview } from "@/types/contracts";
 
 describe("Phase 3 Features Structural & State Rendering", () => {
@@ -113,4 +114,57 @@ describe("Phase 3 Features Structural & State Rendering", () => {
     expect(mockReview.portfolio_xirr).toBe(0.1425);
     expect(mockReview.institutional_metrics?.beta).toBe(0.92);
   });
+
+  it("renders ContagionNewsBlock in all four real states", () => {
+    // 1. Ready state with articles
+    const { unmount: u1 } = render(
+      <ContagionNewsBlock
+        newsState="ready"
+        newsResults={[
+          {
+            evidence_id: "E1",
+            title: "RBI Holds Repo Rate Steady at 6.5%",
+            url: "https://example.com/rbi-news",
+            content: "Monetary policy committee maintains rate.",
+          },
+        ]}
+      />
+    );
+    expect(screen.getByText(/RBI Holds Repo Rate Steady/i)).toBeDefined();
+    expect(screen.getByText("E1")).toBeDefined();
+    u1();
+
+    // 2. Empty state ("no results" with query)
+    const { unmount: u2 } = render(
+      <ContagionNewsBlock
+        newsState="empty"
+        newsQuery="NSE Sector Contagion Shock"
+      />
+    );
+    expect(screen.getByText(/no results \(NSE Sector Contagion Shock\)/i)).toBeDefined();
+    u2();
+
+    // 3. Not run state ("not run: no search key")
+    const { unmount: u3 } = render(
+      <ContagionNewsBlock
+        newsState="not run: no search key"
+      />
+    );
+    expect(screen.getByText("not run: no search key")).toBeDefined();
+    u3();
+
+    // 4. Error state with HTTP status
+    const { unmount: u4 } = render(
+      <ContagionNewsBlock
+        newsState="error"
+        errorStatus={503}
+        errorMessage="Tavily upstream gateway timeout"
+      />
+    );
+    expect(screen.getByText(/HTTP 503: Tavily upstream gateway timeout/i)).toBeDefined();
+    u4();
+  });
+
 });
+
+

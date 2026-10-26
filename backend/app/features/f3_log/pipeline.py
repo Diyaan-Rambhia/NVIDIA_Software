@@ -114,6 +114,10 @@ def parse_trade_log_csv(
             )
 
         qty_raw = (row.get(mapping.quantity) or "").strip()
+        if not qty_raw:
+            raise ValueError(
+                f"Row {row_idx}: missing quantity value in mapped column '{mapping.quantity}'"
+            )
         try:
             qty_val = float(qty_raw)
             if qty_val <= 0.0:
@@ -121,23 +125,28 @@ def parse_trade_log_csv(
                     f"Row {row_idx}: quantity must be strictly positive, got {qty_val}"
                 )
         except ValueError as exc:
-            if "strictly positive" in str(exc):
+            if "strictly positive" in str(exc) or "missing quantity" in str(exc):
                 raise
             raise ValueError(
                 f"Row {row_idx}: non-numeric quantity '{qty_raw}' in column '{mapping.quantity}'"
             ) from exc
 
         price_raw = (row.get(mapping.price) or "").strip()
+        if not price_raw:
+            raise ValueError(
+                f"Row {row_idx}: missing price value in mapped column '{mapping.price}'"
+            )
         try:
             price_val = float(price_raw)
             if price_val <= 0.0:
                 raise ValueError(f"Row {row_idx}: price must be strictly positive, got {price_val}")
         except ValueError as exc:
-            if "strictly positive" in str(exc):
+            if "strictly positive" in str(exc) or "missing price" in str(exc):
                 raise
             raise ValueError(
                 f"Row {row_idx}: non-numeric price '{price_raw}' in column '{mapping.price}'"
             ) from exc
+
 
         fees_val: float | None = None
         if mapping.fees and mapping.fees in row:

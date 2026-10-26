@@ -80,20 +80,32 @@ export default function ContagionPage() {
         : styles.regimeWarn;
 
   const newsKey = ["t", "a", "v", "i", "l", "y"].join("");
-  const newsData = (data as any)?.[newsKey] || (data as any)?.news;
+  const newsData = (data as any)?.[newsKey] || data?.news;
   const newsQuery = newsData?.query || null;
   const newsResults: any[] | null = newsData?.results || null;
-  let newsState: "loading" | "not run: no key" | "not generated" | "empty" | "error" | "ready" = "ready";
+  const newsErrorStatus: number | null = (newsData as any)?.error_status || httpStatus || null;
+  const newsErrorMessage: string | null = (newsData as any)?.error_message || error || null;
+
+  let newsState: "loading" | "not run: no search key" | "empty" | "error" | "ready" = "ready";
   if (loading) {
     newsState = "loading";
-  } else if ((newsData as any)?.state === "not run: no key" || (newsData as any)?.not_run_reason === "not run: no key") {
-    newsState = "not run: no key";
-  } else if (error || (httpStatus !== null && httpStatus >= 400)) {
+  } else if (
+    (newsData as any)?.state === "not run: no search key" ||
+    (newsData as any)?.state === "not run: no key" ||
+    (newsData as any)?.not_run_reason ||
+    !newsData
+  ) {
+    newsState = "not run: no search key";
+  } else if (
+    (newsData as any)?.state === "error" ||
+    error ||
+    (httpStatus !== null && httpStatus >= 400)
+  ) {
     newsState = "error";
-  } else if (!newsData) {
-    newsState = "not generated";
-  } else if (newsResults && newsResults.length === 0) {
+  } else if ((newsData as any)?.state === "empty" || (newsResults && newsResults.length === 0)) {
     newsState = "empty";
+  } else if (newsResults && newsResults.length > 0) {
+    newsState = "ready";
   }
 
   return (
@@ -194,15 +206,9 @@ export default function ContagionPage() {
                 </div>
               )}
 
-              {newsState === "not run: no key" && (
+              {newsState === "not run: no search key" && (
                 <div className={styles.stateBox} data-mono>
-                  not run: no key
-                </div>
-              )}
-
-              {newsState === "not generated" && (
-                <div className={styles.stateBox} data-mono>
-                  not generated
+                  not run: no search key
                 </div>
               )}
 
@@ -214,7 +220,7 @@ export default function ContagionPage() {
 
               {newsState === "error" && (
                 <div className={`${styles.stateBox} ${styles.stateError}`} data-mono>
-                  {httpStatus ? `HTTP ${httpStatus}: ${error || "Unknown error"}` : error || "Error loading market news"}
+                  {newsErrorStatus ? `HTTP ${newsErrorStatus}: ${newsErrorMessage || "Error loading market news"}` : newsErrorMessage || "Error loading market news"}
                 </div>
               )}
 
@@ -282,7 +288,7 @@ export default function ContagionPage() {
                   ))
                 ) : (
                   <div className={styles.emptyNotice}>
-                    No qualitative hypotheses triggered by current regime flag.
+                    No hypotheses: no regime flag in this scan. (Tier: {data?.regime_flag || "none"}, AR delta std: {formatDecimal(data?.ar_delta_std, 2)}, Threshold: {String((data?.parameters_used as any)?.f1_regime_delta_threshold ?? 1.0)})
                   </div>
                 )}
               </div>

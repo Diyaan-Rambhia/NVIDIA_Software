@@ -315,6 +315,111 @@
         "title": "ColumnMapping",
         "type": "object"
       },
+      "ContagionHypothesis": {
+        "additionalProperties": false,
+        "description": "Qualitative contagion hypothesis item.",
+        "properties": {
+          "evidence_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Ids"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "text"
+        ],
+        "title": "ContagionHypothesis",
+        "type": "object"
+      },
+      "ContagionNews": {
+        "additionalProperties": false,
+        "description": "External macro news container with real execution state.",
+        "properties": {
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "error_status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Status"
+          },
+          "not_run_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Not Run Reason"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Query"
+          },
+          "results": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/NewsArticle"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Results"
+          },
+          "state": {
+            "default": "not_run",
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "title": "ContagionNews",
+        "type": "object"
+      },
       "CorrelationScan": {
         "additionalProperties": false,
         "description": "Output contract for Feature 1 correlation scan per PROJECT.md \u00a75.7 and \u00a75.8.",
@@ -340,6 +445,20 @@
             "title": "Episodes Status",
             "type": "string"
           },
+          "hypotheses": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ContagionHypothesis"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hypotheses"
+          },
           "matrix_summary": {
             "additionalProperties": {
               "anyOf": [
@@ -357,6 +476,16 @@
           "mean_correlation": {
             "title": "Mean Correlation",
             "type": "number"
+          },
+          "news": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ContagionNews"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "parameters_used": {
             "additionalProperties": {
@@ -824,6 +953,53 @@
           "unverified_note"
         ],
         "title": "NemotronCallResponse",
+        "type": "object"
+      },
+      "NewsArticle": {
+        "additionalProperties": false,
+        "description": "External news article carrying evidence identifier.",
+        "properties": {
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "evidence_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Id"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "url",
+          "content"
+        ],
+        "title": "NewsArticle",
         "type": "object"
       },
       "Portfolio": {
@@ -1424,7 +1600,7 @@
   },
   "info": {
     "title": "FinInsight",
-    "version": "730f87a"
+    "version": "4b5633d"
   },
   "openapi": "3.1.0",
   "paths": {

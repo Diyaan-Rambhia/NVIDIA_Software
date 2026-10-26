@@ -1,5 +1,165 @@
 {
   "$defs": {
+    "ContagionHypothesis": {
+      "additionalProperties": false,
+      "description": "Qualitative contagion hypothesis item.",
+      "properties": {
+        "evidence_ids": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Evidence Ids"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "text"
+      ],
+      "title": "ContagionHypothesis",
+      "type": "object"
+    },
+    "ContagionNews": {
+      "additionalProperties": false,
+      "description": "External macro news container with real execution state.",
+      "properties": {
+        "error_message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error Message"
+        },
+        "error_status": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error Status"
+        },
+        "not_run_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Not Run Reason"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query"
+        },
+        "results": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/NewsArticle"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Results"
+        },
+        "state": {
+          "default": "not_run",
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "title": "ContagionNews",
+      "type": "object"
+    },
+    "NewsArticle": {
+      "additionalProperties": false,
+      "description": "External news article carrying evidence identifier.",
+      "properties": {
+        "content": {
+          "title": "Content",
+          "type": "string"
+        },
+        "evidence_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Evidence Id"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "url",
+        "content"
+      ],
+      "title": "NewsArticle",
+      "type": "object"
+    },
     "ShiftedPair": {
       "additionalProperties": false,
       "description": "Pair correlation shift detail.",
@@ -70,6 +230,21 @@
       "title": "Episodes Status",
       "type": "string"
     },
+    "hypotheses": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/ContagionHypothesis"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Hypotheses"
+    },
     "matrix_summary": {
       "additionalProperties": {
         "anyOf": [
@@ -87,6 +262,17 @@
     "mean_correlation": {
       "title": "Mean Correlation",
       "type": "number"
+    },
+    "news": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ContagionNews"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "parameters_used": {
       "additionalProperties": {

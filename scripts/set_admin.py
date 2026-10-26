@@ -33,7 +33,6 @@ def find_user_by_email(
     target_email = email.strip().lower()
     page = 1
     per_page = 100
-
     while True:
         url = f"{admin_api_base}?page={page}&per_page={per_page}"
         req = urllib.request.Request(url, headers=headers, method="GET")
@@ -41,7 +40,8 @@ def find_user_by_email(
             with urllib.request.urlopen(req, timeout=15) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
-            logger.error("Failed to list users from Supabase Admin API: HTTP %s", exc.code)
+            body = exc.read().decode("utf-8", errors="replace")
+            logger.error("Failed to list users from Supabase Admin API: HTTP %s - %s", exc.code, body)
             return None
 
         users = data.get("users", [])

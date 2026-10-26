@@ -503,6 +503,8 @@ The table below indexes all 63 decisions recorded in `DECISIONS.md`:
 | `DECISIONS.md D-84` | Routing without prices, token limit guards, and nullable cost accounting |
 | `DECISIONS.md D-85` | Strict verbatim filing claim verification, financial company exclusion, and error taxonomy mapping |
 | `DECISIONS.md D-86` | Short-lived database connection lifecycle, closed-connection retry, and model success logging |
+| `DECISIONS.md D-87` | Live agent tools, Contagion news TTL caching, and trade log file verification help |
+
 
 ## 16. Technical Glossary
 

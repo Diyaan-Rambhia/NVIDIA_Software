@@ -602,6 +602,8 @@ All parameters remain provisional, no advisor review.
 | `cors_origins` | None | comma_separated_origins | Yes | Provisional, no advisor review |
 | `disposition_min_sales` | None | sale count | Yes | Provisional, no advisor review |
 | `f1_news_searches_per_run` | None | count | Yes | Provisional, no advisor review |
+| `f1_searches_per_scan` | None | count | Yes | Provisional, no advisor review |
+| `f1_regime_delta_threshold` | None | standard_deviations | Yes | Provisional, no advisor review |
 | `f2_lookup_cache_ttl_seconds` | None | seconds | Yes | Provisional, no advisor review |
 | `f2_lookup_daily_limit` | None | count | Yes | Provisional, no advisor review |
 | `f2_search_result_limit` | None | count | Yes | Provisional, no advisor review |
@@ -675,6 +677,8 @@ All parameters remain provisional, no advisor review.
 | `cors_origins` | [None, None] | System default |
 | `disposition_min_sales` | [None, None] | System default |
 | `f1_news_searches_per_run` | [None, None] | System default |
+| `f1_searches_per_scan` | [None, None] | System default |
+| `f1_regime_delta_threshold` | [None, None] | System default |
 | `f2_lookup_cache_ttl_seconds` | [None, None] | System default |
 | `f2_lookup_daily_limit` | [None, None] | System default |
 | `f2_search_result_limit` | [None, None] | System default |

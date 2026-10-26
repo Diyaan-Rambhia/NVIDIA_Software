@@ -19,6 +19,7 @@ from backend.app.llm.exceptions import (
     LLMTimeoutError,
     LLMUpstreamError,
     ModelOutputInvalidError,
+    ModelToolCallFailedError,
     NonProseAnswerError,
     ProviderNotConfiguredError,
     TierUnavailableError,
@@ -110,6 +111,12 @@ async def ask_agent(
         raise HTTPException(
             status_code=500,
             detail={"code": "LEDGER_ERROR", "message": str(exc)},
+        )
+    except ModelToolCallFailedError as exc:
+        logger.exception("Agent model tool calling failed: %s", exc)
+        raise HTTPException(
+            status_code=502,
+            detail={"code": "MODEL_TOOL_CALL_FAILED", "message": str(exc), "tier": getattr(exc, "tier", None)},
         )
     except ModelOutputInvalidError as exc:
         logger.exception("Agent model output parse error: %s", exc)

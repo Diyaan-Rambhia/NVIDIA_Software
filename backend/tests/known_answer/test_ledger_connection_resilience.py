@@ -68,6 +68,10 @@ def test_closed_connection_reconnects_and_writes_row() -> None:
         verify_conn = get_connection(settings, autocommit=True)
         try:
             with verify_conn.cursor() as cur:
+                try:
+                    cur.execute("SELECT set_config('request.jwt.claim.role', 'service_role', false);")
+                except Exception:
+                    pass
                 cur.execute(
                     "SELECT route, input_tokens, output_tokens FROM public.llm_ledger WHERE id = %s;",
                     (ledger_id,),
@@ -79,6 +83,10 @@ def test_closed_connection_reconnects_and_writes_row() -> None:
                 assert row[2] == 60
         finally:
             with verify_conn.cursor() as cur:
+                try:
+                    cur.execute("SELECT set_config('request.jwt.claim.role', 'service_role', false);")
+                except Exception:
+                    pass
                 cur.execute("DELETE FROM public.llm_ledger WHERE route = %s;", (test_route,))
             verify_conn.close()
     except Exception:
@@ -102,13 +110,8 @@ def test_held_connection_with_3s_wait_in_provider_writes_row(monkeypatch: pytest
     settings = load_settings()
     all_config = load_all_config()
 
-    init_conn = get_connection(settings, autocommit=True)
-    with init_conn.cursor() as cur:
-        cur.execute("SELECT id, email FROM auth.users LIMIT 1;")
-        user_row = cur.fetchone()
-        real_user_id = user_row[0] if user_row else uuid.uuid4()
-        real_email = user_row[1] if user_row else "judge@example.com"
-    init_conn.close()
+    real_user_id = uuid.uuid4()
+    real_email = "resilience-test@example.com"
 
     user = UserClaims(
         user_id=real_user_id,
@@ -146,6 +149,27 @@ def test_held_connection_with_3s_wait_in_provider_writes_row(monkeypatch: pytest
                 est_cost_usd=0.00004,
                 settings=settings,
             )
+            if kwargs.get("tools"):
+                return {
+                    "id": "chatcmpl-test-tool-call",
+                    "choices": [
+                        {
+                            "message": {
+                                "role": "assistant",
+                                "tool_calls": [
+                                    {
+                                        "id": "call_123",
+                                        "type": "function",
+                                        "function": {
+                                            "name": "market_scan",
+                                            "arguments": "{}",
+                                        },
+                                    }
+                                ],
+                            }
+                        }
+                    ],
+                }
             return {
                 "id": "chatcmpl-test-slow-wait",
                 "choices": [
@@ -157,6 +181,7 @@ def test_held_connection_with_3s_wait_in_provider_writes_row(monkeypatch: pytest
                     }
                 ],
             }
+
 
     held_conn = get_connection(settings, autocommit=True)
     try:
@@ -175,6 +200,10 @@ def test_held_connection_with_3s_wait_in_provider_writes_row(monkeypatch: pytest
 
         # Verify the ledger row exists
         with held_conn.cursor() as cur:
+            try:
+                cur.execute("SELECT set_config('request.jwt.claim.role', 'service_role', false);")
+            except Exception:
+                pass
             cur.execute(
                 "SELECT id, route, input_tokens FROM public.llm_ledger WHERE route = %s;",
                 (test_route,),
@@ -186,6 +215,10 @@ def test_held_connection_with_3s_wait_in_provider_writes_row(monkeypatch: pytest
     finally:
         try:
             with held_conn.cursor() as cur:
+                try:
+                    cur.execute("SELECT set_config('request.jwt.claim.role', 'service_role', false);")
+                except Exception:
+                    pass
                 cur.execute("DELETE FROM public.llm_ledger WHERE route = %s;", (test_route,))
         except Exception:
             pass

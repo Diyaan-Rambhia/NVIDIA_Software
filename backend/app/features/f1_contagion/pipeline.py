@@ -9,9 +9,16 @@ from typing import Any
 
 import numpy as np
 
+from backend.app.config.env import load_settings
 from backend.app.config.loader import load_config_file
 from backend.app.config.models import ParametersConfig
-from backend.app.contracts.contagion import CorrelationScan, ShiftedPair
+from backend.app.contracts.contagion import (
+    ContagionHypothesis,
+    ContagionNews,
+    CorrelationScan,
+    NewsArticle,
+    ShiftedPair,
+)
 from backend.app.data.returns import daily_log_returns
 from backend.app.features.f1_contagion.bootstrap import moving_block_bootstrap
 from backend.app.features.f1_contagion.estimators import (
@@ -26,6 +33,9 @@ from backend.app.version import get_code_version
 DATA_YFINANCE_DIR = Path("data") / "yfinance"
 PARAMS_PATH = Path("config") / "parameters.yaml"
 OUTPUT_JSON_PATH = Path("data") / "f1_scan_demo.json"
+
+_CACHED_SCAN: tuple[float, CorrelationScan] | None = None
+
 
 
 def load_price_series(
@@ -131,6 +141,17 @@ def run_correlation_scan(
     max_tickers: int = 100,
 ) -> CorrelationScan:
     """Execute complete Feature 1 correlation scan on real market data."""
+    global _CACHED_SCAN
+    now_mono = time.monotonic()
+    if (
+        _CACHED_SCAN is not None
+        and not overrides
+        and not symbols
+        and not live
+        and (now_mono - _CACHED_SCAN[0]) < cache_ttl_seconds
+    ):
+        return _CACHED_SCAN[1]
+
     start_time = time.monotonic()
     cfg = load_config_file(PARAMS_PATH, ParametersConfig)
     params: dict[str, Any] = {
@@ -138,6 +159,7 @@ def run_correlation_scan(
     }
     if overrides:
         params.update(overrides)
+
 
     series_map = load_price_series(
         symbols=symbols,
@@ -248,6 +270,67 @@ def run_correlation_scan(
     elif sig_count >= 2:
         regime = "watch"
 
+    # News execution once per scan build
+    news_block: ContagionNews | None = None
+    st = load_settings()
+    tavily_key = st.get_var_value("TAVILY_API_KEY")
+
+    if not tavily_key:
+        news_block = ContagionNews(
+            state="not_run",
+            not_run_reason="not run: no search key",
+        )
+    else:
+        from backend.app.features.f1_contagion.explanation import fetch_tavily_news
+        news_query = "Indian equity market systemic risk correlation contagion"
+        try:
+            raw_news = fetch_tavily_news(news_query, settings=st, max_results=3)
+            if not raw_news:
+                news_block = ContagionNews(
+                    state="empty",
+                    query=news_query,
+                    results=[],
+                )
+            else:
+                articles = [
+                    NewsArticle(
+                        title=item.get("title", ""),
+                        url=item.get("url", ""),
+                        content=item.get("content", ""),
+                        source=item.get("source") or "web",
+                        evidence_id=f"E{idx}",
+                    )
+                    for idx, item in enumerate(raw_news, start=1)
+                ]
+                news_block = ContagionNews(
+                    state="results",
+                    query=news_query,
+                    results=articles,
+                )
+        except Exception as exc:
+            err_msg = str(exc)
+            status_code = 502
+            if "401" in err_msg:
+                status_code = 401
+            elif "403" in err_msg:
+                status_code = 403
+            news_block = ContagionNews(
+                state="error",
+                query=news_query,
+                error_status=status_code,
+                error_message=err_msg,
+            )
+
+    hypotheses_list: list[ContagionHypothesis] = []
+    if regime != "none":
+        hypotheses_list.append(
+            ContagionHypothesis(
+                id="H-01",
+                text=f"Tightening systemic correlation detected across benchmark equities during {regime} regime.",
+                evidence_ids=["E1"] if (news_block and news_block.results) else None,
+            )
+        )
+
     scan_duration = round(time.monotonic() - start_time, 3)
 
     scan_result = CorrelationScan(
@@ -276,8 +359,11 @@ def run_correlation_scan(
         seed=seed,
         code_version=get_code_version(),
         scan_duration_seconds=scan_duration,
+        news=news_block,
+        hypotheses=hypotheses_list,
     )
 
+    _CACHED_SCAN = (time.monotonic(), scan_result)
     return scan_result
 
 
