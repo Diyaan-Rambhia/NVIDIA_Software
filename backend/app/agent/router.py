@@ -1,5 +1,5 @@
-"""FastAPI router for agent orchestration endpoints."""
-
+import json
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -14,14 +14,18 @@ from backend.app.db.connection import get_connection
 from backend.app.llm.exceptions import (
     BudgetExceededError,
     FinancialAdviceError,
+    LedgerError,
     LLMError,
     LLMTimeoutError,
     LLMUpstreamError,
+    ModelOutputInvalidError,
     NonProseAnswerError,
-    PriceNotSetError,
     ProviderNotConfiguredError,
     TierUnavailableError,
+    TokenLimitExceededError,
 )
+
+logger = logging.getLogger("backend.app.agent.router")
 
 router = APIRouter(prefix="/agent", tags=["agent"])
 
@@ -36,11 +40,9 @@ async def ask_agent(
     settings = getattr(request.app.state, "settings", None) or load_settings()
     all_config = getattr(request.app.state, "all_config", None) or load_all_config()
 
+    # Never hold an open database connection across the multi-step agent loop
+    # or across external LLM provider network calls. Each write uses a short connection.
     conn = None
-    try:
-        conn = get_connection(settings)
-    except Exception:
-        conn = None
 
     try:
         provider = getattr(request.app.state, "llm_provider", None)
@@ -88,10 +90,10 @@ async def ask_agent(
             status_code=503,
             detail={"code": "tier_unavailable", "message": str(exc), "tier": exc.tier, "reason": exc.reason},
         )
-    except PriceNotSetError as exc:
+    except TokenLimitExceededError as exc:
         raise HTTPException(
-            status_code=503,
-            detail={"code": "price_not_set", "message": exc.message, "tier": exc.tier},
+            status_code=429,
+            detail={"code": "quota_exceeded", "message": str(exc), "reset_time": exc.reset_time},
         )
     except NonProseAnswerError as exc:
         raise HTTPException(
@@ -102,6 +104,24 @@ async def ask_agent(
         raise HTTPException(
             status_code=503,
             detail={"code": exc.code, "message": exc.message},
+        )
+    except LedgerError as exc:
+        logger.exception("Agent ledger error: %s", exc)
+        raise HTTPException(
+            status_code=500,
+            detail={"code": "LEDGER_ERROR", "message": str(exc)},
+        )
+    except ModelOutputInvalidError as exc:
+        logger.exception("Agent model output parse error: %s", exc)
+        raise HTTPException(
+            status_code=502,
+            detail={"code": "MODEL_OUTPUT_INVALID", "message": str(exc), "status": 502},
+        )
+    except json.JSONDecodeError as exc:
+        logger.exception("Agent json decode error: %s", exc)
+        raise HTTPException(
+            status_code=502,
+            detail={"code": "MODEL_OUTPUT_INVALID", "message": f"Invalid JSON in model output: {exc}", "status": 502},
         )
     except BudgetExceededError as exc:
         raise HTTPException(
@@ -114,9 +134,10 @@ async def ask_agent(
             detail={"code": "TIMEOUT", "message": str(exc)},
         )
     except LLMUpstreamError as exc:
+        logger.exception("Agent upstream provider error (%s): %s", exc.status_code, exc)
         raise HTTPException(
             status_code=502,
-            detail={"code": exc.code, "message": str(exc), "status": exc.status_code},
+            detail={"code": "PROVIDER_ERROR", "message": str(exc), "status": exc.status_code},
         )
     except FinancialAdviceError as exc:
         raise HTTPException(
@@ -129,14 +150,31 @@ async def ask_agent(
             detail={"code": "VALIDATION_ERROR", "message": str(exc)},
         )
     except LLMError as exc:
+        logger.exception("Agent LLM error: %s", exc)
+        st_code = exc.status_code if exc.status_code != 500 else 502
         raise HTTPException(
-            status_code=exc.status_code if exc.status_code != 500 else 503,
-            detail={"code": exc.code, "message": str(exc)},
+            status_code=st_code,
+            detail={"code": exc.code, "message": str(exc), "status": st_code},
         )
     except RuntimeError as exc:
+        logger.exception("Agent runtime error: %s", exc)
         raise HTTPException(
             status_code=502,
             detail={"code": "PROVIDER_ERROR", "message": str(exc), "status": 502},
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("Agent unexpected internal error: %s", exc)
+        err_lower = str(exc).lower()
+        if "ledger" in err_lower:
+            raise HTTPException(
+                status_code=500,
+                detail={"code": "LEDGER_ERROR", "message": f"Ledger operation failed: {exc}"},
+            )
+        raise HTTPException(
+            status_code=502,
+            detail={"code": "PROVIDER_ERROR", "message": f"Provider error: {exc}", "status": 502},
         )
     finally:
         if conn is not None:

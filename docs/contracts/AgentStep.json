@@ -8,9 +8,16 @@
       "type": "number"
     },
     "est_cost_usd": {
-      "minimum": 0.0,
-      "title": "Est Cost Usd",
-      "type": "number"
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Est Cost Usd"
     },
     "input_summary": {
       "title": "Input Summary",
@@ -45,7 +52,6 @@
     "input_summary",
     "output_summary",
     "status",
-    "est_cost_usd",
     "duration_ms"
   ],
   "title": "AgentStep",

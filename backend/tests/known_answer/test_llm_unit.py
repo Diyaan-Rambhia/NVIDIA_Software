@@ -110,14 +110,16 @@ def test_deterministic_cache_key() -> None:
     assert k1 != k3
 
 
-def test_pending_model_pricing_raises() -> None:
-    """When a model's price is blank/null/pending, get_pricing raises PriceNotSetError."""
-    from backend.app.llm.exceptions import PriceNotSetError
+def test_pending_model_pricing_returns_none() -> None:
+    """When a model's price is blank/null/pending, get_pricing returns None without raising."""
     from backend.app.llm.registry import ModelRegistry
 
     registry = ModelRegistry()
+    registry.tiers_cfg = {
+        "fast": {"price_per_1m_input_usd": None, "price_per_1m_output_usd": None}
+    }
     registry.aliases_cfg = {
         "fast": {"price_per_1m_input_usd": None, "price_per_1m_output_usd": None}
     }
-    with pytest.raises(PriceNotSetError):
-        registry.get_pricing("fast")
+    assert registry.get_pricing("fast") is None
+

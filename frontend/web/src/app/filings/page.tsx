@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch, ApiError } from "@/lib/api";
 import { StatusBanner } from "@/components/StatusBanner";
-import { formatFiscalPeriod, formatINR } from "@/lib/formatters";
 import styles from "./filings.module.css";
 
 interface CompanySuggestion {
@@ -21,8 +20,10 @@ interface EvaluatedRuleItem {
   evidence?: any;
   reason?: string | null;
   claim_text?: string;
+  claim_quote?: string | null;
   metric_name?: string;
   metric_value?: string | number;
+  metric_unit?: string;
   evidence_summary?: string;
   period?: string;
 }
@@ -43,6 +44,12 @@ interface LookupResult {
   source: string;
 }
 
+interface MissingQuarterInfo {
+  company: string;
+  period: string;
+  availablePeriods: string[];
+}
+
 const RULE_NAMES: Record<string, string> = {
   R0: "Exact Verbatim Quote Check",
   R1: "Revenue Consistency",
@@ -54,26 +61,79 @@ const RULE_NAMES: Record<string, string> = {
   R7: "Sector Relative Performance Flag",
 };
 
+const FILINGS_FIRST_FISCAL_YEAR = 2001; // label FY01
+
+const QUARTER_BUTTONS = [
+  { num: 1, label: "Q1", months: "Apr–Jun" },
+  { num: 2, label: "Q2", months: "Jul–Sep" },
+  { num: 3, label: "Q3", months: "Oct–Dec" },
+  { num: 4, label: "Q4", months: "Jan–Mar" },
+];
+
+function getFiscalCalendarInfo(nowDate = new Date()) {
+  const month = nowDate.getMonth();
+  const fullYear = nowDate.getFullYear();
+  let currentFiscalYear: number;
+  let currentQuarter: number;
+
+  if (month >= 3) {
+    currentFiscalYear = fullYear + 1;
+    if (month <= 5) currentQuarter = 1;
+    else if (month <= 8) currentQuarter = 2;
+    else currentQuarter = 3;
+  } else {
+    currentFiscalYear = fullYear;
+    currentQuarter = 4;
+  }
+
+  const years: { year: number; label: string }[] = [];
+  for (let y = currentFiscalYear; y >= FILINGS_FIRST_FISCAL_YEAR; y--) {
+    const short = String(y % 100).padStart(2, "0");
+    years.push({ year: y, label: `FY${short}` });
+  }
+
+  return { currentFiscalYear, currentQuarter, years };
+}
+
 export default function FilingsPage() {
   const router = useRouter();
   const { isAuthenticated, sessionChecked } = useAuth();
 
-  const [loadingCompanies, setLoadingCompanies] = useState(true);
-  const [companies, setCompanies] = useState<CompanySuggestion[]>([]);
-  const [companiesError, setCompaniesError] = useState<string | null>(null);
+  // Calendar info computed from system clock
+  const { currentFiscalYear, currentQuarter, years: fiscalYearOptions } = useMemo(
+    () => getFiscalCalendarInfo(),
+    []
+  );
 
-  // Search state
+  // Top 50 State
+  const [top50, setTop50] = useState<CompanySuggestion[]>([]);
+  const [top50Loading, setTop50Loading] = useState(true);
+  const [top50Error, setTop50Error] = useState<string | null>(null);
+
+  // Search & Autocomplete State
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedQuarter, setSelectedQuarter] = useState("Annual");
+  const [searchResults, setSearchResults] = useState<CompanySuggestion[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const pickerRef = useRef<HTMLDivElement>(null);
+
+  // Quarter Selection State
+  const [selectedFiscalYear, setSelectedFiscalYear] = useState<number>(currentFiscalYear);
+  const defaultQuarterLabel = `Q${currentQuarter} FY${String(currentFiscalYear % 100).padStart(2, "0")}`;
+  const [selectedQuarter, setSelectedQuarter] = useState<string>(defaultQuarterLabel);
+
+  // Lookup execution state
   const [lookupLoading, setLookupLoading] = useState(false);
   const [lookupResult, setLookupResult] = useState<LookupResult | null>(null);
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [lookupStatus, setLookupStatus] = useState<number | null>(null);
+  const [missingQuarterInfo, setMissingQuarterInfo] = useState<MissingQuarterInfo | null>(null);
 
   const routerRef = useRef(router);
   routerRef.current = router;
 
-  // Load official equity suggestions list on mount
+  // Load Nifty 50 on mount
   useEffect(() => {
     if (sessionChecked && !isAuthenticated) {
       routerRef.current.push("/login");
@@ -82,13 +142,13 @@ export default function FilingsPage() {
     if (!isAuthenticated) return;
 
     let isMounted = true;
-    async function loadCompanies() {
-      setLoadingCompanies(true);
-      setCompaniesError(null);
+    async function loadTop50() {
+      setTop50Loading(true);
+      setTop50Error(null);
       try {
-        const list = await apiFetch<CompanySuggestion[]>("/f2/companies");
+        const list = await apiFetch<CompanySuggestion[]>("/f2/top50");
         if (isMounted) {
-          setCompanies(Array.isArray(list) ? list : []);
+          setTop50(Array.isArray(list) ? list : []);
         }
       } catch (err: unknown) {
         if (!isMounted) return;
@@ -97,31 +157,91 @@ export default function FilingsPage() {
             routerRef.current.push("/login");
             return;
           }
-          setCompaniesError(err.parsed.message || `Failed to load official equity list (HTTP ${err.status})`);
+          setTop50Error(err.parsed.message || `Failed to load Nifty 50 (HTTP ${err.status})`);
         } else {
-          setCompaniesError("Failed to connect to backend for official NSE equity list.");
+          setTop50Error("Failed to connect to backend for Nifty 50 constituents.");
         }
+        setTop50([]);
       } finally {
-        if (isMounted) setLoadingCompanies(false);
+        if (isMounted) setTop50Loading(false);
       }
     }
 
-    loadCompanies();
+    loadTop50();
     return () => {
       isMounted = false;
     };
   }, [isAuthenticated, sessionChecked]);
 
-  // Autocomplete suggestions matching searchQuery from backend list
-  const suggestedMatches = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q || companies.length === 0) return [];
-    return companies
-      .filter((c) => c.symbol.toLowerCase().includes(q) || c.name.toLowerCase().includes(q))
-      .slice(0, 10);
-  }, [searchQuery, companies]);
+  // Debounced search on server as user types
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (q.length < 2) {
+      setSearchResults([]);
+      setSearchLoading(false);
+      return;
+    }
 
-  const quarterOptions = ["Annual", "Q1 FY27", "Q2 FY27", "Q3 FY27", "Q4 FY27"];
+    setSearchLoading(true);
+    const timer = setTimeout(async () => {
+      try {
+        const results = await apiFetch<CompanySuggestion[]>(
+          `/f2/search?q=${encodeURIComponent(q)}`
+        );
+        setSearchResults(Array.isArray(results) ? results : []);
+      } catch (err) {
+        setSearchResults([]);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Close picker on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        pickerRef.current &&
+        !pickerRef.current.contains(e.target as Node) &&
+        searchInputRef.current &&
+        !searchInputRef.current.contains(e.target as Node)
+      ) {
+        setIsPickerOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleYearChange = useCallback(
+    (newYear: number) => {
+      setSelectedFiscalYear(newYear);
+      // If currently selected quarter is a Q{1-4} label, update its year
+      if (selectedQuarter.startsWith("Q")) {
+        const qNum = selectedQuarter.slice(0, 2);
+        const short = String(newYear % 100).padStart(2, "0");
+        const nextLabel = `${qNum} FY${short}`;
+        setSelectedQuarter(nextLabel);
+      }
+    },
+    [selectedQuarter]
+  );
+
+  const isQuarterDisabled = useCallback(
+    (fy: number, qNum: number) => {
+      if (fy > currentFiscalYear) return true;
+      if (fy === currentFiscalYear && qNum > currentQuarter) return true;
+      return false;
+    },
+    [currentFiscalYear, currentQuarter]
+  );
+
+  const handleSelectCompany = (sym: string) => {
+    setSearchQuery(sym);
+    setIsPickerOpen(false);
+  };
 
   const handleShowClick = async () => {
     const comp = searchQuery.trim();
@@ -131,6 +251,7 @@ export default function FilingsPage() {
     setLookupError(null);
     setLookupStatus(null);
     setLookupResult(null);
+    setMissingQuarterInfo(null);
 
     const periodParam = selectedQuarter.trim() || "Annual";
 
@@ -146,7 +267,17 @@ export default function FilingsPage() {
           return;
         }
         setLookupStatus(err.status);
-        setLookupError(err.parsed.message || `Lookup failed with HTTP ${err.status}`);
+        if (err.status === 404 && (err.parsed.code === "period_not_found" || err.parsed.message?.includes("no data for") || err.parsed.message?.includes("No data for"))) {
+          setMissingQuarterInfo({
+            company: comp,
+            period: periodParam,
+            availablePeriods: Array.isArray((err.parsed as any).available_periods)
+              ? (err.parsed as any).available_periods
+              : [],
+          });
+        } else {
+          setLookupError(err.parsed.message || `Lookup failed with HTTP ${err.status}`);
+        }
       } else {
         setLookupStatus(503);
         setLookupError("Network failure executing filings consistency lookup.");
@@ -166,10 +297,10 @@ export default function FilingsPage() {
         </p>
       </div>
 
-      {companiesError && (
+      {top50Error && (
         <StatusBanner
-          status={503}
-          message={`Error loading equity suggestions: ${companiesError}`}
+          status={502}
+          message={`Error loading Nifty 50: ${top50Error}`}
           type="error"
         />
       )}
@@ -177,6 +308,7 @@ export default function FilingsPage() {
       {/* Top Search & Filter Section */}
       <section className={styles.searchSection} aria-label="Company Search">
         <div className={styles.searchControlsRow}>
+          {/* Company Search Field */}
           <div className={styles.searchFieldGroup}>
             <label htmlFor="company-search-input" className={styles.fieldLabel}>
               Find Company:
@@ -184,60 +316,135 @@ export default function FilingsPage() {
             <div className={styles.inputWithSuggestions}>
               <input
                 id="company-search-input"
+                ref={searchInputRef}
                 type="text"
                 className={styles.searchInput}
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={loadingCompanies ? "Loading NSE equity list..." : "Type company symbol or name..."}
-                list="company-matches-datalist"
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setIsPickerOpen(true);
+                }}
+                onFocus={() => setIsPickerOpen(true)}
+                placeholder="Type company symbol or name..."
                 autoComplete="off"
               />
-              <datalist id="company-matches-datalist">
-                {companies.map((c) => (
-                  <option key={c.symbol} value={c.symbol}>
-                    {c.name && c.name !== c.symbol ? `${c.symbol} - ${c.name}` : c.symbol}
-                  </option>
-                ))}
-              </datalist>
 
-              {searchQuery.trim() && suggestedMatches.length > 0 && (
-                <div className={styles.suggestionsBox}>
-                  {suggestedMatches.map((m) => (
-                    <button
-                      key={m.symbol}
-                      type="button"
-                      className={styles.suggestionBtn}
-                      onClick={() => setSearchQuery(m.symbol)}
-                    >
-                      <span className={styles.suggestionSym} data-mono>{m.symbol}</span>
-                      {m.name && m.name !== m.symbol && (
-                        <span className={styles.suggestionName}>{m.name}</span>
+              {isPickerOpen && (
+                <div ref={pickerRef} className={styles.suggestionsBox} data-testid="company-picker-dropdown">
+                  {searchQuery.trim().length >= 2 ? (
+                    <>
+                      <div className={styles.pickerGroupHeader}>Search Results</div>
+                      {searchLoading ? (
+                        <div className={styles.suggestionBtn} style={{ color: "var(--color-muted)" }}>
+                          Searching official equity list...
+                        </div>
+                      ) : searchResults.length > 0 ? (
+                        searchResults.map((m) => (
+                          <button
+                            key={m.symbol}
+                            type="button"
+                            className={styles.suggestionBtn}
+                            onClick={() => handleSelectCompany(m.symbol)}
+                          >
+                            <span className={styles.suggestionSym} data-mono>{m.symbol}</span>
+                            {m.name && m.name !== m.symbol && (
+                              <span className={styles.suggestionName}>{m.name}</span>
+                            )}
+                          </button>
+                        ))
+                      ) : (
+                        <div className={styles.suggestionBtn} style={{ color: "var(--color-muted)" }}>
+                          No matching companies found.
+                        </div>
                       )}
-                    </button>
-                  ))}
+                    </>
+                  ) : (
+                    <>
+                      <div className={styles.pickerGroupHeader}>Nifty 50</div>
+                      {top50Loading ? (
+                        <div className={styles.suggestionBtn} style={{ color: "var(--color-muted)" }}>
+                          Loading Nifty 50 constituents...
+                        </div>
+                      ) : top50.length > 0 ? (
+                        top50.map((m) => (
+                          <button
+                            key={m.symbol}
+                            type="button"
+                            className={styles.suggestionBtn}
+                            onClick={() => handleSelectCompany(m.symbol)}
+                          >
+                            <span className={styles.suggestionSym} data-mono>{m.symbol}</span>
+                            {m.name && m.name !== m.symbol && (
+                              <span className={styles.suggestionName}>{m.name}</span>
+                            )}
+                          </button>
+                        ))
+                      ) : (
+                        <div className={styles.suggestionBtn} style={{ color: "var(--color-muted)" }}>
+                          Nifty 50 list unavailable.
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
             </div>
           </div>
 
-          <div className={styles.searchFieldGroup}>
-            <label htmlFor="quarter-selector" className={styles.fieldLabel}>
-              Fiscal Quarter:
-            </label>
-            <select
-              id="quarter-selector"
-              className={styles.quarterSelect}
-              value={selectedQuarter}
-              onChange={(e) => setSelectedQuarter(e.target.value)}
-            >
-              {quarterOptions.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
+          {/* Calendar-Style Quarter Selector */}
+          <div className={styles.searchFieldGroup} style={{ flex: 2, minWidth: "320px" }}>
+            <div className={styles.calendarPickerContainer} data-testid="fiscal-calendar-picker">
+              <div className={styles.pickerYearRow}>
+                <label htmlFor="fiscal-year-select" className={styles.fieldLabel}>
+                  Fiscal Year:
+                </label>
+                <select
+                  id="fiscal-year-select"
+                  className={styles.yearSelect}
+                  value={selectedFiscalYear}
+                  onChange={(e) => handleYearChange(Number(e.target.value))}
+                >
+                  {fiscalYearOptions.map((fy) => (
+                    <option key={fy.year} value={fy.year}>
+                      {fy.label} ({fy.year})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.pickerQuarterRow} role="group" aria-label="Fiscal Quarter Buttons">
+                {QUARTER_BUTTONS.map((q) => {
+                  const label = `Q${q.num} FY${String(selectedFiscalYear % 100).padStart(2, "0")}`;
+                  const isSelected = selectedQuarter === label;
+                  const isDisabled = isQuarterDisabled(selectedFiscalYear, q.num);
+                  return (
+                    <button
+                      key={q.num}
+                      type="button"
+                      className={`${styles.quarterBtn} ${isSelected ? styles.quarterBtnActive : ""}`}
+                      disabled={isDisabled}
+                      onClick={() => setSelectedQuarter(label)}
+                      title={isDisabled ? "Future quarter not yet completed" : label}
+                    >
+                      <span className={styles.quarterBtnNum}>Q{q.num}</span>
+                      <span className={styles.quarterBtnMonths}>{q.months}</span>
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  className={`${styles.quarterBtn} ${styles.annualBtn} ${selectedQuarter === "Annual" ? styles.quarterBtnActive : ""}`}
+                  disabled={selectedFiscalYear > currentFiscalYear}
+                  onClick={() => setSelectedQuarter("Annual")}
+                >
+                  <span className={styles.quarterBtnNum}>Annual</span>
+                  <span className={styles.quarterBtnMonths}>Full FY</span>
+                </button>
+              </div>
+            </div>
           </div>
 
+          {/* Action Button */}
           <button
             id="filings-show-button"
             type="button"
@@ -250,14 +457,32 @@ export default function FilingsPage() {
         </div>
 
         {lookupLoading && (
-          <div className={styles.loadingBox} style={{ minHeight: "80px" }}>
+          <div className={styles.loadingBox} style={{ minHeight: "80px", marginTop: "1rem" }}>
             <span className={styles.spinner} />
             <span>Looking up filings data from official archives...</span>
           </div>
         )}
       </section>
 
-      {lookupError && (
+      {/* Missing Quarter Notice (Item 5) */}
+      {missingQuarterInfo && (
+        <div className={styles.missingQuarterBox} data-testid="missing-quarter-notice">
+          <div className={styles.missingQuarterTitle}>
+            No data for {missingQuarterInfo.company} in {missingQuarterInfo.period}.
+          </div>
+          <p className={styles.missingQuarterNote}>
+            The source may not hold machine-readable results for older quarters.
+          </p>
+          {missingQuarterInfo.availablePeriods && missingQuarterInfo.availablePeriods.length > 0 && (
+            <div className={styles.availablePeriodsList}>
+              Available quarters for this company: <strong>{missingQuarterInfo.availablePeriods.join(", ")}</strong>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* General Lookup Error */}
+      {lookupError && !missingQuarterInfo && (
         <StatusBanner
           status={lookupStatus}
           message={lookupError}
@@ -345,18 +570,32 @@ export default function FilingsPage() {
                           </div>
                         </td>
                         <td className={styles.quoteCell}>
-                          <em>&ldquo;{chk.claim_text || "Management stated performance alignment"}&rdquo;</em>
+                          {chk.claim_quote || chk.claim_text ? (
+                            <em>&ldquo;{chk.claim_quote || chk.claim_text}&rdquo;</em>
+                          ) : (
+                            <span style={{ color: "var(--color-muted)", fontStyle: "italic" }}>
+                              No management claim text for this period.
+                            </span>
+                          )}
                         </td>
                         <td data-mono className={styles.metricCell}>
-                          {chk.metric_name || "--"} = {String(chk.metric_value ?? "--")}
+                          {chk.metric_name ? (
+                            chk.metric_value !== null && chk.metric_value !== undefined ? (
+                              `${chk.metric_name}: ${typeof chk.metric_value === "number" ? chk.metric_value.toLocaleString("en-IN") : chk.metric_value} ${chk.metric_unit || "INR Cr"} (${chk.period || lookupResult.reporting_period || lookupResult.requested_period || "Annual"})`
+                            ) : (
+                              `${chk.metric_name} (${chk.period || "Annual"})`
+                            )
+                          ) : (
+                            "N/A"
+                          )}
                         </td>
                         <td>
                           <span className={`${styles.statusBadge} ${statusClass}`} data-mono>
-                            {status}
+                            {status.toLowerCase()}
                           </span>
                         </td>
                         <td className={styles.evidenceCell}>
-                          {chk.evidence_summary || chk.reason || (chk.evidence ? JSON.stringify(chk.evidence) : "--")}
+                          {chk.reason || chk.evidence_summary || (chk.evidence ? JSON.stringify(chk.evidence) : "--")}
                         </td>
                       </tr>
                     );

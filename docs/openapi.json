@@ -68,6 +68,17 @@
             "title": "Answer",
             "type": "string"
           },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost"
+          },
           "disclaimer": {
             "default": "Educational and research review only. FinInsight does not provide investment recommendations or financial advice.",
             "title": "Disclaimer",
@@ -100,16 +111,21 @@
             "type": "array"
           },
           "total_cost_usd": {
-            "minimum": 0.0,
-            "title": "Total Cost Usd",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Cost Usd"
           }
         },
         "required": [
           "query",
           "answer",
           "steps",
-          "total_cost_usd",
           "duration_ms"
         ],
         "title": "AgentAskResponse",
@@ -125,9 +141,15 @@
             "type": "number"
           },
           "est_cost_usd": {
-            "minimum": 0.0,
-            "title": "Est Cost Usd",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Est Cost Usd"
           },
           "input_summary": {
             "title": "Input Summary",
@@ -162,7 +184,6 @@
           "input_summary",
           "output_summary",
           "status",
-          "est_cost_usd",
           "duration_ms"
         ],
         "title": "AgentStep",
@@ -1403,7 +1424,7 @@
   },
   "info": {
     "title": "FinInsight",
-    "version": "cc118c1"
+    "version": "730f87a"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -2061,6 +2082,131 @@
           }
         },
         "summary": "Lookup Filing",
+        "tags": [
+          "feature2_filings"
+        ]
+      }
+    },
+    "/f2/search": {
+      "get": {
+        "description": "Search full NSE equity list on server by query (min 2 chars).\n\nMatches symbol and name (case-insensitive, symbol matches first), at most configured limit results.",
+        "operationId": "search_companies_f2_search_get",
+        "parameters": [
+          {
+            "description": "Company name or NSE equity symbol (min 2 chars)",
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "description": "Company name or NSE equity symbol (min 2 chars)",
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "type": "object"
+                  },
+                  "title": "Response Search Companies F2 Search Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Search Companies",
+        "tags": [
+          "feature2_filings"
+        ]
+      }
+    },
+    "/f2/top50": {
+      "get": {
+        "description": "Retrieve official Nifty 50 constituents from NSE archives with TTL cache.",
+        "operationId": "get_top50_companies_f2_top50_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "type": "object"
+                  },
+                  "title": "Response Get Top50 Companies F2 Top50 Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Top50 Companies",
         "tags": [
           "feature2_filings"
         ]

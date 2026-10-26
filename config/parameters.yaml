@@ -263,7 +263,7 @@ parameters:
     unit: "usd_placeholder_only"
   fiscal_year_min:
     type: int
-    default: 2020
+    default: 2001
     min: 2000
     max: 2050
     override_allowed: true
@@ -298,7 +298,7 @@ parameters:
     unit: "USD"
   agent_timeout_seconds:
     type: float
-    default: 30.0
+    default: 60.0
     min: 1.0
     max: 120.0
     override_allowed: true
@@ -408,6 +408,80 @@ parameters:
     max: 10
     override_allowed: true
     unit: "searches"
+  filings_first_fiscal_year:
+    type: int
+    default: 2001
+    min: 2000
+    max: 2030
+    override_allowed: false
+    unit: "fiscal_year"
+  f2_search_result_limit:
+    type: int
+    default: 20
+    min: 1
+    max: 100
+    override_allowed: true
+    unit: "count"
+  f2_top50_cache_ttl_seconds:
+    type: int
+    default: 86400
+    min: 3600
+    max: 604800
+    override_allowed: true
+    unit: "seconds"
+  fiscal_year_min:
+    type: int
+    default: 2001
+    min: 2000
+    max: 2030
+    override_allowed: false
+    unit: "fiscal_year"
+  fiscal_year_max:
+    type: int
+    default: 2030
+    min: 2000
+    max: 2050
+    override_allowed: false
+    unit: "fiscal_year"
+  llm_per_user_daily_token_limit:
+    type: int
+    default: 50000
+    min: 1000
+    max: 10000000
+    override_allowed: true
+    unit: "tokens"
+  llm_per_user_daily_token_limit_judge_all:
+    type: int
+    default: 500000
+    min: 1000
+    max: 50000000
+    override_allowed: true
+    unit: "tokens"
+  llm_per_call_max_tokens:
+    type: int
+    default: 4000
+    min: 100
+    max: 128000
+    override_allowed: true
+    unit: "tokens"
+  llm_per_call_max_tokens_judge_all:
+    type: int
+    default: 16000
+    min: 100
+    max: 128000
+    override_allowed: true
+    unit: "tokens"
+  f2_financial_sectors:
+    type: str
+    default: "Financial Services,Banks,NBFC,Insurance,Financial"
+    override_allowed: false
+    unit: "csv_sectors"
+  f2_financial_keywords:
+    type: str
+    default: "BANK,FINANCE,FINANCIAL,INSURANCE,NBFC,HOUSING,MUTUAL,SECURITIES,CAPITAL"
+    override_allowed: false
+    unit: "csv_keywords"
+
 
 
 

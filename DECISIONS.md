@@ -617,6 +617,42 @@
   - Direct all Feature 1, Feature 2, and Feature 3 workflows through live endpoints (`/f1/scan`, `/f2/companies`, `/f2/lookup`, `/f3/review`).
   - Provider injection applied across orchestrator, explanation, adjudication, and review modules with real provider instantiation in production and test helpers strictly isolated to tests.
 
+### D-83: Fiscal year baseline expansion to FY01, Nifty 50 top group, and server-side equity search
+- **Status:** Accepted
+- **Context:** The legacy filings lookup loaded all NSE listed equities (~2,000+) directly into the browser on mount, ordering alphabetically by symbol without market importance or Nifty 50 prominence. The period picker only provided hardcoded choices starting at FY27.
+- **Decision:**
+  - Expand backend fiscal year range minimum from 2020 to 2001 (`FILINGS_FIRST_FISCAL_YEAR = 2001`, label `FY01`), enabling historical audits from Q1 FY01 through the current fiscal year computed dynamically from the calendar clock.
+  - Implement `GET /f2/top50` fetching official Nifty 50 constituents live from `https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv` with cache TTL, displayed as the initial "Nifty 50" group.
+  - Retain the full equity list on the server and introduce `GET /f2/search?q={query}` requiring 2+ characters, prioritizing symbol matches over company names, and capping at configured `f2_search_result_limit` (20 results).
+  - Transition frontend filings picker to a calendar-style layout with dynamic fiscal year dropdown (FY01 to current FY), Q1–Q4 month buttons (Apr–Jun, Jul–Sep, Oct–Dec, Jan–Mar), Annual button, and disabled future quarters.
 
+### D-84: Routing without prices, token limit guards, and nullable cost accounting
+- **Status:** Accepted
+- **Context:** Previously, an unset pricing entry in `config/models.yaml` triggered a 503 `price_not_set` error, blocking analytical requests to real inference providers when API keys were valid. Furthermore, the ledger required a non-null dollar cost, preventing tracking when upstream token costs were not configured.
+- **Decision:**
+  - Remove the 503 `price_not_set` refusal path from the router, allowing real calls to proceed directly to configured LLM providers without synthetic placeholders in any environment.
+  - When pricing is unset, record token usage in `public.llm_ledger` with `est_cost_usd = null`, returning `null` cost in the response contract and displaying cost as "unknown" in replies and ops reports. Never use guessed or default prices.
+  - Add configurable token limits in `config/parameters.yaml`: per-user daily token limits (`llm_per_user_daily_token_limit`, `llm_per_user_daily_token_limit_judge_all`) and per-call token limits (`llm_per_call_max_tokens`, `llm_per_call_max_tokens_judge_all`), with higher allocations for judge accounts.
+  - Enforce token limits when pricing is unset, raising HTTP 429 (`quota_exceeded`) with UTC reset timestamp (`X-Reset-Time`) when exceeded. When pricing is set, USD budget guards and costs continue to function normally.
 
+### D-85: Strict verbatim filing claim verification, financial company exclusion, and error taxonomy mapping
+- **Status:** Accepted
+- **Context:**
+  1. POST `/agent/ask` returned bare HTTP 500 when errors occurred during LLM provider communication, output parsing, or ledger writes.
+  2. The filings consistency audit previously fabricated stated claims by comparing reported metrics to themselves (`stated_value = rev_val`), producing false "pass" results on non-existent management statements, and displayed `-- = --` in the table.
+  3. Financial institutions (banks, NBFCs, insurers) report non-standard Ind AS templates not supported by non-financial consistency metrics.
+- **Decision:**
+  1. Map agent errors deterministically: provider upstream error -> 502 `PROVIDER_ERROR` (with upstream status), ledger failure -> 500 `LEDGER_ERROR`, output parsing failure -> 502 `MODEL_OUTPUT_INVALID`. Bare HTTP 500 is eliminated from the agent router path, and server-side traces are logged internally only.
+  2. Enforce strict verbatim quotes: claims must come exclusively from verified announcement text with exact quotes. If no claim text exists, R0-R7 return `not_applicable` with reason `"no management claim text available"`.
+  3. Prohibit comparing a filed value with itself via `assert_not_same_field`, raising `ValueError` if `stated_value` and its source refer to the same field.
+  4. Exclude financial institutions (banks, NBFCs, insurance companies) returning HTTP 422 `UNSUPPORTED_COMPANY_TYPE` with reason `"financial companies are not covered"`. Classification is derived from NSE industry data (`ind_nifty50list.csv`), sector names in `f2_financial_sectors`, symbol checks, and keywords in `f2_financial_keywords`.
+  5. Fix frontend rule table: display verified claim quotes when available or `"No management claim text for this period."` when absent; show filed metrics with field name, formatted number, unit, and fiscal period without `-- = --`.
 
+### D-86: Short-lived database connection lifecycle, closed-connection retry, and model success logging
+- **Status:** chosen, no advisor review, provisional
+- **Context:** `POST /agent/ask` previously failed with `500 LEDGER_ERROR: Failed to record call in ledger: the connection is closed` when an open database connection was held across long-running external LLM model calls and tools, or when connection shadowing closed an active handle prematurely.
+- **Decision:**
+  - Never hold a database connection across a model call or any external network call. Open fresh, short-lived connections immediately before each database write or read, and close them immediately in `finally:` blocks.
+  - Implement connection liveness detection (`is_connection_closed`) and closed-connection retry in `record_llm_call` and `increment_quota_atomic`. If an operation encounters a closed or broken connection, retry once with a freshly opened short connection. If the second attempt fails, raise a loud `LedgerError` (HTTP 500 `LEDGER_ERROR`). Never drop a write silently.
+  - Apply the short-lived connection pattern across all database access paths: `/agent/ask`, `/llm/runtime_call`, `/f1/scan`, `/f2/lookup`, `/files/extract`, entitlement guards, and auth routes.
+  - Report model call completion status, tier, and token counts in server logs and error messages if ledger recording fails after a successful upstream inference call. Never log API keys or user prompts.

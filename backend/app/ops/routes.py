@@ -146,7 +146,7 @@ async def get_ops_activity_llm(request: Request) -> list[dict[str, Any]]:
                     "model_id": str(r[4]),
                     "input_tokens": int(r[5]),
                     "output_tokens": int(r[6]),
-                    "est_cost_usd": float(r[7]),
+                    "est_cost_usd": float(r[7]) if r[7] is not None else None,
                     "cache_hit": bool(r[8]),
                 }
                 for r in rows

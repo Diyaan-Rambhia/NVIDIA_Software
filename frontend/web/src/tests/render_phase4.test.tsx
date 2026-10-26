@@ -313,14 +313,14 @@ describe("Phase 4 /agent Chat Page & Tavily Rail Rendering", () => {
         expect(screen.getByLabelText(/Find Company:/i)).toBeDefined();
       });
 
-      expect(screen.getByLabelText(/Fiscal Quarter:/i)).toBeDefined();
+      expect(screen.getByLabelText(/Fiscal Year:/i)).toBeDefined();
       expect(screen.getByRole("button", { name: "Show" })).toBeDefined();
       expect(screen.getByText("Annual")).toBeDefined();
     });
 
     it("displays result for a known company and period", async () => {
       vi.spyOn(apiModule, "apiFetch").mockImplementation((url: string) => {
-        if (url.includes("/f2/companies")) return Promise.resolve(mockCompaniesList);
+        if (url.includes("/f2/companies") || url.includes("/f2/top50")) return Promise.resolve(mockCompaniesList);
         if (url.includes("/f2/lookup")) return Promise.resolve(mockLookupResponse);
         return Promise.reject(new Error("Unknown route"));
       });
@@ -333,8 +333,8 @@ describe("Phase 4 /agent Chat Page & Tavily Rail Rendering", () => {
 
       const input = screen.getByLabelText(/Find Company:/i);
       fireEvent.change(input, { target: { value: "INFY" } });
-      const select = screen.getByLabelText(/Fiscal Quarter:/i);
-      fireEvent.change(select, { target: { value: "Annual" } });
+      const annualBtn = screen.getByRole("button", { name: /annual/i });
+      fireEvent.click(annualBtn);
       const showBtn = screen.getByRole("button", { name: "Show" });
 
       fireEvent.click(showBtn);
@@ -351,7 +351,7 @@ describe("Phase 4 /agent Chat Page & Tavily Rail Rendering", () => {
 
     it("handles an unknown company search error", async () => {
       vi.spyOn(apiModule, "apiFetch").mockImplementation((url: string) => {
-        if (url.includes("/f2/companies")) return Promise.resolve(mockCompaniesList);
+        if (url.includes("/f2/companies") || url.includes("/f2/top50")) return Promise.resolve(mockCompaniesList);
         if (url.includes("/f2/lookup")) {
           return Promise.reject(
             new ApiError(404, {
@@ -384,7 +384,7 @@ describe("Phase 4 /agent Chat Page & Tavily Rail Rendering", () => {
 
     it("handles an unavailable period search error", async () => {
       vi.spyOn(apiModule, "apiFetch").mockImplementation((url: string) => {
-        if (url.includes("/f2/companies")) return Promise.resolve(mockCompaniesList);
+        if (url.includes("/f2/companies") || url.includes("/f2/top50")) return Promise.resolve(mockCompaniesList);
         if (url.includes("/f2/lookup")) {
           return Promise.reject(
             new ApiError(404, {
@@ -405,24 +405,26 @@ describe("Phase 4 /agent Chat Page & Tavily Rail Rendering", () => {
 
       const input = screen.getByLabelText(/Find Company:/i);
       fireEvent.change(input, { target: { value: "INFY" } });
-      const select = screen.getByLabelText(/Fiscal Quarter:/i);
-      fireEvent.change(select, { target: { value: "Q4 FY27" } });
+      const annualBtn = screen.getByRole("button", { name: /annual/i });
+      fireEvent.click(annualBtn);
       const showBtn = screen.getByRole("button", { name: "Show" });
       fireEvent.click(showBtn);
 
       await waitFor(() => {
-        expect(
-          screen.getByText("no data for INFY in Q4 FY28. Available periods: ['Annual']")
-        ).toBeDefined();
+        expect(screen.getByTestId("missing-quarter-notice")).toBeDefined();
       });
+      expect(screen.getByText(/No data for INFY in/i)).toBeDefined();
+      expect(
+        screen.getByText(/The source may not hold machine-readable results for older quarters\./i)
+      ).toBeDefined();
     });
 
-    it("shows equity list error if /f2/companies fails", async () => {
+    it("shows equity list error if /f2/top50 fails", async () => {
       vi.spyOn(apiModule, "apiFetch").mockRejectedValueOnce(
-        new ApiError(503, {
-          status: 503,
+        new ApiError(502, {
+          status: 502,
           code: "source_unavailable",
-          message: "Failed to load NSE equity list: timeout",
+          message: "Failed to load Nifty 50 constituents: timeout",
         }, null)
       );
 
@@ -430,7 +432,7 @@ describe("Phase 4 /agent Chat Page & Tavily Rail Rendering", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText("Error loading equity suggestions: Failed to load NSE equity list: timeout")
+          screen.getByText("Error loading Nifty 50: Failed to load Nifty 50 constituents: timeout")
         ).toBeDefined();
       });
     });

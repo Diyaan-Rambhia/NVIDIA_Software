@@ -154,15 +154,39 @@ def _check_adjusted_guard(claim: Claim, rule_id: str) -> RuleResult | None:
     return None
 
 
+def assert_not_same_field(stated_field: str | None, source_field: str | None) -> None:
+    """Guard against comparing a filed value with itself.
+
+    Raises ValueError if stated_value source and metric source field are identical.
+    """
+    if stated_field and source_field and stated_field.strip().lower() == source_field.strip().lower():
+        raise ValueError(
+            f"Invalid comparison: stated_value source '{stated_field}' cannot be the same field as filed metric '{source_field}'"
+        )
+
+
 def evaluate_r0_stated_number(
-    claim: Claim,
+    claim: Claim | None,
     metric: FilingMetric,
     stated_value: float | None = None,
     tolerance_pp: float = 0.5,
     claimed_unit: str | None = None,
     claim_metric_basis: str | None = None,
+    stated_value_source: str | None = None,
 ) -> RuleResult:
     """R0: Management states a specific figure on a reported basis."""
+    if stated_value_source is not None:
+        assert_not_same_field(stated_value_source, metric.metric)
+
+    if claim is None or not getattr(claim, "quote", "").strip():
+        return RuleResult(
+            rule_id="R0",
+            status="not_applicable",
+            severity="none",
+            evidence={},
+            reason="no management claim text available",
+        )
+
     validate_alignment(claim, metric, claimed_unit, claim_metric_basis)
     guard = _check_adjusted_guard(claim, "R0")
     if guard is not None:
@@ -174,7 +198,7 @@ def evaluate_r0_stated_number(
             status="not_applicable",
             severity="none",
             evidence={},
-            reason="No specific stated numeric figure provided in claim",
+            reason="no management claim text available",
         )
 
     diff = abs(stated_value - metric.value)
@@ -204,13 +228,22 @@ def evaluate_r0_stated_number(
 
 
 def evaluate_r1_direction(
-    claim: Claim,
+    claim: Claim | None,
     metric: FilingMetric,
     filing_change: float | None = None,
     claimed_unit: str | None = None,
     claim_metric_basis: str | None = None,
 ) -> RuleResult:
     """R1: Direction of change (rose/grew vs declined/fell)."""
+    if claim is None or not getattr(claim, "quote", "").strip():
+        return RuleResult(
+            rule_id="R1",
+            status="not_applicable",
+            severity="none",
+            evidence={},
+            reason="no management claim text available",
+        )
+
     validate_alignment(claim, metric, claimed_unit, claim_metric_basis)
     guard = _check_adjusted_guard(claim, "R1")
     if guard is not None:
@@ -260,7 +293,7 @@ def evaluate_r1_direction(
 
 
 def evaluate_r2_magnitude(
-    claim: Claim,
+    claim: Claim | None,
     metric: FilingMetric,
     growth: float | None = None,
     strong_threshold: float | None = None,
@@ -270,6 +303,15 @@ def evaluate_r2_magnitude(
     claim_metric_basis: str | None = None,
 ) -> RuleResult:
     """R2: Strong-intensity magnitude descriptor on growth."""
+    if claim is None or not getattr(claim, "quote", "").strip():
+        return RuleResult(
+            rule_id="R2",
+            status="not_applicable",
+            severity="none",
+            evidence={},
+            reason="no management claim text available",
+        )
+
     validate_alignment(claim, metric, claimed_unit, claim_metric_basis)
     guard = _check_adjusted_guard(claim, "R2")
     if guard is not None:
@@ -339,7 +381,7 @@ def evaluate_r2_magnitude(
 
 
 def evaluate_r3_trend(
-    claim: Claim,
+    claim: Claim | None,
     metric: FilingMetric,
     current_growth: float | None = None,
     prior_growth: float | None = None,
@@ -347,6 +389,15 @@ def evaluate_r3_trend(
     claim_metric_basis: str | None = None,
 ) -> RuleResult:
     """R3: Accelerating or improving momentum trend claim."""
+    if claim is None or not getattr(claim, "quote", "").strip():
+        return RuleResult(
+            rule_id="R3",
+            status="not_applicable",
+            severity="none",
+            evidence={},
+            reason="no management claim text available",
+        )
+
     validate_alignment(claim, metric, claimed_unit, claim_metric_basis)
     guard = _check_adjusted_guard(claim, "R3")
     if guard is not None:
@@ -387,7 +438,7 @@ def evaluate_r3_trend(
 
 
 def evaluate_r4_profitability(
-    claim: Claim,
+    claim: Claim | None,
     metric: FilingMetric,
     margin_change: float | None = None,
     margin_tolerance_bps: int = 20,
@@ -395,6 +446,15 @@ def evaluate_r4_profitability(
     claim_metric_basis: str | None = None,
 ) -> RuleResult:
     """R4: Margin expansion or improved profitability."""
+    if claim is None or not getattr(claim, "quote", "").strip():
+        return RuleResult(
+            rule_id="R4",
+            status="not_applicable",
+            severity="none",
+            evidence={},
+            reason="no management claim text available",
+        )
+
     validate_alignment(claim, metric, claimed_unit, claim_metric_basis)
     guard = _check_adjusted_guard(claim, "R4")
     if guard is not None:
@@ -443,15 +503,34 @@ def evaluate_r4_profitability(
 
 
 def evaluate_r5_cash_quality(
-    claim: Claim,
+    claim: Claim | None,
     metric: FilingMetric,
     ocf_yoy_growth: float | None = None,
     ocf_conversion: float | None = None,
     ocf_conversion_floor: float = 0.5,
     claimed_unit: str | None = None,
     claim_metric_basis: str | None = None,
+    is_annual: bool = True,
 ) -> RuleResult:
     """R5: Strong cash generation claim."""
+    if not is_annual:
+        return RuleResult(
+            rule_id="R5",
+            status="not_applicable",
+            severity="none",
+            evidence={},
+            reason="Operating cash flow and working capital rules evaluate only on annual filings",
+        )
+
+    if claim is None or not getattr(claim, "quote", "").strip():
+        return RuleResult(
+            rule_id="R5",
+            status="not_applicable",
+            severity="none",
+            evidence={},
+            reason="no management claim text available",
+        )
+
     validate_alignment(claim, metric, claimed_unit, claim_metric_basis)
     guard = _check_adjusted_guard(claim, "R5")
     if guard is not None:
@@ -507,7 +586,7 @@ def evaluate_r5_cash_quality(
 
 
 def evaluate_r6_working_capital(
-    claim: Claim,
+    claim: Claim | None,
     metric: FilingMetric,
     inventory_growth: float | None = None,
     revenue_growth: float | None = None,
@@ -516,8 +595,27 @@ def evaluate_r6_working_capital(
     dso_increase_threshold_days: int = 10,
     claimed_unit: str | None = None,
     claim_metric_basis: str | None = None,
+    is_annual: bool = True,
 ) -> RuleResult:
     """R6: Working capital discipline (inventory build or collections slipping)."""
+    if not is_annual:
+        return RuleResult(
+            rule_id="R6",
+            status="not_applicable",
+            severity="none",
+            evidence={},
+            reason="Operating cash flow and working capital rules evaluate only on annual filings",
+        )
+
+    if claim is None or not getattr(claim, "quote", "").strip():
+        return RuleResult(
+            rule_id="R6",
+            status="not_applicable",
+            severity="none",
+            evidence={},
+            reason="no management claim text available",
+        )
+
     validate_alignment(claim, metric, claimed_unit, claim_metric_basis)
     guard = _check_adjusted_guard(claim, "R6")
     if guard is not None:
@@ -594,7 +692,7 @@ def evaluate_r6_working_capital(
 
 
 def evaluate_r7_understatement(
-    claim: Claim,
+    claim: Claim | None,
     metric: FilingMetric,
     growth: float | None = None,
     strong_threshold: float | None = None,
@@ -605,6 +703,15 @@ def evaluate_r7_understatement(
     claim_metric_basis: str | None = None,
 ) -> RuleResult:
     """R7: Understatement: cautious word on strongly improved metric."""
+    if claim is None or not getattr(claim, "quote", "").strip():
+        return RuleResult(
+            rule_id="R7",
+            status="not_applicable",
+            severity="none",
+            evidence={},
+            reason="no management claim text available",
+        )
+
     validate_alignment(claim, metric, claimed_unit, claim_metric_basis)
     guard = _check_adjusted_guard(claim, "R7")
     if guard is not None:
@@ -681,10 +788,11 @@ def evaluate_r7_understatement(
 
 
 def evaluate_all_rules(
-    claim: Claim,
-    metric: FilingMetric,
+    claim: Claim | None = None,
+    metric: FilingMetric | None = None,
     *,
     stated_value: float | None = None,
+    stated_value_source: str | None = None,
     tolerance_pp: float = 0.5,
     filing_change: float | None = None,
     growth: float | None = None,
@@ -706,9 +814,14 @@ def evaluate_all_rules(
     understatement_gap_pp: float = 10.0,
     claimed_unit: str | None = None,
     claim_metric_basis: str | None = None,
+    is_annual: bool = False,
 ) -> list[RuleResult]:
     """Evaluate all consistency rules in strict order: R0, then R1 through R7."""
-    validate_alignment(claim, metric, claimed_unit, claim_metric_basis)
+    if stated_value_source is not None and metric is not None:
+        assert_not_same_field(stated_value_source, metric.metric)
+
+    if claim is not None and getattr(claim, "quote", "").strip() and metric is not None:
+        validate_alignment(claim, metric, claimed_unit, claim_metric_basis)
 
     return [
         evaluate_r0_stated_number(
@@ -718,6 +831,7 @@ def evaluate_all_rules(
             tolerance_pp=tolerance_pp,
             claimed_unit=claimed_unit,
             claim_metric_basis=claim_metric_basis,
+            stated_value_source=stated_value_source,
         ),
         evaluate_r1_direction(
             claim,
@@ -760,6 +874,7 @@ def evaluate_all_rules(
             ocf_conversion_floor=ocf_conversion_floor,
             claimed_unit=claimed_unit,
             claim_metric_basis=claim_metric_basis,
+            is_annual=is_annual,
         ),
         evaluate_r6_working_capital(
             claim,
@@ -771,6 +886,7 @@ def evaluate_all_rules(
             dso_increase_threshold_days=dso_increase_threshold_days,
             claimed_unit=claimed_unit,
             claim_metric_basis=claim_metric_basis,
+            is_annual=is_annual,
         ),
         evaluate_r7_understatement(
             claim,

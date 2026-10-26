@@ -67,11 +67,17 @@ async def scan_contagion(
         ) from exc
 
     # Increment quota atomically after successful scan
+    conn = None
     try:
         conn = get_connection(settings)
-        increment_quota_atomic(conn, user.user_id, "contagion", daily_limit)
-        conn.close()
+        increment_quota_atomic(conn, user.user_id, "contagion", daily_limit, settings=settings)
     except Exception as exc:
         logger.warning("Could not record quota for contagion scan: %s", exc)
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
     return scan_result

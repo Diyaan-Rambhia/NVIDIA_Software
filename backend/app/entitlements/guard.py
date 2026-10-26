@@ -33,12 +33,18 @@ def require_feature(feature_key: str) -> Callable[..., UserClaims]:
 
         db_feature = FEATURE_DB_MAP.get(feature_key, feature_key)
         usage = 0
+        conn = None
         try:
             conn = get_connection(settings)
-            usage = get_today_usage(conn, user.user_id, db_feature)
-            conn.close()
+            usage = get_today_usage(conn, user.user_id, db_feature, settings=settings)
         except Exception:
             usage = 0
+        finally:
+            if conn is not None:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
 
         now = datetime.now(timezone.utc)
         decision = decide(

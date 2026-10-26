@@ -149,15 +149,49 @@ def run_agent_loop(
     else:
         registry = getattr(provider, "registry", None) or ModelRegistry(settings=st)
 
-    # 4. Resolve exact price from registry (raises PriceNotSetError if missing)
+    # 4. Resolve exact price from registry (returns None if unset)
     pricing = registry.get_pricing(canonical_tier)
-    projected_step_cost = calculate_cost_usd(150, 150, pricing[0], pricing[1])
+    projected_step_cost = (
+        calculate_cost_usd(150, 150, pricing[0], pricing[1])
+        if pricing is not None
+        else None
+    )
+
+    is_judge = user and (
+        getattr(user, "is_admin", False)
+        or getattr(user, "segment", None) == "internal"
+        or getattr(user, "role", None) == "judge"
+        or getattr(user, "plan", None) == "judge_all"
+    )
+    if is_judge:
+        p_daily = params.get("llm_per_user_daily_token_limit_judge_all")
+        p_call = params.get("llm_per_call_max_tokens_judge_all")
+        daily_token_limit = int(p_daily.default) if p_daily else 500000
+        call_max_tokens = int(p_call.default) if p_call else 16000
+    else:
+        p_daily = params.get("llm_per_user_daily_token_limit")
+        p_call = params.get("llm_per_call_max_tokens")
+        daily_token_limit = int(p_daily.default) if p_daily else 50000
+        call_max_tokens = int(p_call.default) if p_call else 4000
 
     # 5. Plan tool execution
     planned_tools = _plan_tools_for_query(query)
 
+    if pricing is None:
+        from backend.app.llm.ledger import check_token_limit_guard
+        total_projected_tokens = 300 * len(planned_tools) + 300
+        check_token_limit_guard(
+            conn=conn,
+            user_id=user.user_id if user else None,
+            projected_tokens=total_projected_tokens,
+            daily_limit=daily_token_limit,
+            call_max_tokens=call_max_tokens,
+            now=now,
+            settings=st,
+        )
+
     steps: list[AgentStep] = []
-    total_spent_usd = 0.0
+    total_spent_usd: float | None = 0.0 if pricing is not None else None
     tool_observations: list[dict[str, Any]] = []
 
     # 6. Execute tool loop
@@ -168,11 +202,12 @@ def run_agent_loop(
         if step_idx > max_steps:
             raise RuntimeError(f"Agent loop reached maximum step limit ({max_steps}) without completing")
 
-        if (total_spent_usd + projected_step_cost) > budget_usd:
-            raise BudgetExceededError(
-                f"Agent per-run budget (${budget_usd:.4f}) exceeded with projected cost "
-                f"${(total_spent_usd + projected_step_cost):.4f}"
-            )
+        if pricing is not None and projected_step_cost is not None and total_spent_usd is not None:
+            if (total_spent_usd + projected_step_cost) > budget_usd:
+                raise BudgetExceededError(
+                    f"Agent per-run budget (${budget_usd:.4f}) exceeded with projected cost "
+                    f"${(total_spent_usd + projected_step_cost):.4f}"
+                )
 
         step_start = time.monotonic()
         tool_res = execute_tool(
@@ -207,7 +242,8 @@ def run_agent_loop(
             duration_ms=round(step_duration, 2),
         )
         steps.append(step_record)
-        total_spent_usd += projected_step_cost
+        if pricing is not None and projected_step_cost is not None:
+            total_spent_usd = (total_spent_usd or 0.0) + projected_step_cost
         tool_observations.append({
             "tool": tool_name,
             "status": status,
@@ -216,20 +252,24 @@ def run_agent_loop(
             "reason": tool_res.get("reason"),
         })
 
-        if conn is not None:
-            try:
-                record_llm_call(
-                    conn=conn,
-                    user_id=user.user_id,
-                    route="/agent/ask",
-                    alias=canonical_tier,
-                    model_id=f"model-tier-{canonical_tier}",
-                    input_tokens=150,
-                    output_tokens=150,
-                    est_cost_usd=projected_step_cost,
-                )
-            except Exception as exc:
-                logger.warning("Could not record agent step to ledger: %s", exc)
+        try:
+            record_llm_call(
+                conn=conn,
+                user_id=user.user_id if user else None,
+                route="/agent/ask",
+                alias=canonical_tier,
+                model_id=f"model-tier-{canonical_tier}",
+                input_tokens=150,
+                output_tokens=150,
+                est_cost_usd=projected_step_cost,
+                settings=st,
+            )
+        except Exception as exc:
+            from backend.app.llm.exceptions import LedgerError
+            logger.error("Failed to record agent step to ledger: %s", exc)
+            if isinstance(exc, LedgerError):
+                raise
+            raise LedgerError(f"LEDGER_ERROR: Failed to record step in ledger: {exc}") from exc
 
     # 7. Check timeout before synthesis
     if time.monotonic() > deadline:
@@ -253,11 +293,15 @@ def run_agent_loop(
             key_insights = [f"{k}: {v}" for k, v in list(tdata.items())[:3]]
             answer_parts.append(f"- {tname} verified findings: {'; '.join(key_insights)}")
 
+    if pricing is None:
+        answer_parts.append("Cost: unknown (pricing unset for tier).")
+
     answer_parts.append(
         "Deterministic audit completed. All analytical metrics reflect authentic historical exchange data."
     )
     synthesis_prompt = "\n".join(answer_parts)
 
+    resp: Any = None
     if hasattr(provider, "complete"):
         resp = provider.complete(
             alias=canonical_tier,
@@ -268,7 +312,7 @@ def run_agent_loop(
             user_id=user.user_id if user else None,
             route="/agent/ask",
             temperature=0.0,
-            conn=conn,
+            conn=None,  # Never hold a DB connection across the model call
         )
         msg = resp.get("choices", [{}])[0].get("message", {})
         raw_answer = msg.get("content") or msg.get("reasoning_content") or synthesis_prompt
@@ -290,7 +334,8 @@ def run_agent_loop(
         query=query,
         answer=clean_answer,
         steps=steps,
-        total_cost_usd=round(total_spent_usd, 6),
+        total_cost_usd=round(total_spent_usd, 6) if total_spent_usd is not None else None,
+        cost=round(total_spent_usd, 6) if total_spent_usd is not None else None,
         duration_ms=round(total_duration_ms, 2),
         model_tier=canonical_tier,
         is_placeholder=bool(

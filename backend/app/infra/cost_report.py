@@ -25,7 +25,8 @@ class ModelUsageSummary(StrictContractModel):
     call_count: int
     input_tokens: int
     output_tokens: int
-    cost_usd: float
+    cost_usd: float | None = None
+    cost_status: str = "known"
     cache_hits: int
 
 
@@ -35,14 +36,16 @@ class DayUsageSummary(StrictContractModel):
     call_count: int
     input_tokens: int
     output_tokens: int
-    cost_usd: float
+    cost_usd: float | None = None
+    cost_status: str = "known"
     cache_hits: int
 
 
 class CostReportSummary(StrictContractModel):
     """Overall aggregated cost report."""
 
-    total_spend_usd: float
+    total_spend_usd: float | None = None
+    cost_status: str = "known"
     total_calls: int
     total_input_tokens: int
     total_output_tokens: int
@@ -64,43 +67,35 @@ def aggregate_cost_report(
 ) -> CostReportSummary:
     """Aggregate a list of LLM usage records into totals per model and per day.
 
-    Parameters
-    ----------
-    records : list[UsageRecord]
-        List of ledger records to aggregate.
-    pricing_table : dict[str, Any], optional
-        Pricing table used to calculate cost if record.cost_usd is None.
-        If cost_usd is missing and pricing_table is not provided or missing model,
-        UnknownModelPriceError is raised.
-
-    Returns
-    -------
-    CostReportSummary
-        Aggregated summary including totals, per-model breakdowns, and per-day breakdowns.
+    If pricing is unset or cost is unknown, cost is recorded as null and cost_status='unknown'.
     """
     total_spend = 0.0
     total_input = 0
     total_output = 0
     total_hits = 0
     total_misses = 0
+    has_unknown_total = False
 
     by_model_acc: dict[str, dict[str, Any]] = {}
     by_day_acc: dict[str, dict[str, Any]] = {}
 
     for rec in records:
+        cost: float | None = None
         if rec.cost_usd is not None:
             cost = rec.cost_usd
-        else:
-            if pricing_table is None:
-                raise ValueError("pricing_table is required when record.cost_usd is not set")
+        elif pricing_table is not None and rec.model in pricing_table:
             cost = calculate_call_cost(
                 model=rec.model,
                 input_tokens=rec.input_tokens,
                 output_tokens=rec.output_tokens,
                 pricing_table=pricing_table,
             )
+        else:
+            cost = None
+            has_unknown_total = True
 
-        total_spend += cost
+        if cost is not None:
+            total_spend += cost
         total_input += rec.input_tokens
         total_output += rec.output_tokens
         if rec.cache_hit:
@@ -117,12 +112,16 @@ def aggregate_cost_report(
                 "output_tokens": 0,
                 "cost_usd": 0.0,
                 "cache_hits": 0,
+                "unknown_costs": False,
             },
         )
         m_entry["call_count"] += 1
         m_entry["input_tokens"] += rec.input_tokens
         m_entry["output_tokens"] += rec.output_tokens
-        m_entry["cost_usd"] += cost
+        if cost is not None:
+            m_entry["cost_usd"] += cost
+        else:
+            m_entry["unknown_costs"] = True
         if rec.cache_hit:
             m_entry["cache_hits"] += 1
 
@@ -136,12 +135,16 @@ def aggregate_cost_report(
                 "output_tokens": 0,
                 "cost_usd": 0.0,
                 "cache_hits": 0,
+                "unknown_costs": False,
             },
         )
         d_entry["call_count"] += 1
         d_entry["input_tokens"] += rec.input_tokens
         d_entry["output_tokens"] += rec.output_tokens
-        d_entry["cost_usd"] += cost
+        if cost is not None:
+            d_entry["cost_usd"] += cost
+        else:
+            d_entry["unknown_costs"] = True
         if rec.cache_hit:
             d_entry["cache_hits"] += 1
 
@@ -150,7 +153,8 @@ def aggregate_cost_report(
             call_count=data["call_count"],
             input_tokens=data["input_tokens"],
             output_tokens=data["output_tokens"],
-            cost_usd=round(data["cost_usd"], 6),
+            cost_usd=round(data["cost_usd"], 6) if not data["unknown_costs"] else None,
+            cost_status="unknown" if data["unknown_costs"] else "known",
             cache_hits=data["cache_hits"],
         )
         for m, data in sorted(by_model_acc.items())
@@ -161,14 +165,16 @@ def aggregate_cost_report(
             call_count=data["call_count"],
             input_tokens=data["input_tokens"],
             output_tokens=data["output_tokens"],
-            cost_usd=round(data["cost_usd"], 6),
+            cost_usd=round(data["cost_usd"], 6) if not data["unknown_costs"] else None,
+            cost_status="unknown" if data["unknown_costs"] else "known",
             cache_hits=data["cache_hits"],
         )
         for d, data in sorted(by_day_acc.items())
     }
 
     return CostReportSummary(
-        total_spend_usd=round(total_spend, 6),
+        total_spend_usd=round(total_spend, 6) if not has_unknown_total else None,
+        cost_status="unknown" if has_unknown_total else "known",
         total_calls=len(records),
         total_input_tokens=total_input,
         total_output_tokens=total_output,

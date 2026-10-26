@@ -84,7 +84,7 @@ class NonProseAnswerError(LLMError):
 
 
 class PriceNotSetError(LLMError):
-    """Raised when a model tier's pricing is not configured in config/models.yaml."""
+    """Raised when a model tier's pricing is not configured in config/models.yaml (legacy)."""
 
     def __init__(self, tier: str) -> None:
         message = f"Pricing for model tier '{tier}' is not set. Calls to this model are refused."
@@ -92,5 +92,24 @@ class PriceNotSetError(LLMError):
         self.tier = tier
 
 
+class TokenLimitExceededError(LLMError):
+    """Raised when per-call or daily token limit is exceeded when price is unset."""
 
+    def __init__(self, message: str, reset_time: str | None = None) -> None:
+        super().__init__(message=message, code="quota_exceeded", status_code=429)
+        self.reset_time = reset_time
+
+
+class LedgerError(LLMError):
+    """Raised when an operation on the LLM ledger fails."""
+
+    def __init__(self, message: str = "LLM ledger operation failed") -> None:
+        super().__init__(message=message, code="LEDGER_ERROR", status_code=500)
+
+
+class ModelOutputInvalidError(LLMError):
+    """Raised when model output fails JSON parsing or validation."""
+
+    def __init__(self, message: str = "Model output is invalid or unparseable") -> None:
+        super().__init__(message=message, code="MODEL_OUTPUT_INVALID", status_code=502)
 

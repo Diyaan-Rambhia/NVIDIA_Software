@@ -35,11 +35,11 @@ async def extract_file(
 
     # Quota check like agent call
     daily_limit = 1000 if user.plan == "judge_all" else 20
+    conn = None
     try:
         conn = get_connection(settings)
-        usage = get_today_usage(conn, user.user_id, "file_extract")
+        usage = get_today_usage(conn, user.user_id, "file_extract", settings=settings)
         if usage >= daily_limit:
-            conn.close()
             raise HTTPException(
                 status_code=429,
                 detail={
@@ -47,12 +47,17 @@ async def extract_file(
                     "message": f"Daily document extraction limit of {daily_limit} reached.",
                 },
             )
-        increment_quota_atomic(conn, user.user_id, "file_extract", max_quota=daily_limit)
-        conn.close()
+        increment_quota_atomic(conn, user.user_id, "file_extract", max_quota=daily_limit, settings=settings)
     except HTTPException:
         raise
     except Exception as exc:
         logger.warning("Could not record file extract quota usage: %s", exc)
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
     limits_dict = {}
     if all_cfg and all_cfg.parameters:

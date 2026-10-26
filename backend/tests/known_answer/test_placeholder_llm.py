@@ -85,7 +85,7 @@ def test_x7_f1_hypotheses_and_tavily_step() -> None:
     """F1 hypotheses cite real evidence IDs, have hedged language, and Tavily step raises if no key."""
     # 1. Tavily news step raises 'not run: no key'
     with pytest.raises(ValueError, match="not run: no key"):
-        fetch_tavily_news("RBI monetary policy")
+        fetch_tavily_news("RBI monetary policy", settings=Settings(values={}))
 
     # 2. Build EvidencePack from scan
     scan = CorrelationScan(

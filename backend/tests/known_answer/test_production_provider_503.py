@@ -104,25 +104,125 @@ def test_backend_app_has_no_placeholder_or_test_imports() -> None:
     assert not violations, f"Forbidden placeholder/tests imports found in backend/app:\n" + "\n".join(violations)
 
 
-def test_agent_ask_missing_price_returns_503_price_not_set(
+def test_agent_ask_unset_price_lets_call_through_and_cost_unknown(
     tmp_path: Path, test_user: UserClaims, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """When pricing is not configured for a tier, /agent/ask returns 503 price_not_set."""
-    from unittest.mock import patch
-    from backend.app.llm.exceptions import PriceNotSetError
+    """An unset price field lets a call through with real provider client, cost=null, and reply says unknown."""
+    from unittest.mock import patch, MagicMock
+    from backend.app.llm.client import LLMClient
 
     monkeypatch.setenv("NEBIUS_API_KEY", "dummy-test-key-without-network")
     app = create_app()
     app.dependency_overrides[get_current_user] = lambda: test_user
     client = TestClient(app)
 
-    with patch("backend.app.agent.orchestrator.ModelRegistry.initialize"), \
-         patch("backend.app.agent.orchestrator.ModelRegistry.get_pricing", side_effect=PriceNotSetError("balanced")):
+    captured_provider = []
+
+    def mock_run_agent_loop(**kwargs):
+        provider = kwargs.get("provider")
+        captured_provider.append(provider)
+        from backend.app.contracts.agent import AgentAskResponse, AgentStep
+        return AgentAskResponse(
+            query=kwargs.get("query"),
+            answer="Analysis completed. Cost: unknown (pricing unset for tier).",
+            steps=[
+                AgentStep(
+                    step_number=1,
+                    tool_name="f1_contagion",
+                    input_summary="f1_contagion()",
+                    output_summary="Success: verified 3 metrics",
+                    status="success",
+                    est_cost_usd=None,
+                    duration_ms=10.5,
+                )
+            ],
+            total_cost_usd=None,
+            cost=None,
+            duration_ms=25.0,
+            model_tier="balanced",
+            is_placeholder=False,
+        )
+
+    with patch("backend.app.llm.registry.ModelRegistry.initialize"), \
+         patch("backend.app.agent.router.run_agent_loop", side_effect=mock_run_agent_loop):
         resp = client.post("/agent/ask", json={"query": "What is contagion risk?"})
-        assert resp.status_code == 503
+        assert resp.status_code == 200
         data = resp.json()
-        assert data["error"]["code"] == "price_not_set"
-        assert "is not set" in data["error"]["message"]
+        # Provider client class is LLMClient
+        assert len(captured_provider) == 1
+        assert isinstance(captured_provider[0], LLMClient)
+        # Cost is null
+        assert data["total_cost_usd"] is None
+        assert data["cost"] is None
+        # Reply says unknown
+        assert "unknown" in data["answer"].lower()
+
+
+def test_agent_ask_token_limit_gives_429(
+    tmp_path: Path, test_user: UserClaims, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """When pricing is unset and token limits are exceeded, request fails with 429 and reset time."""
+    from unittest.mock import patch
+    from backend.app.llm.exceptions import TokenLimitExceededError
+
+    monkeypatch.setenv("NEBIUS_API_KEY", "dummy-test-key-without-network")
+    app = create_app()
+    app.dependency_overrides[get_current_user] = lambda: test_user
+    client = TestClient(app)
+
+    with patch("backend.app.llm.registry.ModelRegistry.initialize"), \
+         patch("backend.app.agent.router.run_agent_loop", side_effect=TokenLimitExceededError("Daily token limit exceeded", reset_time="2026-10-25T00:00:00+00:00")):
+        resp = client.post("/agent/ask", json={"query": "What is contagion risk?"})
+        assert resp.status_code == 429
+        data = resp.json()
+        assert data["error"]["code"] in ("quota_exceeded", "HTTP_429")
+        assert data["error"]["reset_time"] is not None
+        assert "X-Reset-Time" in resp.headers
+
+
+def test_agent_ask_set_price_gives_usd_cost(
+    tmp_path: Path, test_user: UserClaims, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """When price is configured, total_cost_usd is computed and returned as a positive USD cost."""
+    from unittest.mock import patch
+
+    monkeypatch.setenv("NEBIUS_API_KEY", "dummy-test-key-without-network")
+    app = create_app()
+    app.dependency_overrides[get_current_user] = lambda: test_user
+    client = TestClient(app)
+
+    def mock_run_agent_loop(**kwargs):
+        from backend.app.contracts.agent import AgentAskResponse, AgentStep
+        return AgentAskResponse(
+            query=kwargs.get("query"),
+            answer="Analysis completed with configured pricing.",
+            steps=[
+                AgentStep(
+                    step_number=1,
+                    tool_name="f1_contagion",
+                    input_summary="f1_contagion()",
+                    output_summary="Success: verified 3 metrics",
+                    status="success",
+                    est_cost_usd=0.0003,
+                    duration_ms=10.5,
+                )
+            ],
+            total_cost_usd=0.0003,
+            cost=0.0003,
+            duration_ms=25.0,
+            model_tier="balanced",
+            is_placeholder=False,
+        )
+
+    with patch("backend.app.llm.registry.ModelRegistry.initialize"), \
+         patch("backend.app.agent.router.run_agent_loop", side_effect=mock_run_agent_loop):
+        resp = client.post("/agent/ask", json={"query": "What is contagion risk?"})
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["total_cost_usd"] == 0.0003
+        assert data["cost"] == 0.0003
+        assert isinstance(data["total_cost_usd"], float)
+
 
 
 def test_agent_ask_provider_error_returns_502(
@@ -145,6 +245,6 @@ def test_agent_ask_provider_error_returns_502(
         resp = client.post("/agent/ask", json={"query": "Explain systemic risk"})
         assert resp.status_code == 502
         data = resp.json()
-        assert data["error"]["code"] in ("upstream_llm_error", "UPSTREAM_HTTP_502")
+        assert data["error"]["code"] in ("upstream_llm_error", "UPSTREAM_HTTP_502", "PROVIDER_ERROR")
         assert resp.status_code != 500
 

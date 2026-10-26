@@ -7,24 +7,23 @@ from pathlib import Path
 
 FISCAL_LABEL_REGEX = re.compile(r"^Q([1-4])\s+FY(\d{2})$")
 
-_DEFAULT_MIN_FY = 2020
+_DEFAULT_MIN_FY = 2001
 _DEFAULT_MAX_FY = 2030
 
 
 def get_fiscal_year_range(config_path: Path | None = None) -> tuple[int, int]:
     """Retrieve configured (fiscal_year_min, fiscal_year_max) from parameters config."""
     try:
+        from backend.app.config.env import get_repo_root
         from backend.app.config.loader import load_config_file
         from backend.app.config.models import ParametersConfig
 
-        path = (
-            config_path
-            or Path(__file__).resolve().parent.parent.parent / "config" / "parameters.yaml"
-        )
+        path = config_path or (get_repo_root() / "config" / "parameters.yaml")
         if path.is_file():
             cfg = load_config_file(path, ParametersConfig)
-            min_fy = int(cfg.parameters["fiscal_year_min"].default)
-            max_fy = int(cfg.parameters["fiscal_year_max"].default)
+            params = cfg.parameters
+            min_fy = int(params["fiscal_year_min"].default) if "fiscal_year_min" in params else _DEFAULT_MIN_FY
+            max_fy = int(params["fiscal_year_max"].default) if "fiscal_year_max" in params else _DEFAULT_MAX_FY
             return min_fy, max_fy
     except Exception:
         pass
@@ -145,3 +144,25 @@ def date_to_fiscal_period(d: date | datetime) -> str:
         raise ValueError(f"Invalid month: {month}")
 
     return format_fiscal_label(quarter, fiscal_year)
+
+
+def get_current_fiscal_period(d: date | datetime | None = None) -> tuple[int, int]:
+    """Return (current_quarter, current_fiscal_year) based on calendar date (default today)."""
+    if d is None:
+        d = date.today()
+    elif isinstance(d, datetime):
+        d = d.date()
+    elif not isinstance(d, date):
+        raise ValueError(f"Expected date or datetime object, found: {type(d)}")
+
+    month = d.month
+    year = d.year
+    if 4 <= month <= 6:
+        return 1, year + 1
+    elif 7 <= month <= 9:
+        return 2, year + 1
+    elif 10 <= month <= 12:
+        return 3, year + 1
+    elif 1 <= month <= 3:
+        return 4, year
+    raise ValueError(f"Invalid month: {month}")

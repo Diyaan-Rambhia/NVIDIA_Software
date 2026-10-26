@@ -194,8 +194,8 @@ class ModelRegistry:
         canonical = "balanced" if tier == "mid" else tier
         return self.unavailable_reasons.get(canonical)
 
-    def get_pricing(self, alias: str) -> tuple[float, float]:
-        """Retrieve (price_per_1m_input, price_per_1m_output) in USD."""
+    def get_pricing(self, alias: str) -> tuple[float, float] | None:
+        """Retrieve (price_per_1m_input, price_per_1m_output) in USD, or None if price is not configured."""
         canonical = "balanced" if alias == "mid" else alias
         cfg = self.tiers_cfg.get(canonical) or self.aliases_cfg.get(canonical)
         if not cfg:
@@ -203,5 +203,5 @@ class ModelRegistry:
         in_p = cfg.get("price_per_1m_input_usd")
         out_p = cfg.get("price_per_1m_output_usd")
         if in_p is None or out_p is None:
-            raise PriceNotSetError(canonical)
+            return None
         return (float(in_p), float(out_p))

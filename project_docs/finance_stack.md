@@ -604,6 +604,10 @@ All parameters remain provisional, no advisor review.
 | `f1_news_searches_per_run` | None | count | Yes | Provisional, no advisor review |
 | `f2_lookup_cache_ttl_seconds` | None | seconds | Yes | Provisional, no advisor review |
 | `f2_lookup_daily_limit` | None | count | Yes | Provisional, no advisor review |
+| `f2_search_result_limit` | None | count | Yes | Provisional, no advisor review |
+| `f2_top50_cache_ttl_seconds` | None | seconds | Yes | Provisional, no advisor review |
+| `f2_financial_keywords` | None | comma_separated_keywords | Yes | Provisional, no advisor review |
+| `f2_financial_sectors` | None | comma_separated_sectors | Yes | Provisional, no advisor review |
 | `f3_hosted_upload_enabled` | None | mode | Yes | Provisional, no advisor review |
 | `fdr_q` | None | false discovery rate | Yes | Provisional, no advisor review |
 | `file_extract_max_bytes` | None | bytes | Yes | Provisional, no advisor review |
@@ -613,11 +617,16 @@ All parameters remain provisional, no advisor review.
 | `file_extract_max_uncompressed_bytes` | None | bytes | Yes | Provisional, no advisor review |
 | `file_extract_max_zip_entries` | None | count | Yes | Provisional, no advisor review |
 | `file_extract_timeout_seconds` | None | seconds | Yes | Provisional, no advisor review |
+| `filings_first_fiscal_year` | None | fiscal_year | No | Provisional, no advisor review |
 | `fiscal_year_max` | None | year | Yes | Provisional, no advisor review |
 | `fiscal_year_min` | None | year | Yes | Provisional, no advisor review |
 | `hosted_demo_mode` | None | mode | Yes | Provisional, no advisor review |
 | `k_fraction` | None | fraction of N | Yes | Provisional, no advisor review |
 | `lambda` | None | decay factor | Yes | Provisional, no advisor review |
+| `llm_per_call_max_tokens` | None | count | Yes | Provisional, no advisor review |
+| `llm_per_call_max_tokens_judge_all` | None | count | Yes | Provisional, no advisor review |
+| `llm_per_user_daily_token_limit` | None | count | Yes | Provisional, no advisor review |
+| `llm_per_user_daily_token_limit_judge_all` | None | count | Yes | Provisional, no advisor review |
 | `llm_placeholder_price_per_1m` | None | usd_placeholder_only | No | Provisional, no advisor review |
 | `min_trades_for_stats` | None | trade count | Yes | Provisional, no advisor review |
 | `n_boot` | None | iterations | Yes | Provisional, no advisor review |
@@ -668,6 +677,10 @@ All parameters remain provisional, no advisor review.
 | `f1_news_searches_per_run` | [None, None] | System default |
 | `f2_lookup_cache_ttl_seconds` | [None, None] | System default |
 | `f2_lookup_daily_limit` | [None, None] | System default |
+| `f2_search_result_limit` | [None, None] | System default |
+| `f2_top50_cache_ttl_seconds` | [None, None] | System default |
+| `f2_financial_keywords` | [None, None] | System default |
+| `f2_financial_sectors` | [None, None] | System default |
 | `f3_hosted_upload_enabled` | [None, None] | System default |
 | `fdr_q` | [None, None] | System default |
 | `file_extract_max_bytes` | [None, None] | System default |
@@ -677,11 +690,16 @@ All parameters remain provisional, no advisor review.
 | `file_extract_max_uncompressed_bytes` | [None, None] | System default |
 | `file_extract_max_zip_entries` | [None, None] | System default |
 | `file_extract_timeout_seconds` | [None, None] | System default |
+| `filings_first_fiscal_year` | [None, None] | System default |
 | `fiscal_year_max` | [None, None] | System default |
 | `fiscal_year_min` | [None, None] | System default |
 | `hosted_demo_mode` | [None, None] | System default |
 | `k_fraction` | [None, None] | System default |
 | `lambda` | [None, None] | System default |
+| `llm_per_call_max_tokens` | [None, None] | System default |
+| `llm_per_call_max_tokens_judge_all` | [None, None] | System default |
+| `llm_per_user_daily_token_limit` | [None, None] | System default |
+| `llm_per_user_daily_token_limit_judge_all` | [None, None] | System default |
 | `llm_placeholder_price_per_1m` | [None, None] | System default |
 | `min_trades_for_stats` | [None, None] | System default |
 | `n_boot` | [None, None] | System default |

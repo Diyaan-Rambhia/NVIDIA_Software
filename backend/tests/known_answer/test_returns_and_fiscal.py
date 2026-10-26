@@ -201,18 +201,42 @@ def test_two_digit_fiscal_year_century_mapping_and_boundaries() -> None:
 
 
 def test_fiscal_year_range_bounds() -> None:
-    """Labels outside the configured fiscal-year range must raise ValueError."""
+    """Labels outside the configured fiscal-year range [2001, 2030] must raise ValueError."""
     with pytest.raises(ValueError, match="outside configured range"):
         parse_fiscal_label("Q1 FY00")
+
+    with pytest.raises(ValueError, match="outside configured range"):
+        parse_fiscal_label("Q4 FY00")
 
     with pytest.raises(ValueError, match="outside configured range"):
         parse_fiscal_label("Q4 FY99")
 
     with pytest.raises(ValueError, match="outside configured range"):
-        format_fiscal_label(1, 2019)
+        format_fiscal_label(1, 2000)
 
     with pytest.raises(ValueError, match="outside configured range"):
         format_fiscal_label(1, 2035)
+
+
+def test_first_fiscal_year_fy01_and_boundaries() -> None:
+    """Check that labels from Q1 FY01 to current quarters parse and format correctly."""
+    # First quarter
+    q1, fy1 = parse_fiscal_label("Q1 FY01")
+    assert (q1, fy1) == (1, 2001)
+    assert format_fiscal_label(1, 2001) == "Q1 FY01"
+
+    # Year boundaries
+    q4, fy_end = parse_fiscal_label("Q4 FY01")
+    assert (q4, fy_end) == (4, 2001)
+    assert format_fiscal_label(4, 2001) == "Q4 FY01"
+
+    q1_next, fy_next = parse_fiscal_label("Q1 FY02")
+    assert (q1_next, fy_next) == (1, 2002)
+    assert format_fiscal_label(1, 2002) == "Q1 FY02"
+
+    # Label before the first year raises
+    with pytest.raises(ValueError, match="outside configured range"):
+        parse_fiscal_label("Q4 FY00")
 
 
 @pytest.mark.parametrize(

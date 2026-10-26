@@ -17,7 +17,7 @@ class AgentStep(StrictContractModel):
     input_summary: str
     output_summary: str
     status: StepStatus
-    est_cost_usd: float = Field(ge=0.0)
+    est_cost_usd: float | None = None
     duration_ms: float = Field(ge=0.0)
 
 
@@ -38,7 +38,8 @@ class AgentAskResponse(StrictContractModel):
     query: str
     answer: str
     steps: list[AgentStep]
-    total_cost_usd: float = Field(ge=0.0)
+    total_cost_usd: float | None = None
+    cost: float | None = None
     duration_ms: float = Field(ge=0.0)
     model_tier: str = "balanced"
     is_placeholder: bool = False

@@ -11,7 +11,12 @@ from urllib.error import HTTPError, URLError
 from backend.app.config.env import Settings, load_settings
 from backend.app.db.connection import get_connection
 from backend.app.llm.cache import ResponseCache, make_cache_key
-from backend.app.llm.exceptions import LLMTimeoutError, LLMUpstreamError
+from backend.app.llm.exceptions import (
+    LedgerError,
+    LLMTimeoutError,
+    LLMUpstreamError,
+    ModelOutputInvalidError,
+)
 from backend.app.llm.guard import assert_no_financial_advice
 from backend.app.llm.ledger import calculate_cost_usd, check_budget_guard, record_llm_call
 from backend.app.llm.registry import ModelRegistry
@@ -45,6 +50,8 @@ class LLMClient:
         max_tokens: int | None = None,
         tools: list[dict[str, Any]] | None = None,
         response_format: dict[str, Any] | None = None,
+        conn: Any = None,
+        **kwargs: Any,
     ) -> dict[str, Any]:
         """Send completion request to resolved model with retries, caching, and guards."""
         model_id = self.registry.get_model_id(alias)
@@ -81,20 +88,53 @@ class LLMClient:
                 logger.warning("Failed to record cache hit in ledger: %s", exc)
             return cached
 
-        # 2. Check budget guard with conservative estimate
+        # 2. Check budget guard or token limit guard
         estimated_in = sum(len(m.get("content") or "") for m in messages) // 4 + 100
         estimated_out = max_tokens or 1000
-        projected_cost = calculate_cost_usd(estimated_in, estimated_out, pricing[0], pricing[1])
+        projected_tokens = estimated_in + estimated_out
 
-        daily_budget_str = self.settings.get_var_value("DAILY_LLM_BUDGET_USD")
-        test_budget_str = self.settings.get_var_value("TEST_DAILY_LLM_BUDGET_USD")
-        effective_budget = float(test_budget_str or daily_budget_str or 0.0)
+        if pricing is not None:
+            projected_cost = calculate_cost_usd(estimated_in, estimated_out, pricing[0], pricing[1])
+            daily_budget_str = self.settings.get_var_value("DAILY_LLM_BUDGET_USD")
+            test_budget_str = self.settings.get_var_value("TEST_DAILY_LLM_BUDGET_USD")
+            effective_budget = float(test_budget_str or daily_budget_str or 0.0)
 
-        conn = get_connection(self.settings, autocommit=True)
-        try:
-            check_budget_guard(conn, projected_cost, effective_budget)
-        finally:
-            conn.close()
+            conn = get_connection(self.settings, autocommit=True)
+            try:
+                check_budget_guard(conn, projected_cost, effective_budget)
+            finally:
+                conn.close()
+        else:
+            from backend.app.config.loader import load_all_config
+            from backend.app.llm.ledger import check_token_limit_guard
+
+            cfg = load_all_config()
+            params = cfg.parameters.parameters if cfg else {}
+            p_daily = params.get("llm_per_user_daily_token_limit")
+            p_call = params.get("llm_per_call_max_tokens")
+            daily_token_limit = int(p_daily.default) if p_daily else 50000
+            call_max_tokens = int(p_call.default) if p_call else 4000
+
+            guard_conn = None
+            try:
+                guard_conn = get_connection(self.settings, autocommit=True)
+            except Exception:
+                guard_conn = None
+            try:
+                check_token_limit_guard(
+                    conn=guard_conn,
+                    user_id=user_id,
+                    projected_tokens=projected_tokens,
+                    daily_limit=daily_token_limit,
+                    call_max_tokens=call_max_tokens,
+                    settings=self.settings,
+                )
+            finally:
+                if guard_conn is not None:
+                    try:
+                        guard_conn.close()
+                    except Exception:
+                        pass
 
         # 3. Prepare payload and call upstream
         url = f"{self.base_url.rstrip('/')}/chat/completions"
@@ -130,7 +170,13 @@ class LLMClient:
             )
             try:
                 with urllib.request.urlopen(req, timeout=read_timeout) as resp:
-                    resp_data = json.loads(resp.read().decode("utf-8"))
+                    raw_body = resp.read().decode("utf-8")
+                    try:
+                        resp_data = json.loads(raw_body)
+                    except (json.JSONDecodeError, UnicodeDecodeError) as json_err:
+                        raise ModelOutputInvalidError(
+                            f"MODEL_OUTPUT_INVALID: Failed to parse provider response: {json_err}"
+                        ) from json_err
                     break
             except HTTPError as exc:
                 err_text = exc.read().decode("utf-8")
@@ -168,10 +214,14 @@ class LLMClient:
         usage = resp_data.get("usage", {})
         actual_in = usage.get("prompt_tokens", estimated_in)
         actual_out = usage.get("completion_tokens", 0)
-        actual_cost = calculate_cost_usd(actual_in, actual_out, pricing[0], pricing[1])
+        actual_cost = (
+            calculate_cost_usd(actual_in, actual_out, pricing[0], pricing[1])
+            if pricing is not None
+            else None
+        )
 
+        model_call_status = "success"
         try:
-            conn = get_connection(self.settings, autocommit=True)
             record_llm_call(
                 conn=conn,
                 user_id=user_id,
@@ -182,10 +232,21 @@ class LLMClient:
                 output_tokens=actual_out,
                 est_cost_usd=actual_cost,
                 cache_hit=False,
+                settings=self.settings,
             )
-            conn.close()
         except Exception as exc:
-            logger.error("Failed to record usage in llm_ledger: %s", exc)
+            logger.error(
+                "Model call succeeded (tier=%s, input_tokens=%d, output_tokens=%d, status=%s), but ledger recording failed: %s",
+                alias,
+                actual_in,
+                actual_out,
+                model_call_status,
+                exc,
+            )
+            raise LedgerError(
+                f"LEDGER_ERROR: Failed to record call in ledger (model call succeeded: tier={alias}, tokens={actual_in}+{actual_out}, status={model_call_status}): {exc}"
+            ) from exc
+
 
         # 6. Save to cache
         self.cache.set(cache_key, resp_data)

@@ -16,6 +16,7 @@ describe("OpenAPI Endpoint Coverage Audit", () => {
     "/console/index.html",
     "/llm/runtime_call",
     "/llm/tavily_search",
+    "/f2/companies", // Superseded on frontend by /f2/top50 and /f2/search (D-83)
   ]);
 
   // Read all production source code to check for endpoint references

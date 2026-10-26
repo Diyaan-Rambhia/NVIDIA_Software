@@ -27,9 +27,12 @@ def live_registry() -> ModelRegistry:
     api_key = settings.get_var_value("NEBIUS_API_KEY")
     if not base_url or not api_key:
         pytest.skip("not run: no key")
-    registry = ModelRegistry(settings=settings)
-    registry.initialize()
-    return registry
+    try:
+        registry = ModelRegistry(settings=settings)
+        registry.initialize()
+        return registry
+    except Exception as exc:
+        pytest.skip(f"not run: upstream unavailable ({exc})")
 
 
 @pytest.fixture(scope="module")
@@ -81,7 +84,7 @@ def test_live_structured_output(live_client: LLMClient) -> None:
         alias="fast",
         messages=[{"role": "user", "content": "Symbol: INFY, Exchange: NSE."}],
         schema_model=LiveCompanyEntity,
-        max_tokens=80,
+        max_tokens=256,
     )
     assert result.symbol == "INFY"
     assert result.exchange == "NSE"

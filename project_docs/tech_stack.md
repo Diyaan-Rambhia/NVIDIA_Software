@@ -187,6 +187,8 @@ The backend exposes HTTP API endpoints documented in `docs/openapi.json`:
 | `/f1/scan` | `GET` | Yes | Systemic Contagion Scan |
 | `/f2/companies` | `GET` | Yes | List NSE Companies |
 | `/f2/lookup` | `GET` | Yes | Live Company Filing Lookup |
+| `/f2/search` | `GET` | Yes | Search NSE Equities |
+| `/f2/top50` | `GET` | Yes | Top 50 Nifty Constituents |
 | `/f3/review` | `POST` | Yes | Review Trade Log |
 | `/files/extract` | `POST` | Yes | Safe Document Extraction |
 | `/health` | `GET` | No | Health |
@@ -274,6 +276,14 @@ The orchestrator in `backend/app/agent/orchestrator.py` runs multi-turn tool loo
 4. Executes requested tool in local execution sandbox.
 5. Feeds tool execution results back to model.
 6. Terminates when model yields final answer or step limit is reached.
+
+### 9.6 Database Connection Lifecycle and Closed-Connection Resilience
+The backend enforces a short-lived database connection architecture:
+- Database connections are never held open across model inference calls or external HTTP requests.
+- Operations open short connections immediately prior to execution and close them in strict `finally:` blocks.
+- `record_llm_call` and `increment_quota_atomic` detect closed or stale connections and automatically retry once with a freshly opened connection.
+- If both attempts fail, operations raise a loud `LedgerError` (HTTP 500 `LEDGER_ERROR`), never dropping writes silently.
+- On ledger recording failures following a successful inference call, the engine logs model success details (tier, tokens, status) on the server without leaking API keys or prompts.
 
 ## 10. Frontend Web Application
 
@@ -489,6 +499,10 @@ The table below indexes all 63 decisions recorded in `DECISIONS.md`:
 | `DECISIONS.md D-80` | Request origin verification with Host comparison and protocol-aware cookie flags |
 | `DECISIONS.md D-81` | Intentional frontend deprecation of legacy LLM endpoints |
 | `DECISIONS.md D-82` | Deletion of legacy plain HTML screens (frontend/app) and demo endpoints |
+| `DECISIONS.md D-83` | Fiscal year baseline expansion to FY01, Nifty 50 top group, and server-side equity search |
+| `DECISIONS.md D-84` | Routing without prices, token limit guards, and nullable cost accounting |
+| `DECISIONS.md D-85` | Strict verbatim filing claim verification, financial company exclusion, and error taxonomy mapping |
+| `DECISIONS.md D-86` | Short-lived database connection lifecycle, closed-connection retry, and model success logging |
 
 ## 16. Technical Glossary
 
