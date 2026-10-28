@@ -24,6 +24,11 @@ from backend.app.contracts.portfolio import (
     Trade,
     TradeLog,
 )
+from backend.app.features.f3_log.corporate_actions import (
+    CorporateAction,
+    adjust_lots_for_corporate_action,
+    parse_corporate_actions_csv,
+)
 from backend.app.features.f3_log.institutional_metrics import (
     beta_and_alpha_result,
     information_ratio,
@@ -273,10 +278,13 @@ def load_benchmark_price_history(symbol: str) -> dict[str, float]:
 def build_portfolio_ledger(
     trade_log: TradeLog,
     latest_prices: dict[str, float] | None = None,
+    corporate_actions: list[CorporateAction] | None = None,
 ) -> tuple[
     Portfolio, list[tuple[date, float]], list[tuple[float, float]], list[tuple[float, float]]
 ]:
     """Build FIFO position lots, cash flows, and disposition events from trade log.
+
+    Applies corporate actions (splits, bonuses, dividends) on their effective ex-dates.
 
     Returns:
         (Portfolio, cash_flows, realized_gain_events, realized_loss_events)
@@ -291,40 +299,64 @@ def build_portfolio_ledger(
     gain_events: list[tuple[float, float]] = []
     loss_events: list[tuple[float, float]] = []
 
+    # Merge trades and corporate actions into a unified chronological event timeline
+    # Corporate actions on a date occur before trades on that date (order_priority: 0 for action, 1 for trade)
+    events: list[tuple[str, int, str, Any]] = []
     for trade in trade_log.trades:
-        t_date = date.fromisoformat(trade.date)
-        fees = (trade.fees or 0.0) + (trade.charges or 0.0)
+        events.append((trade.date, 1, "TRADE", trade))
 
-        if trade.side == "BUY":
-            outflow = -(trade.quantity * trade.price + fees)
-            cash_flows.append((t_date, outflow))
-            lots_by_symbol[trade.symbol].append((trade.quantity, trade.price))
+    if corporate_actions:
+        for ca in corporate_actions:
+            events.append((ca.date, 0, "ACTION", ca))
 
-        elif trade.side == "SELL":
-            inflow = trade.quantity * trade.price - fees
-            cash_flows.append((t_date, inflow))
+    events.sort(key=lambda ev: (ev[0], ev[1]))
 
-            remaining_to_sell = trade.quantity
-            trade_realized_pnl = 0.0
+    for ev_date, _, ev_type, ev_item in events:
+        t_date = date.fromisoformat(ev_date)
 
-            while remaining_to_sell > 0 and lots_by_symbol[trade.symbol]:
-                lot_qty, lot_price = lots_by_symbol[trade.symbol][0]
-                matched_qty = min(remaining_to_sell, lot_qty)
-                lot_pnl = (trade.price - lot_price) * matched_qty
-                trade_realized_pnl += lot_pnl
+        if ev_type == "ACTION":
+            ca_action: CorporateAction = ev_item
+            current_lots = lots_by_symbol[ca_action.symbol]
+            new_lots, div_cash = adjust_lots_for_corporate_action(current_lots, ca_action)
+            lots_by_symbol[ca_action.symbol] = new_lots
+            if div_cash > 0:
+                cash_flows.append((t_date, div_cash))
+                realized_pnl_by_symbol[ca_action.symbol] += div_cash
 
-                if lot_pnl > 0:
-                    gain_events.append((lot_pnl, 0.0))
-                elif lot_pnl < 0:
-                    loss_events.append((abs(lot_pnl), 0.0))
+        elif ev_type == "TRADE":
+            trade: Trade = ev_item
+            fees = (trade.fees or 0.0) + (trade.charges or 0.0)
 
-                remaining_to_sell -= matched_qty
-                if matched_qty == lot_qty:
-                    lots_by_symbol[trade.symbol].popleft()
-                else:
-                    lots_by_symbol[trade.symbol][0] = (lot_qty - matched_qty, lot_price)
+            if trade.side == "BUY":
+                outflow = -(trade.quantity * trade.price + fees)
+                cash_flows.append((t_date, outflow))
+                lots_by_symbol[trade.symbol].append((trade.quantity, trade.price))
 
-            realized_pnl_by_symbol[trade.symbol] += trade_realized_pnl
+            elif trade.side == "SELL":
+                inflow = trade.quantity * trade.price - fees
+                cash_flows.append((t_date, inflow))
+
+                remaining_to_sell = trade.quantity
+                trade_realized_pnl = 0.0
+
+                while remaining_to_sell > 0 and lots_by_symbol[trade.symbol]:
+                    lot_qty, lot_price = lots_by_symbol[trade.symbol][0]
+                    matched_qty = min(remaining_to_sell, lot_qty)
+                    lot_pnl = (trade.price - lot_price) * matched_qty
+                    trade_realized_pnl += lot_pnl
+
+                    if lot_pnl > 0:
+                        gain_events.append((lot_pnl, 0.0))
+                    elif lot_pnl < 0:
+                        loss_events.append((abs(lot_pnl), 0.0))
+
+                    remaining_to_sell -= matched_qty
+                    if matched_qty == lot_qty:
+                        lots_by_symbol[trade.symbol].popleft()
+                    else:
+                        lots_by_symbol[trade.symbol][0] = (lot_qty - matched_qty, lot_price)
+
+                realized_pnl_by_symbol[trade.symbol] += trade_realized_pnl
 
     positions: list[Position] = []
     total_cost = 0.0
@@ -511,10 +543,15 @@ def execute_feature3_review(
     is_institutional: bool = False,
     benchmark_symbol: str = "NSEI",
     matched_index_symbol: str | None = None,
+    corporate_actions: list[CorporateAction] | None = None,
+    corporate_actions_csv: str | None = None,
 ) -> DecisionReview:
     """Execute complete Feature 3 investment log review with zero LLM reliance."""
     if not trade_log.trades:
         raise ValueError("Cannot execute decision review: trade log contains no trades")
+
+    if corporate_actions is None and corporate_actions_csv:
+        corporate_actions = parse_corporate_actions_csv(corporate_actions_csv)
 
     params_cfg = load_config_file(PARAMETERS_FILE, ParametersConfig)
     rf_rate = resolve_risk_free_rate(params_cfg)
@@ -551,7 +588,9 @@ def execute_feature3_review(
 
     # 2. Build positions, cash flows, and disposition events
     portfolio, cash_flows, gain_events, loss_events = build_portfolio_ledger(
-        trade_log, latest_prices=latest_prices
+        trade_log,
+        latest_prices=latest_prices,
+        corporate_actions=corporate_actions,
     )
 
     # 3. Solve Portfolio XIRR

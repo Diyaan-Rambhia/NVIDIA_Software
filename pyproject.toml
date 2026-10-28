@@ -22,6 +22,7 @@ dependencies = [
     "python-docx>=1.1.2",
     "pypdf>=5.0.0",
     "yfinance>=0.2.50",
+    "cryptography>=42.0.0",
 ]
 
 

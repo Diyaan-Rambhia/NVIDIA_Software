@@ -1,0 +1,112 @@
+{
+  "company": "Infosys Limited",
+  "nse_symbol": "INFY",
+  "quarter": "Q3",
+  "fiscal_year": "FY27",
+  "searches_attempted": [
+    "Infosys Limited Q3 FY27 conference call transcript",
+    "INFY Q3 FY27 earnings call transcript"
+  ],
+  "candidate_urls_evaluated": [
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/95f8af86-dc92-49dc-a7cf-ecce287f8cce.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    },
+    {
+      "url": "https://www.infosys.com/investors/investorpresentation/ir-presentation.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Investor presentation deck without call discussion"
+    },
+    {
+      "url": "https://www.infosys.com/investors/investor-services/investor-calendar-fy-27.html",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    },
+    {
+      "url": "https://www.infosys.com/investors/reports-filings.html",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    },
+    {
+      "url": "https://www.infosys.com/investors.html",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    },
+    {
+      "url": "https://www.infosys.com/investors/reports-filings/quarterly-results.html",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    },
+    {
+      "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2025-2026/q4/documents/transcripts/earningscall.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Mismatched reporting quarter: mentions q4 instead of q3"
+    },
+    {
+      "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2025-2026/q3/documents/transcripts/earningscall.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Mismatched reporting fiscal year: URL mentions ['25', '26'] instead of fy27"
+    },
+    {
+      "url": "https://www.infosys.com/investors/shareholder-services/faqs.html",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    },
+    {
+      "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2026-2027/q2/documents/q2-and-h1-fy27-financial-results-auditorsreports.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Mismatched reporting quarter: mentions q2 instead of q3"
+    },
+    {
+      "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2026-2027/q2/documents/ifrs-inr-press-release.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Mismatched reporting quarter: mentions q2 instead of q3"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis//9939579a-80ce-412e-8bf1-0a7fdee37f98.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    },
+    {
+      "url": "https://career.infosys.com/jobdesc?jobReferenceCode=INFSYS-EXTERNAL-254628",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    }
+  ],
+  "rejection_reasons": [
+    "https://www.bseindia.com/xml-data/corpfiling/AttachLive/95f8af86-dc92-49dc-a7cf-ecce287f8cce.pdf: Does not indicate transcript or earnings call content",
+    "https://www.infosys.com/investors/investorpresentation/ir-presentation.pdf: Investor presentation deck without call discussion",
+    "https://www.infosys.com/investors/investor-services/investor-calendar-fy-27.html: Does not indicate transcript or earnings call content",
+    "https://www.infosys.com/investors/reports-filings.html: Does not indicate transcript or earnings call content",
+    "https://www.infosys.com/investors.html: Does not indicate transcript or earnings call content",
+    "https://www.infosys.com/investors/reports-filings/quarterly-results.html: Does not indicate transcript or earnings call content",
+    "https://www.infosys.com/investors/reports-filings/quarterly-results/2025-2026/q4/documents/transcripts/earningscall.pdf: Mismatched reporting quarter: mentions q4 instead of q3",
+    "https://www.infosys.com/investors/reports-filings/quarterly-results/2025-2026/q3/documents/transcripts/earningscall.pdf: Mismatched reporting fiscal year: URL mentions ['25', '26'] instead of fy27",
+    "https://www.infosys.com/investors/shareholder-services/faqs.html: Does not indicate transcript or earnings call content",
+    "https://www.infosys.com/investors/reports-filings/quarterly-results/2026-2027/q2/documents/q2-and-h1-fy27-financial-results-auditorsreports.pdf: Mismatched reporting quarter: mentions q2 instead of q3",
+    "https://www.infosys.com/investors/reports-filings/quarterly-results/2026-2027/q2/documents/ifrs-inr-press-release.pdf: Mismatched reporting quarter: mentions q2 instead of q3",
+    "https://www.bseindia.com/xml-data/corpfiling/AttachHis//9939579a-80ce-412e-8bf1-0a7fdee37f98.pdf: Does not indicate transcript or earnings call content",
+    "https://career.infosys.com/jobdesc?jobReferenceCode=INFSYS-EXTERNAL-254628: Does not indicate transcript or earnings call content"
+  ],
+  "official_sources_checked": [
+    "infosys.com",
+    "nseindia.com",
+    "bseindia.com"
+  ],
+  "status": "not_found",
+  "checked_at": "2026-10-29T00:56:14Z"
+}

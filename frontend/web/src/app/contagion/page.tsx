@@ -14,10 +14,50 @@ export default function ContagionPage() {
   const { isAuthenticated, sessionChecked } = useAuth();
 
   const [loading, setLoading] = useState(true);
+  const [isScanning, setIsScanning] = useState(false);
   const [data, setData] = useState<CorrelationScan | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [httpStatus, setHttpStatus] = useState<number | null>(null);
   const [upgradeTargets, setUpgradeTargets] = useState<string[] | null>(null);
+
+  // Configurable scan parameters
+  const [baselineWindow, setBaselineWindow] = useState(252);
+  const [currentWindow, setCurrentWindow] = useState(30);
+  const [sector, setSector] = useState("");
+  const [significanceThreshold, setSignificanceThreshold] = useState(0.05);
+
+  const executeScan = async (bw = baselineWindow, cw = currentWindow, sec = sector, sig = significanceThreshold) => {
+    setIsScanning(true);
+    setError(null);
+    try {
+      const qParams = new URLSearchParams({
+        baseline_window: String(bw),
+        current_window: String(cw),
+        gap_window: "5",
+        significance_threshold: String(sig),
+      });
+      if (sec) qParams.append("sector", sec);
+
+      const scan = await apiFetch<CorrelationScan>(`/f1/scan?${qParams.toString()}`);
+      setData(scan);
+    } catch (err: unknown) {
+      if (err instanceof ApiError) {
+        if (err.status === 401) {
+          router.push("/login");
+          return;
+        }
+        setHttpStatus(err.status);
+        setError(err.parsed.message);
+        setUpgradeTargets(err.parsed.upgradeTargets || null);
+      } else {
+        setHttpStatus(503);
+        setError("Network failure loading contagion scan.");
+      }
+    } finally {
+      setIsScanning(false);
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (sessionChecked && !isAuthenticated) {
@@ -28,36 +68,7 @@ export default function ContagionPage() {
       return;
     }
 
-    let isMounted = true;
-    async function loadContagion() {
-      setLoading(true);
-      setError(null);
-      try {
-        const scan = await apiFetch<CorrelationScan>("/f1/scan");
-        if (isMounted) setData(scan);
-      } catch (err: unknown) {
-        if (!isMounted) return;
-        if (err instanceof ApiError) {
-          if (err.status === 401) {
-            router.push("/login");
-            return;
-          }
-          setHttpStatus(err.status);
-          setError(err.parsed.message);
-          setUpgradeTargets(err.parsed.upgradeTargets || null);
-        } else {
-          setHttpStatus(503);
-          setError("Network failure loading contagion scan.");
-        }
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    }
-
-    loadContagion();
-    return () => {
-      isMounted = false;
-    };
+    executeScan();
   }, [isAuthenticated, sessionChecked, router]);
 
   if (loading) {
@@ -130,6 +141,71 @@ export default function ContagionPage() {
         />
       )}
 
+      {/* Interactive Parameter Control Bar */}
+      <div className={styles.controlBar}>
+        <div className={styles.controlGroup}>
+          <label className={styles.controlLabel}>Baseline Window (Days)</label>
+          <input
+            type="number"
+            min={60}
+            max={500}
+            value={baselineWindow}
+            onChange={(e) => setBaselineWindow(Number(e.target.value))}
+            className={styles.controlInput}
+          />
+        </div>
+
+        <div className={styles.controlGroup}>
+          <label className={styles.controlLabel}>Shock Window (Days)</label>
+          <input
+            type="number"
+            min={10}
+            max={90}
+            value={currentWindow}
+            onChange={(e) => setCurrentWindow(Number(e.target.value))}
+            className={styles.controlInput}
+          />
+        </div>
+
+        <div className={styles.controlGroup}>
+          <label className={styles.controlLabel}>Sector Universe</label>
+          <select
+            value={sector}
+            onChange={(e) => setSector(e.target.value)}
+            className={styles.controlSelect}
+          >
+            <option value="">All Equities (Broad Market)</option>
+            <option value="it_services">Nifty IT Services</option>
+            <option value="autos">Nifty Automobiles</option>
+            <option value="capital_goods">Nifty Capital Goods</option>
+            <option value="metals">Nifty Metals & Mining</option>
+            <option value="energy">Nifty Energy & Oil</option>
+            <option value="fmcg">Nifty FMCG</option>
+          </select>
+        </div>
+
+        <div className={styles.controlGroup}>
+          <label className={styles.controlLabel}>Significance Level (α)</label>
+          <select
+            value={significanceThreshold}
+            onChange={(e) => setSignificanceThreshold(Number(e.target.value))}
+            className={styles.controlSelect}
+          >
+            <option value={0.01}>0.01 (Strict, 99% Conf)</option>
+            <option value={0.05}>0.05 (Standard, 95% Conf)</option>
+            <option value={0.10}>0.10 (Relaxed, 90% Conf)</option>
+          </select>
+        </div>
+
+        <button
+          className={styles.controlButton}
+          onClick={() => executeScan()}
+          disabled={isScanning}
+        >
+          {isScanning ? "Running Scan..." : "Run Market Scan"}
+        </button>
+      </div>
+
       {data && (
         <div className={styles.mainColumn}>
           {/* Headline Metrics Grid */}
@@ -182,6 +258,67 @@ export default function ContagionPage() {
               <span className={styles.mSub}>Deterministic replication seed</span>
             </div>
           </div>
+
+          {/* Institutional Net Flows & Macro Attribution Card */}
+          {data.institutional_flows && (
+            <div className={styles.flowCard}>
+              <div className={styles.flowHeader}>
+                <span className={styles.flowTitle} data-mono>Institutional Liquidity Attribution (FPI vs DII)</span>
+                <span className={styles.flowRegimeTag} data-mono>
+                  {data.institutional_flows.primary_regime.replace(/_/g, " ")}
+                </span>
+              </div>
+              <div className={styles.flowGrid}>
+                <div className={styles.flowItem}>
+                  <span className={styles.flowItemLabel}>FPI Net Investment</span>
+                  <span
+                    className={`${styles.flowItemValue} ${
+                      data.institutional_flows.total_fpi_net_cr >= 0 ? styles.flowPositive : styles.flowNegative
+                    }`}
+                    data-mono
+                  >
+                    {data.institutional_flows.total_fpi_net_cr >= 0 ? "+" : ""}
+                    {data.institutional_flows.total_fpi_net_cr.toLocaleString("en-IN")} Cr
+                  </span>
+                </div>
+                <div className={styles.flowItem}>
+                  <span className={styles.flowItemLabel}>DII Net Investment</span>
+                  <span
+                    className={`${styles.flowItemValue} ${
+                      data.institutional_flows.total_dii_net_cr >= 0 ? styles.flowPositive : styles.flowNegative
+                    }`}
+                    data-mono
+                  >
+                    {data.institutional_flows.total_dii_net_cr >= 0 ? "+" : ""}
+                    {data.institutional_flows.total_dii_net_cr.toLocaleString("en-IN")} Cr
+                  </span>
+                </div>
+                <div className={styles.flowItem}>
+                  <span className={styles.flowItemLabel}>Net Institutional Liquidity</span>
+                  <span
+                    className={`${styles.flowItemValue} ${
+                      data.institutional_flows.net_institutional_liquidity_cr >= 0
+                        ? styles.flowPositive
+                        : styles.flowNegative
+                    }`}
+                    data-mono
+                  >
+                    {data.institutional_flows.net_institutional_liquidity_cr >= 0 ? "+" : ""}
+                    {data.institutional_flows.net_institutional_liquidity_cr.toLocaleString("en-IN")} Cr
+                  </span>
+                </div>
+                <div className={styles.flowItem}>
+                  <span className={styles.flowItemLabel}>FPI / DII Divergence</span>
+                  <span className={styles.flowItemValue} data-mono>
+                    {data.institutional_flows.fpi_dii_divergence_cr.toLocaleString("en-IN")} Cr
+                  </span>
+                </div>
+              </div>
+              <div className={styles.mutedNote}>
+                Absorption ratio measures systemic fragility. When top eigenvalues explain &gt;90% of market variance, institutional divergence accelerates sector rotation and contagion.
+              </div>
+            </div>
+          )}
 
           {/* Context and hypotheses - full width placed between sections */}
           <section className={styles.cardSection} data-testid="context-hypotheses-block">

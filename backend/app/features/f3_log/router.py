@@ -31,6 +31,7 @@ class F3ReviewRequest(BaseModel):
     consent_given: bool = False
     benchmark_symbol: str = "NSEI"
     matched_index_symbol: str | None = None
+    corporate_actions_csv: str | None = None
 
 
 @router.post("/review", response_model=DecisionReview)
@@ -62,6 +63,7 @@ async def review_trade_log(
             is_institutional=is_institutional,
             benchmark_symbol=req.benchmark_symbol,
             matched_index_symbol=req.matched_index_symbol,
+            corporate_actions_csv=req.corporate_actions_csv,
         )
     except ValueError as exc:
         raise HTTPException(

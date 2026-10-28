@@ -1,7 +1,12 @@
 """Export JSON schemas for registered frozen contract models to docs/contracts/."""
 
 import json
+import sys
 from pathlib import Path
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
 from pydantic import BaseModel
 
@@ -47,7 +52,7 @@ CONTRACT_MODELS: dict[str, type[BaseModel]] = {
 def export_schemas(output_dir: Path | None = None) -> list[Path]:
     """Write model JSON schema for every registered contract model."""
     if output_dir is None:
-        output_dir = Path("docs") / "contracts"
+        output_dir = _REPO_ROOT / "docs" / "contracts"
 
     output_dir.mkdir(parents=True, exist_ok=True)
     exported: list[Path] = []

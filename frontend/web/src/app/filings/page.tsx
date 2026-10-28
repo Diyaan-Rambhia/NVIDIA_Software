@@ -26,6 +26,25 @@ interface EvaluatedRuleItem {
   metric_unit?: string;
   evidence_summary?: string;
   period?: string;
+  source_url?: string | null;
+}
+
+interface TranscriptHighlight {
+  category: string;
+  quote: string;
+}
+
+interface TranscriptInfo {
+  source_type?: string;
+  source_url?: string | null;
+  pdf_url?: string | null;
+  word_count?: number;
+  extraction_method?: string;
+  retrieved_at?: string;
+  validation_status?: string;
+  local_path?: string;
+  highlights?: TranscriptHighlight[];
+  report?: any;
 }
 
 interface LookupResult {
@@ -42,6 +61,7 @@ interface LookupResult {
   };
   rules_evaluated: EvaluatedRuleItem[];
   source: string;
+  transcript_info?: TranscriptInfo | null;
 }
 
 interface MissingQuarterInfo {
@@ -53,12 +73,12 @@ interface MissingQuarterInfo {
 const RULE_NAMES: Record<string, string> = {
   R0: "Exact Verbatim Quote Check",
   R1: "Revenue Consistency",
-  R2: "Operating Margin Alignment",
-  R3: "PAT Growth vs Statement",
-  R4: "YoY Trend Inconsistency",
-  R5: "Standalone vs Consolidated Mismatch",
-  R6: "Unit & Scale Shift",
-  R7: "Sector Relative Performance Flag",
+  R2: "Growth Magnitude Verification",
+  R3: "Growth Trend & Momentum Verification",
+  R4: "Profitability & Margin Discipline",
+  R5: "Operating Cash Flow Quality",
+  R6: "Working Capital & Receivables Discipline",
+  R7: "Understatement & Commentary Asymmetry",
 };
 
 const FILINGS_FIRST_FISCAL_YEAR = 2001; // label FY01
@@ -129,6 +149,8 @@ export default function FilingsPage() {
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [lookupStatus, setLookupStatus] = useState<number | null>(null);
   const [missingQuarterInfo, setMissingQuarterInfo] = useState<MissingQuarterInfo | null>(null);
+  const [customText, setCustomText] = useState("");
+  const [showCustomBox, setShowCustomBox] = useState(false);
 
   const routerRef = useRef(router);
   routerRef.current = router;
@@ -256,9 +278,11 @@ export default function FilingsPage() {
     const periodParam = selectedQuarter.trim() || "Annual";
 
     try {
-      const res = await apiFetch<LookupResult>(
-        `/f2/lookup?company=${encodeURIComponent(comp)}&period=${encodeURIComponent(periodParam)}`
-      );
+      let url = `/f2/lookup?company=${encodeURIComponent(comp)}&period=${encodeURIComponent(periodParam)}`;
+      if (customText.trim()) {
+        url += `&custom_text=${encodeURIComponent(customText.trim())}`;
+      }
+      const res = await apiFetch<LookupResult>(url);
       setLookupResult(res);
     } catch (err: unknown) {
       if (err instanceof ApiError) {
@@ -456,6 +480,26 @@ export default function FilingsPage() {
           </button>
         </div>
 
+        {/* Optional Custom Management Announcement / Press Release Input */}
+        <div className={styles.customCommentaryBox}>
+          <button
+            type="button"
+            className={styles.customCommentaryToggle}
+            onClick={() => setShowCustomBox(!showCustomBox)}
+          >
+            {showCustomBox ? "▲ Hide Custom Commentary Input" : "▼ Audit Custom Press Release / Earnings Concall Snippet (Optional)"}
+          </button>
+          {showCustomBox && (
+            <textarea
+              className={styles.customTextarea}
+              placeholder="Paste management announcement, CEO guidance statement, or earnings call transcript text to audit verbatim against official filed metrics..."
+              value={customText}
+              onChange={(e) => setCustomText(e.target.value)}
+              rows={3}
+            />
+          )}
+        </div>
+
         {lookupLoading && (
           <div className={styles.loadingBox} style={{ minHeight: "80px", marginTop: "1rem" }}>
             <span className={styles.spinner} />
@@ -510,6 +554,99 @@ export default function FilingsPage() {
             <div className={styles.dataSourceNotice} data-mono style={{ marginBottom: "1rem" }}>
               SOURCE: {lookupResult.source}
             </div>
+
+            {/* Transcript & Commentary Source Card */}
+            {lookupResult.transcript_info && (
+              <div
+                className={styles.transcriptCard}
+                data-testid="transcript-info-card"
+              >
+                <div className={styles.transcriptHeader}>
+                  <div className={styles.transcriptBadgeRow}>
+                    <span
+                      className={`${styles.transcriptBadge} ${
+                        lookupResult.transcript_info.source_type === "official_ir" ||
+                        lookupResult.transcript_info.source_type === "official_bse" ||
+                        lookupResult.transcript_info.source_type === "official_nse"
+                          ? styles.badgeOfficial
+                          : lookupResult.transcript_info.source_type === "custom_user_text"
+                            ? styles.badgeCustom
+                            : styles.badgeAggregator
+                      }`}
+                      data-mono
+                    >
+                      {lookupResult.transcript_info.source_type === "official_ir" && "OFFICIAL IR CONCALL TRANSCRIPT"}
+                      {lookupResult.transcript_info.source_type === "official_bse" && "OFFICIAL BSE FILING TRANSCRIPT"}
+                      {lookupResult.transcript_info.source_type === "official_nse" && "OFFICIAL NSE FILING TRANSCRIPT"}
+                      {lookupResult.transcript_info.source_type === "aggregator" && "AGGREGATOR CONCALL TRANSCRIPT"}
+                      {lookupResult.transcript_info.source_type === "custom_user_text" && "CUSTOM MANAGEMENT COMMENTARY"}
+                      {lookupResult.transcript_info.source_type === "not_found" && "CONCALL NOT YET ARCHIVED"}
+                    </span>
+                    {lookupResult.transcript_info.validation_status === "passed" && (
+                      <span className={styles.transcriptValidationBadge} data-mono>
+                        VERIFIED AUDIT SOURCE
+                      </span>
+                    )}
+                  </div>
+                  {(lookupResult.transcript_info.pdf_url || (lookupResult.transcript_info.source_url && lookupResult.transcript_info.source_url.startsWith("http"))) && (
+                    <a
+                      href={lookupResult.transcript_info.pdf_url || lookupResult.transcript_info.source_url || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.transcriptPdfBtn}
+                    >
+                      View Original Document ↗
+                    </a>
+                  )}
+                </div>
+
+                <div className={styles.transcriptDetails} data-mono>
+                  {lookupResult.transcript_info.word_count !== undefined && lookupResult.transcript_info.word_count > 0 && (
+                    <span className={styles.transcriptDetailItem}>
+                      <strong>Length:</strong> {lookupResult.transcript_info.word_count.toLocaleString()} words
+                    </span>
+                  )}
+                  {lookupResult.transcript_info.extraction_method && (
+                    <span className={styles.transcriptDetailItem}>
+                      <strong>Method:</strong> {lookupResult.transcript_info.extraction_method}
+                    </span>
+                  )}
+                  {lookupResult.transcript_info.source_url && (
+                    <span className={styles.transcriptDetailItem}>
+                      <strong>Source:</strong>{" "}
+                      {(() => {
+                        try {
+                          return new URL(lookupResult.transcript_info.source_url || "").hostname;
+                        } catch {
+                          return lookupResult.transcript_info.source_url;
+                        }
+                      })()}
+                    </span>
+                  )}
+                </div>
+
+                {/* Executive Concall Highlights */}
+                {lookupResult.transcript_info.highlights && lookupResult.transcript_info.highlights.length > 0 && (
+                  <div className={styles.highlightsContainer} data-testid="transcript-highlights">
+                    <div className={styles.highlightsTitle}>Executive Call Highlights & Disclosures</div>
+                    <div className={styles.highlightsGrid}>
+                      {lookupResult.transcript_info.highlights.map((hl, hIdx) => (
+                        <div key={hIdx} className={styles.highlightItem}>
+                          <span className={styles.highlightCategory} data-mono>{hl.category}</span>
+                          <span className={styles.highlightQuote}>&ldquo;{hl.quote}&rdquo;</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {lookupResult.transcript_info.source_type === "not_found" && (
+                  <p className={styles.transcriptNotFoundNote}>
+                    No official conference call transcript has been retrieved for {lookupResult.symbol} ({lookupResult.reporting_period || lookupResult.requested_period}) yet. You can paste custom management commentary below to audit specific quotes.
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Financial Metrics Cards */}
             {lookupResult.verified_metrics && (
@@ -566,12 +703,24 @@ export default function FilingsPage() {
                         <td>
                           <div className={styles.ruleTitle}>
                             <span className={styles.ruleId} data-mono>{chk.rule_id}</span>
-                            <span>{RULE_NAMES[chk.rule_id] || chk.rule_name || chk.rule_id}</span>
+                            <span>{chk.rule_name || RULE_NAMES[chk.rule_id] || chk.rule_id}</span>
                           </div>
                         </td>
                         <td className={styles.quoteCell}>
                           {chk.claim_quote || chk.claim_text ? (
-                            <em>&ldquo;{chk.claim_quote || chk.claim_text}&rdquo;</em>
+                            <>
+                              <em>&ldquo;{chk.claim_quote || chk.claim_text}&rdquo;</em>
+                              {chk.source_url && (
+                                <a
+                                  href={chk.source_url.startsWith("http") ? chk.source_url : undefined}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={styles.sourceLink}
+                                >
+                                  {chk.source_url.startsWith("http") ? "↗ View Source Document" : chk.source_url}
+                                </a>
+                              )}
+                            </>
                           ) : (
                             <span style={{ color: "var(--color-muted)", fontStyle: "italic" }}>
                               No management claim text for this period.

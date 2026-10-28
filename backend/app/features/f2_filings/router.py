@@ -113,6 +113,7 @@ async def lookup_filing(
     request: Request,
     company: str = Query(..., min_length=1, description="Company name or NSE equity symbol"),
     period: str = Query(..., min_length=2, description="Fiscal period label (e.g. 'Q1 FY27' or 'Annual')"),
+    custom_text: str | None = Query(default=None, description="Optional management commentary snippet to audit"),
     user: UserClaims = Depends(_require_f2),
 ) -> dict[str, Any]:
     """Find company by name or symbol and audit reported XBRL metrics against consistency rules.
@@ -137,6 +138,7 @@ async def lookup_filing(
         result = perform_f2_lookup(
             company_query=company,
             period_query=period,
+            custom_text=custom_text,
             rate_limit_per_sec=rate_limit,
             cache_ttl_seconds=cache_ttl,
         )
@@ -211,3 +213,50 @@ async def lookup_filing(
             status_code=500,
             detail={"code": "internal_lookup_error", "message": err_msg},
         ) from exc
+
+
+from pydantic import BaseModel, Field
+
+
+class TranscriptApiRequest(BaseModel):
+    company: str = Field(..., description="Company name or NSE symbol")
+    quarter: str = Field(..., description="Reporting quarter (Q1, Q2, Q3, Q4)")
+    fiscal_year: str = Field(..., description="Fiscal year (e.g., FY25, FY26)")
+    company_domain: str | None = Field(default=None, description="Official company domain")
+    output_dir: str = Field(default="./transcripts", description="Target storage directory")
+
+
+@router.post("/transcript")
+async def retrieve_earnings_transcript(
+    request: Request,
+    body: TranscriptApiRequest,
+    user: UserClaims = Depends(get_current_user),
+    _entitled: None = Depends(_require_f2),
+) -> dict[str, Any]:
+    """Retrieve, validate, and archive an official earnings call transcript."""
+    settings = getattr(request.app.state, "settings", None) or load_settings()
+    from backend.app.features.f2_filings.transcript_retriever import (
+        TranscriptRequest,
+        TranscriptRetrievalAgent,
+    )
+
+    agent = TranscriptRetrievalAgent(settings=settings)
+    req = TranscriptRequest(
+        company=body.company,
+        quarter=body.quarter,
+        fiscal_year=body.fiscal_year,
+        company_domain=body.company_domain,
+        output_dir=body.output_dir,
+    )
+    result = agent.retrieve(req)
+    if result.get("status") == "not_found":
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "transcript_not_found",
+                "message": f"No valid transcript found for {body.company} {body.quarter} {body.fiscal_year}",
+                "report": result.get("report"),
+            },
+        )
+    return result
+

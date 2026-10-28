@@ -38,6 +38,13 @@ export interface CorrelationScan {
     error_status?: number | null;
     error_message?: string | null;
   } | null;
+  institutional_flows?: {
+    total_fpi_net_cr: number;
+    total_dii_net_cr: number;
+    net_institutional_liquidity_cr: number;
+    fpi_dii_divergence_cr: number;
+    primary_regime: string;
+  } | null;
 }
 
 export interface AuditedCompany {

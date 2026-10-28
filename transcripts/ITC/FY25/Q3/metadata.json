@@ -1,0 +1,15 @@
+{
+  "company": "ITC Limited",
+  "nse_symbol": "ITC",
+  "quarter": "Q3",
+  "fiscal_year": "FY25",
+  "call_date": "",
+  "source_type": "official_ir",
+  "source_url": "https://itcportal.com/content/dam/itc-corporate/pdfs/quarterly-results-2024-2025/december-2024/ITC-Press-Release-Q3-FY2025.pdf",
+  "pdf_url": "https://itcportal.com/content/dam/itc-corporate/pdfs/quarterly-results-2024-2025/december-2024/ITC-Press-Release-Q3-FY2025.pdf",
+  "retrieved_at": "2026-10-29T01:36:48Z",
+  "extraction_method": "pypdf",
+  "word_count": 3796,
+  "validation_status": "passed",
+  "notes": "Official ITC Standalone Financial Results & Media Statement for the Quarter ended December 31, 2024"
+}

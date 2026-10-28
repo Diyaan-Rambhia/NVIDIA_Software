@@ -314,6 +314,7 @@ def create_app(
     from backend.app.features.f3_log.router import router as f3_router
     from backend.app.features.files.router import router as files_router
     from backend.app.llm.router import router as llm_router
+    from backend.app.payments.router import router as payments_router
 
     app.include_router(auth_router)
     app.include_router(entitlements_router)
@@ -324,5 +325,6 @@ def create_app(
     app.include_router(files_router)
     app.include_router(llm_router)
     app.include_router(agent_router)
+    app.include_router(payments_router)
 
     return app

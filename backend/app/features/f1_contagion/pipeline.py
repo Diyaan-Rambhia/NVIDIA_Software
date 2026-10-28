@@ -136,6 +136,7 @@ def align_and_compute_returns(
 def run_correlation_scan(
     overrides: dict[str, Any] | None = None,
     symbols: list[str] | None = None,
+    sector: str | None = None,
     live: bool = False,
     cache_ttl_seconds: int = 3600,
     max_tickers: int = 100,
@@ -147,6 +148,7 @@ def run_correlation_scan(
         _CACHED_SCAN is not None
         and not overrides
         and not symbols
+        and not sector
         and not live
         and (now_mono - _CACHED_SCAN[0]) < cache_ttl_seconds
     ):
@@ -160,6 +162,14 @@ def run_correlation_scan(
     if overrides:
         params.update(overrides)
 
+    if sector and not symbols:
+        from backend.app.config.models import UniverseConfig
+        uni_cfg = load_config_file(Path("config") / "universe.yaml", UniverseConfig)
+        clean_sec = sector.strip().lower()
+        for sec_key, sym_list in uni_cfg.sectors.items():
+            if clean_sec in sec_key.lower() or sec_key.lower() in clean_sec:
+                symbols = sym_list
+                break
 
     series_map = load_price_series(
         symbols=symbols,
@@ -214,7 +224,16 @@ def run_correlation_scan(
     k = compute_ar_k(n_assets, k_fraction=0.20)
     ar_val = absorption_ratio(cov_current, k=k)
     ar_base = absorption_ratio(cov_baseline, k=k)
-    ar_delta_std = round(float((ar_val - ar_base) / max(1e-6, np.std([ar_val, ar_base]))), 4)
+
+    # Standardized AR shift using baseline distribution
+    sub_ars: list[float] = []
+    step = max(1, (len(baseline_rets) - c_window) // 20)
+    for s_idx in range(0, len(baseline_rets) - c_window + 1, step):
+        sub_cov = np.cov(baseline_rets[s_idx : s_idx + c_window], rowvar=False)
+        sub_ars.append(float(absorption_ratio(sub_cov, k=k)))
+    std_baseline = float(np.std(sub_ars)) if len(sub_ars) > 1 and np.std(sub_ars) > 1e-4 else 0.05
+    mean_baseline = float(np.mean(sub_ars)) if sub_ars else ar_base
+    ar_delta_std = round(float((ar_val - mean_baseline) / std_baseline), 4)
 
     # Bootstrap significance testing
     rng = np.random.default_rng(seed)
@@ -333,9 +352,21 @@ def run_correlation_scan(
 
     scan_duration = round(time.monotonic() - start_time, 3)
 
+    from backend.app.features.f1_contagion.institutional_flows import load_institutional_flow_summary
+    from backend.app.contracts.contagion import InstitutionalFlowData
+
+    inst_summary = load_institutional_flow_summary(sector=sector, days=c_window)
+    inst_data = InstitutionalFlowData(
+        total_fpi_net_cr=inst_summary.total_fpi_net_cr,
+        total_dii_net_cr=inst_summary.total_dii_net_cr,
+        net_institutional_liquidity_cr=inst_summary.net_institutional_liquidity_cr,
+        fpi_dii_divergence_cr=inst_summary.fpi_dii_divergence_cr,
+        primary_regime=inst_summary.primary_regime,
+    )
+
     scan_result = CorrelationScan(
         as_of=return_dates[-1] if return_dates else "current",
-        source_label="market data, third-party, delayed",
+        source_label="unofficial source, demo only",
         parameters_used={
             "W": int(params.get("W", 60)),
             "B": b_window,
@@ -361,12 +392,20 @@ def run_correlation_scan(
         scan_duration_seconds=scan_duration,
         news=news_block,
         hypotheses=hypotheses_list,
+        institutional_flows=inst_data,
     )
 
     _CACHED_SCAN = (time.monotonic(), scan_result)
+    try:
+        OUTPUT_JSON_PATH.parent.mkdir(parents=True, exist_ok=True)
+        OUTPUT_JSON_PATH.write_text(scan_result.model_dump_json(indent=2), encoding="utf-8")
+    except Exception:
+        pass
+
     return scan_result
 
 
 if __name__ == "__main__":
     scan = run_correlation_scan()
     print("Precomputed F1 Scan successfully:", scan.regime_flag, scan.as_of)
+

@@ -9,10 +9,13 @@ from backend.app.main import create_app
 
 def test_x12_live_nemotron_endpoint_requires_auth_and_fails_loudly_without_key(monkeypatch: pytest.MonkeyPatch) -> None:
     """POST /llm/runtime_call requires auth, checks entitlement, and returns 503 when NEBIUS_API_KEY is missing."""
+    from backend.app.config.env import Settings
     from backend.app.llm.router import _require_entitlement
     monkeypatch.delenv("NEBIUS_API_KEY", raising=False)
+    monkeypatch.setenv("NEBIUS_API_KEY", "")
 
     app = create_app()
+    app.state.settings = Settings(nebius_api_key=None)
     client = TestClient(app)
 
     # 1. Unauthenticated request rejected with 401

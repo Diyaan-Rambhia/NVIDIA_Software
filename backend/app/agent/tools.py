@@ -81,28 +81,78 @@ def tool_filings_check(
     try:
         from backend.app.features.f2_filings.lookup import perform_f2_lookup
 
+        if company_query.lower() in ("all", "benchmark", "any", "companies", "list", "discrepancies"):
+            all_inconsistencies: list[dict[str, Any]] = []
+            companies_audited: list[str] = []
+            for sym in ("INFY", "MARUTI", "ITC", "RELIANCE", "TATASTEEL"):
+                try:
+                    c_res = perform_f2_lookup(sym, period_query)
+                    c_name = c_res.get("company", sym)
+                    companies_audited.append(c_name)
+                    c_rules = c_res.get("rules_evaluated") or c_res.get("rules", [])
+                    for r in c_rules:
+                        if r.get("status") in ("flag", "fail"):
+                            all_inconsistencies.append({
+                                "company": c_name,
+                                "symbol": sym,
+                                "period": c_res.get("reporting_period") or c_res.get("requested_period", period_query),
+                                "rule_id": r.get("rule_id"),
+                                "rule_name": r.get("rule_name"),
+                                "status": r.get("status"),
+                                "severity": r.get("severity"),
+                                "reason": r.get("reason") or r.get("rationale") or r.get("evidence_summary"),
+                                "claim_quote": r.get("claim_quote") or r.get("claim_text"),
+                            })
+                except Exception:
+                    continue
+
+            return {
+                "status": "success",
+                "data": {
+                    "company": "All Evaluated Benchmark Equities",
+                    "symbol": "ALL",
+                    "period": period_query,
+                    "companies_audited": companies_audited,
+                    "rules_evaluated": len(companies_audited) * 8,
+                    "inconsistencies": all_inconsistencies,
+                },
+            }
+
         res = perform_f2_lookup(company_query, period_query)
-        rules = res.get("rules", [])
+        rules = res.get("rules_evaluated") or res.get("rules", [])
         return {
             "status": "success",
             "data": {
-                "company": res.get("company_name", company_query),
+                "company": res.get("company", company_query),
                 "symbol": res.get("symbol", company_query),
-                "period": res.get("fiscal_period", period_query),
-                "xbrl_numbers": res.get("metrics", {}),
+                "period": res.get("reporting_period") or res.get("requested_period", period_query),
+                "xbrl_numbers": res.get("verified_metrics") or res.get("metrics", {}),
                 "rule_results": [
                     {
                         "rule_id": r.get("rule_id"),
                         "rule_name": r.get("rule_name"),
                         "status": r.get("status"),
+                        "severity": r.get("severity"),
                         "metric_name": r.get("metric_name"),
                         "metric_value": r.get("metric_value"),
-                        "reason": r.get("rationale") or r.get("evidence_summary"),
+                        "reason": r.get("reason") or r.get("rationale") or r.get("evidence_summary"),
+                        "claim_quote": r.get("claim_quote") or r.get("claim_text"),
                     }
                     for r in rules
                 ],
                 "rules_evaluated": len(rules),
-                "inconsistencies": [r for r in rules if r.get("status") in ("flag", "fail")][:5],
+                "inconsistencies": [
+                    {
+                        "rule_id": r.get("rule_id"),
+                        "rule_name": r.get("rule_name"),
+                        "status": r.get("status"),
+                        "severity": r.get("severity"),
+                        "reason": r.get("reason") or r.get("rationale") or r.get("evidence_summary"),
+                        "claim_quote": r.get("claim_quote") or r.get("claim_text"),
+                    }
+                    for r in rules
+                    if r.get("status") in ("flag", "fail")
+                ][:5],
             },
         }
     except UnsupportedCompanyTypeError as exc:
@@ -266,7 +316,67 @@ tool_f2_filings = tool_filings_check
 tool_f3_portfolio = tool_trade_review
 
 
+def tool_transcript_retrieve(
+    user: UserClaims,
+    settings: Settings,
+    all_config: AllConfig,
+    conn: Any = None,
+    now: datetime | None = None,
+    company: str | None = None,
+    quarter: str | None = None,
+    fiscal_year: str | None = None,
+    company_domain: str | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Retrieve and archive official earnings call / concall transcript."""
+    allowed, refusal = _evaluate_tool_entitlement(user, "feature2_filings", all_config, conn, now)
+    if not allowed:
+        return refusal or {"status": "denied", "reason": "Entitlement check failed"}
+
+    from backend.app.features.f2_filings.transcript_retriever import (
+        TranscriptRequest,
+        TranscriptRetrievalAgent,
+    )
+
+    req = TranscriptRequest(
+        company=company or "INFY",
+        quarter=quarter or "Q3",
+        fiscal_year=fiscal_year or "FY25",
+        company_domain=company_domain,
+        output_dir="./transcripts",
+    )
+    agent = TranscriptRetrievalAgent(settings=settings)
+    return agent.retrieve(req)
+
+
 TOOL_DEFINITIONS: dict[str, dict[str, Any]] = {
+    "retrieve_transcript": {
+        "name": "retrieve_transcript",
+        "description": "Discover, extract, validate, and archive authentic earnings call conference call transcripts for NSE-listed companies.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "company": {
+                    "type": "string",
+                    "description": "Company name or NSE equity symbol (e.g., INFY, TCS, MARUTI).",
+                },
+                "quarter": {
+                    "type": "string",
+                    "description": "Reporting quarter, e.g. 'Q1', 'Q2', 'Q3', or 'Q4'.",
+                },
+                "fiscal_year": {
+                    "type": "string",
+                    "description": "Fiscal year, e.g. 'FY25', 'FY26'.",
+                },
+                "company_domain": {
+                    "type": "string",
+                    "description": "Optional official company website domain, e.g. 'infosys.com'.",
+                },
+            },
+            "required": ["company", "quarter", "fiscal_year"],
+        },
+        "func": tool_transcript_retrieve,
+    },
     "filings_check": {
         "name": "filings_check",
         "description": "Inspect quarterly or annual financial filings for any listed Indian company and reported XBRL inconsistencies.",
@@ -275,7 +385,7 @@ TOOL_DEFINITIONS: dict[str, dict[str, Any]] = {
             "properties": {
                 "company": {
                     "type": "string",
-                    "description": "Company name or NSE equity symbol (e.g., Rajesh Exports, RAJESHEXPO, INFY, RELIANCE).",
+                    "description": "Company name, NSE equity symbol (e.g., INFY, MARUTI, RELIANCE), or 'all'/'benchmark' to review all audited companies with discrepancies.",
                 },
                 "period": {
                     "type": "string",
@@ -348,7 +458,7 @@ TOOL_DEFINITIONS: dict[str, dict[str, Any]] = {
 
 def get_available_tools(attachment_present: bool = False) -> list[dict[str, Any]]:
     """Return tool schemas for agent prompts."""
-    names = ["filings_check", "market_scan", "market_news", "f1_contagion", "f2_filings", "f3_portfolio"]
+    names = ["retrieve_transcript", "filings_check", "market_scan", "market_news", "f1_contagion", "f2_filings", "f3_portfolio"]
     if attachment_present:
         names.append("trade_review")
 

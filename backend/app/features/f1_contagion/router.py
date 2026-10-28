@@ -24,6 +24,12 @@ _require_f1 = require_feature("feature1_contagion")
 async def scan_contagion(
     request: Request,
     user: Annotated[UserClaims, Depends(_require_f1)],
+    baseline_window: int = 252,
+    current_window: int = 30,
+    gap_window: int = 5,
+    sector: str | None = None,
+    significance_threshold: float = 0.05,
+    live: bool = False,
 ) -> CorrelationScan:
     """Execute live Feature 1 systemic contagion and absorption ratio scan across Indian equities.
 
@@ -47,10 +53,19 @@ async def scan_contagion(
     daily_limit_param = params.get("f1_daily_limit_per_user") or params.get("daily_quota")
     daily_limit = int(daily_limit_param.default) if daily_limit_param else 1000
 
+    overrides = {
+        "B": max(30, min(500, baseline_window)),
+        "C": max(10, min(90, current_window)),
+        "G": max(0, min(20, gap_window)),
+        "q_threshold": max(0.01, min(0.20, significance_threshold)),
+    }
+
     try:
         scan_result = run_correlation_scan(
+            overrides=overrides,
             symbols=None,
-            live=False,
+            sector=sector,
+            live=live,
             cache_ttl_seconds=cache_ttl,
             max_tickers=max_tickers,
         )

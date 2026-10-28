@@ -459,6 +459,16 @@
             ],
             "title": "Hypotheses"
           },
+          "institutional_flows": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InstitutionalFlowData"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "matrix_summary": {
             "additionalProperties": {
               "anyOf": [
@@ -549,6 +559,56 @@
           "code_version"
         ],
         "title": "CorrelationScan",
+        "type": "object"
+      },
+      "CreateOrderRequest": {
+        "description": "Payload to initiate an upgrade order.",
+        "properties": {
+          "plan_name": {
+            "maxLength": 50,
+            "minLength": 2,
+            "title": "Plan Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "plan_name"
+        ],
+        "title": "CreateOrderRequest",
+        "type": "object"
+      },
+      "CreateOrderResponse": {
+        "description": "Created Razorpay order details.",
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "key_id": {
+            "title": "Key Id",
+            "type": "string"
+          },
+          "order_id": {
+            "title": "Order Id",
+            "type": "string"
+          },
+          "plan_name": {
+            "title": "Plan Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_id",
+          "amount",
+          "currency",
+          "key_id",
+          "plan_name"
+        ],
+        "title": "CreateOrderResponse",
         "type": "object"
       },
       "DecisionReview": {
@@ -692,6 +752,17 @@
             "title": "Consent Given",
             "type": "boolean"
           },
+          "corporate_actions_csv": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Corporate Actions Csv"
+          },
           "csv_text": {
             "title": "Csv Text",
             "type": "string"
@@ -809,6 +880,41 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "InstitutionalFlowData": {
+        "additionalProperties": false,
+        "description": "Institutional net flows summary and regime attribution.",
+        "properties": {
+          "fpi_dii_divergence_cr": {
+            "title": "Fpi Dii Divergence Cr",
+            "type": "number"
+          },
+          "net_institutional_liquidity_cr": {
+            "title": "Net Institutional Liquidity Cr",
+            "type": "number"
+          },
+          "primary_regime": {
+            "title": "Primary Regime",
+            "type": "string"
+          },
+          "total_dii_net_cr": {
+            "title": "Total Dii Net Cr",
+            "type": "number"
+          },
+          "total_fpi_net_cr": {
+            "title": "Total Fpi Net Cr",
+            "type": "number"
+          }
+        },
+        "required": [
+          "total_fpi_net_cr",
+          "total_dii_net_cr",
+          "net_institutional_liquidity_cr",
+          "fpi_dii_divergence_cr",
+          "primary_regime"
+        ],
+        "title": "InstitutionalFlowData",
+        "type": "object"
+      },
       "InstitutionalMetrics": {
         "additionalProperties": false,
         "description": "Institutional relative performance metrics.",
@@ -896,6 +1002,23 @@
           "user_id"
         ],
         "title": "LoginResponse",
+        "type": "object"
+      },
+      "ModelTiersCatalogResponse": {
+        "description": "Catalog of configured model tiers.",
+        "properties": {
+          "tiers": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/TierDetail"
+            },
+            "title": "Tiers",
+            "type": "object"
+          }
+        },
+        "required": [
+          "tiers"
+        ],
+        "title": "ModelTiersCatalogResponse",
         "type": "object"
       },
       "NemotronCallRequest": {
@@ -1456,6 +1579,114 @@
         "title": "TavilySearchResult",
         "type": "object"
       },
+      "TierDetail": {
+        "description": "Configuration and pricing details for a single model tier.",
+        "properties": {
+          "alias": {
+            "title": "Alias",
+            "type": "string"
+          },
+          "enabled": {
+            "default": true,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "patterns": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Patterns",
+            "type": "array"
+          },
+          "price_per_1m_input_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Per 1M Input Usd"
+          },
+          "price_per_1m_output_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Per 1M Output Usd"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "alias",
+          "status"
+        ],
+        "title": "TierDetail",
+        "type": "object"
+      },
+      "TranscriptApiRequest": {
+        "properties": {
+          "company": {
+            "description": "Company name or NSE symbol",
+            "title": "Company",
+            "type": "string"
+          },
+          "company_domain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Official company domain",
+            "title": "Company Domain"
+          },
+          "fiscal_year": {
+            "description": "Fiscal year (e.g., FY25, FY26)",
+            "title": "Fiscal Year",
+            "type": "string"
+          },
+          "output_dir": {
+            "default": "./transcripts",
+            "description": "Target storage directory",
+            "title": "Output Dir",
+            "type": "string"
+          },
+          "quarter": {
+            "description": "Reporting quarter (Q1, Q2, Q3, Q4)",
+            "title": "Quarter",
+            "type": "string"
+          }
+        },
+        "required": [
+          "company",
+          "quarter",
+          "fiscal_year"
+        ],
+        "title": "TranscriptApiRequest",
+        "type": "object"
+      },
       "UserProfileResponse": {
         "additionalProperties": false,
         "description": "User profile response.",
@@ -1595,12 +1826,41 @@
         ],
         "title": "VerificationResponse",
         "type": "object"
+      },
+      "VerifyPaymentRequest": {
+        "description": "Payload for client-side payment signature verification.",
+        "properties": {
+          "plan_name": {
+            "title": "Plan Name",
+            "type": "string"
+          },
+          "razorpay_order_id": {
+            "title": "Razorpay Order Id",
+            "type": "string"
+          },
+          "razorpay_payment_id": {
+            "title": "Razorpay Payment Id",
+            "type": "string"
+          },
+          "razorpay_signature": {
+            "title": "Razorpay Signature",
+            "type": "string"
+          }
+        },
+        "required": [
+          "razorpay_order_id",
+          "razorpay_payment_id",
+          "razorpay_signature",
+          "plan_name"
+        ],
+        "title": "VerifyPaymentRequest",
+        "type": "object"
       }
     }
   },
   "info": {
     "title": "FinInsight",
-    "version": "4b5633d"
+    "version": "071b025"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -1677,6 +1937,139 @@
         "summary": "Ask Agent",
         "tags": [
           "agent"
+        ]
+      }
+    },
+    "/agent/ask/stream": {
+      "post": {
+        "description": "Execute multi-step agent query yielding live execution events via Server-Sent Events (SSE).",
+        "operationId": "ask_agent_stream_agent_ask_stream_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentAskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ask Agent Stream",
+        "tags": [
+          "agent"
+        ]
+      }
+    },
+    "/api/admin/verifications": {
+      "get": {
+        "description": "List institutional verification requests with optional status filtering.\n\nAccessible by administrators only.",
+        "operationId": "list_verifications_api_admin_verifications_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "pending",
+                    "approved",
+                    "rejected"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/VerificationResponse"
+                  },
+                  "title": "Response List Verifications Api Admin Verifications Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Verifications",
+        "tags": [
+          "verifications"
         ]
       }
     },
@@ -1926,6 +2319,204 @@
         ]
       }
     },
+    "/api/billing/create-order": {
+      "post": {
+        "description": "Create a new payment order for subscription plan upgrade.",
+        "operationId": "create_billing_order_api_billing_create_order_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOrderResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Billing Order",
+        "tags": [
+          "billing"
+        ]
+      }
+    },
+    "/api/billing/plans": {
+      "get": {
+        "description": "Retrieve purchasable subscription plans, quotas, and monthly prices.",
+        "operationId": "list_billing_plans_api_billing_plans_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Billing Plans Api Billing Plans Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Billing Plans",
+        "tags": [
+          "billing"
+        ]
+      }
+    },
+    "/api/billing/verify": {
+      "post": {
+        "description": "Verify client checkout signature and upgrade user profile.",
+        "operationId": "verify_payment_api_billing_verify_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyPaymentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Verify Payment Api Billing Verify Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Verify Payment",
+        "tags": [
+          "billing"
+        ]
+      }
+    },
+    "/api/billing/webhook": {
+      "post": {
+        "description": "Cryptographic server webhook receiving payment lifecycle events from Razorpay.",
+        "operationId": "razorpay_webhook_api_billing_webhook_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-razorpay-signature",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Razorpay-Signature"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Razorpay Webhook Api Billing Webhook Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Razorpay Webhook",
+        "tags": [
+          "billing"
+        ]
+      }
+    },
     "/api/entitlements": {
       "get": {
         "description": "Return entitlement statuses and remaining quotas for authenticated user.",
@@ -2086,6 +2677,72 @@
         "operationId": "scan_contagion_f1_scan_get",
         "parameters": [
           {
+            "in": "query",
+            "name": "baseline_window",
+            "required": false,
+            "schema": {
+              "default": 252,
+              "title": "Baseline Window",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "current_window",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "title": "Current Window",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "gap_window",
+            "required": false,
+            "schema": {
+              "default": 5,
+              "title": "Gap Window",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sector",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sector"
+            }
+          },
+          {
+            "in": "query",
+            "name": "significance_threshold",
+            "required": false,
+            "schema": {
+              "default": 0.05,
+              "title": "Significance Threshold",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "live",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Live",
+              "type": "boolean"
+            }
+          },
+          {
             "in": "header",
             "name": "authorization",
             "required": false,
@@ -2214,6 +2871,24 @@
               "minLength": 2,
               "title": "Period",
               "type": "string"
+            }
+          },
+          {
+            "description": "Optional management commentary snippet to audit",
+            "in": "query",
+            "name": "custom_text",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional management commentary snippet to audit",
+              "title": "Custom Text"
             }
           },
           {
@@ -2383,6 +3058,68 @@
           }
         },
         "summary": "Get Top50 Companies",
+        "tags": [
+          "feature2_filings"
+        ]
+      }
+    },
+    "/f2/transcript": {
+      "post": {
+        "description": "Retrieve, validate, and archive an official earnings call transcript.",
+        "operationId": "retrieve_earnings_transcript_f2_transcript_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TranscriptApiRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Retrieve Earnings Transcript F2 Transcript Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Retrieve Earnings Transcript",
         "tags": [
           "feature2_filings"
         ]
@@ -2646,6 +3383,56 @@
           }
         },
         "summary": "Search Tavily",
+        "tags": [
+          "llm_runtime"
+        ]
+      }
+    },
+    "/llm/tiers": {
+      "get": {
+        "description": "Return configured LLM model aliases, patterns, and pricing rates.",
+        "operationId": "get_model_tiers_llm_tiers_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelTiersCatalogResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Model Tiers",
         "tags": [
           "llm_runtime"
         ]

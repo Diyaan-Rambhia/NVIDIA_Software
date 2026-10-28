@@ -388,3 +388,120 @@
     transform: rotate(360deg);
   }
 }
+
+.controlBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background-color: var(--color-surface);
+  border: var(--hairline);
+  align-items: flex-end;
+}
+
+.controlGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 140px;
+}
+
+.controlLabel {
+  font-size: 11px;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.controlInput,
+.controlSelect {
+  background-color: var(--color-bg);
+  border: var(--hairline);
+  color: var(--color-text);
+  padding: var(--space-2) var(--space-3);
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.controlButton {
+  background-color: var(--color-text);
+  color: var(--color-bg);
+  border: none;
+  padding: var(--space-2) var(--space-5);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.controlButton:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.controlButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.flowCard {
+  background-color: var(--color-surface);
+  border: var(--hairline);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.flowHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flowTitle {
+  font-size: 12px;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.flowRegimeTag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border: var(--hairline);
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.flowGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-4);
+}
+
+.flowItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.flowItemLabel {
+  font-size: 11px;
+  color: var(--color-muted);
+}
+
+.flowItemValue {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.flowPositive {
+  color: #10b981;
+}
+
+.flowNegative {
+  color: #ef4444;
+}

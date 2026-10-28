@@ -1,0 +1,126 @@
+{
+  "company": "Reliance Industries Limited",
+  "nse_symbol": "RELIANCE",
+  "quarter": "Q3",
+  "fiscal_year": "FY25",
+  "searches_attempted": [
+    "Reliance Industries Limited Q3 FY25 conference call transcript",
+    "RELIANCE Q3 FY25 earnings call transcript"
+  ],
+  "candidate_urls_evaluated": [
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/afbcc22e-5c5d-44f3-ae25-a1304334788b.pdf",
+      "source_type": "official_bse",
+      "acceptable": true,
+      "rejection_reason": ""
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis//81cb947d-fbc7-4ae1-89dc-1ad6344f8730.pdf",
+      "source_type": "official_bse",
+      "acceptable": true,
+      "rejection_reason": ""
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/MIDHANI_11022025155801_MDN_Transcript_Q3_11022025_signed.pdf",
+      "source_type": "official_nse",
+      "acceptable": true,
+      "rejection_reason": ""
+    },
+    {
+      "url": "https://www.ril.com/sites/default/files/2025-01/16012025-Media_Release-RIL_Q3_FY2024-25Financial_and_Operational_Performance.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    },
+    {
+      "url": "https://www.ril.com/sites/default/files/2025-01/RIL_3Q_FY25_Analyst_Presentation_16Jan25.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Investor presentation deck without call discussion"
+    },
+    {
+      "url": "https://www.ril.com/investors/events-presentations",
+      "source_type": "official_ir",
+      "acceptable": true,
+      "rejection_reason": ""
+    },
+    {
+      "url": "https://www.ril.com/sites/default/files/2026-01/Presentation_for_RIL_Analyst_Meeting_v1.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Investor presentation deck without call discussion"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Transcript%20-%20Investors%20%20Analyst%20call-Feb%2005%2C%202025.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Mismatched reporting fiscal year: URL mentions ['05', '20'] instead of fy25"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/ARIHANTSUP_26022024184133_Transcrip_of_investor_meet_090224.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Mismatched reporting fiscal year: URL mentions ['24'] instead of fy25"
+    },
+    {
+      "url": "https://www.ril.com/investors/financial-reporting",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    },
+    {
+      "url": "https://www.ril.com/sites/default/files/2026-01/Media_Release_RIL_Q3_FY2025-26_Financial_and_Operational_Performance.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    },
+    {
+      "url": "https://www.ril.com/sites/default/files/2025-07/Reliance_Retail_Limited.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    },
+    {
+      "url": "https://www.ril.com/investors/investor-relations",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    },
+    {
+      "url": "https://www.ril.com/sites/default/files/2025-04/RIL_4Q_FY25_Analyst_Presentation_25Apr25.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Investor presentation deck without call discussion"
+    },
+    {
+      "url": "https://www.ril.com/sites/default/files/2026-04/24042026_RIL_Media_Analyst_Call_Transcript_Q4_FY2026.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Mismatched reporting quarter: mentions q4 instead of q3"
+    }
+  ],
+  "rejection_reasons": [
+    "https://www.ril.com/sites/default/files/2025-01/16012025-Media_Release-RIL_Q3_FY2024-25Financial_and_Operational_Performance.pdf: Does not indicate transcript or earnings call content",
+    "https://www.ril.com/sites/default/files/2025-01/RIL_3Q_FY25_Analyst_Presentation_16Jan25.pdf: Investor presentation deck without call discussion",
+    "https://www.ril.com/sites/default/files/2026-01/Presentation_for_RIL_Analyst_Meeting_v1.pdf: Investor presentation deck without call discussion",
+    "https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Transcript%20-%20Investors%20%20Analyst%20call-Feb%2005%2C%202025.pdf: Mismatched reporting fiscal year: URL mentions ['05', '20'] instead of fy25",
+    "https://nsearchives.nseindia.com/corporate/ARIHANTSUP_26022024184133_Transcrip_of_investor_meet_090224.pdf: Mismatched reporting fiscal year: URL mentions ['24'] instead of fy25",
+    "https://www.ril.com/investors/financial-reporting: Does not indicate transcript or earnings call content",
+    "https://www.ril.com/sites/default/files/2026-01/Media_Release_RIL_Q3_FY2025-26_Financial_and_Operational_Performance.pdf: Does not indicate transcript or earnings call content",
+    "https://www.ril.com/sites/default/files/2025-07/Reliance_Retail_Limited.pdf: Does not indicate transcript or earnings call content",
+    "https://www.ril.com/investors/investor-relations: Does not indicate transcript or earnings call content",
+    "https://www.ril.com/sites/default/files/2025-04/RIL_4Q_FY25_Analyst_Presentation_25Apr25.pdf: Investor presentation deck without call discussion",
+    "https://www.ril.com/sites/default/files/2026-04/24042026_RIL_Media_Analyst_Call_Transcript_Q4_FY2026.pdf: Mismatched reporting quarter: mentions q4 instead of q3",
+    "Extracted content from https://www.ril.com/investors/events-presentations failed validation: Requested quarter 'q3' not found in call title / header section",
+    "Extracted content from https://nsearchives.nseindia.com/corporate/MIDHANI_11022025155801_MDN_Transcript_Q3_11022025_signed.pdf failed validation: Company identity 'RELIANCE' / 'Reliance Industries Limited' not found in call title / header section",
+    "Extracted content from https://www.bseindia.com/xml-data/corpfiling/AttachHis/afbcc22e-5c5d-44f3-ae25-a1304334788b.pdf failed validation: Company identity 'RELIANCE' / 'Reliance Industries Limited' not found in call title / header section",
+    "Extracted content from https://www.bseindia.com/xml-data/corpfiling/AttachHis//81cb947d-fbc7-4ae1-89dc-1ad6344f8730.pdf failed validation: Company identity 'RELIANCE' / 'Reliance Industries Limited' not found in call title / header section"
+  ],
+  "official_sources_checked": [
+    "ril.com",
+    "nseindia.com",
+    "bseindia.com"
+  ],
+  "status": "not_found",
+  "checked_at": "2026-10-29T01:00:00Z"
+}

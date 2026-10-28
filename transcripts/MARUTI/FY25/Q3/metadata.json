@@ -1,0 +1,15 @@
+{
+  "company": "Maruti Suzuki India Limited",
+  "nse_symbol": "MARUTI",
+  "quarter": "Q3",
+  "fiscal_year": "FY25",
+  "call_date": "",
+  "source_type": "aggregator",
+  "source_url": "https://alphastreet.com/india/maruti-suzuki-india-limited-maruti-q3-2025-earnings-call-transcript",
+  "pdf_url": "",
+  "retrieved_at": "2026-10-29T01:35:33Z",
+  "extraction_method": "tavily_extract",
+  "word_count": 7108,
+  "validation_status": "passed",
+  "notes": "Full earnings call transcript with CIRO Rahul Bharti and CFO Arnab Roy"
+}

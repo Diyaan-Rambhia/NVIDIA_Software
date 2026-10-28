@@ -1,0 +1,119 @@
+{
+  "company": "Infosys Limited",
+  "nse_symbol": "INFY",
+  "quarter": "Q3",
+  "fiscal_year": "FY25",
+  "searches_attempted": [
+    "Infosys Limited Q3 FY25 conference call transcript",
+    "INFY Q3 FY25 earnings call transcript"
+  ],
+  "candidate_urls_evaluated": [
+    {
+      "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q3/documents/transcripts/earningscall.pdf",
+      "source_type": "official_ir",
+      "acceptable": true,
+      "rejection_reason": ""
+    },
+    {
+      "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2025-2026/q3.html",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    },
+    {
+      "url": "https://www.infosys.com/investors/investor-services/investor-calendar-fy-25.html",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    },
+    {
+      "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q4/documents/transcripts/earningscall.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Mismatched reporting quarter: mentions q4 instead of q3"
+    },
+    {
+      "url": "https://videos.infosys.com/watch/gaSoQb5EcyEDBrs3MuivNV",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    },
+    {
+      "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2025-2026/q3/documents/transcripts/earningscall.pdf",
+      "source_type": "official_ir",
+      "acceptable": true,
+      "rejection_reason": ""
+    },
+    {
+      "url": "https://www.infosys.com/investors/news-events/events.html",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    },
+    {
+      "url": "https://www.infosys.com/investors/reports-filings.html",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    },
+    {
+      "url": "https://www.infosys.com/investors.html",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    },
+    {
+      "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q2/documents/transcripts/earningscall.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Mismatched reporting quarter: mentions q2 instead of q3"
+    },
+    {
+      "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q1/documents/transcripts/earningscall.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Mismatched reporting quarter: mentions q1 instead of q3"
+    },
+    {
+      "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2025-2026/q2/documents/transcripts/earningscall.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Mismatched reporting quarter: mentions q2 instead of q3"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/95f8af86-dc92-49dc-a7cf-ecce287f8cce.pdf",
+      "source_type": "official_bse",
+      "acceptable": true,
+      "rejection_reason": ""
+    },
+    {
+      "url": "https://www.infosys.com/investors/reports-filings/quarterly-results.html",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    }
+  ],
+  "rejection_reasons": [
+    "https://www.infosys.com/investors/reports-filings/quarterly-results/2025-2026/q3.html: Does not indicate transcript or earnings call content",
+    "https://www.infosys.com/investors/investor-services/investor-calendar-fy-25.html: Does not indicate transcript or earnings call content",
+    "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q4/documents/transcripts/earningscall.pdf: Mismatched reporting quarter: mentions q4 instead of q3",
+    "https://videos.infosys.com/watch/gaSoQb5EcyEDBrs3MuivNV: Does not indicate transcript or earnings call content",
+    "https://www.infosys.com/investors/news-events/events.html: Does not indicate transcript or earnings call content",
+    "https://www.infosys.com/investors/reports-filings.html: Does not indicate transcript or earnings call content",
+    "https://www.infosys.com/investors.html: Does not indicate transcript or earnings call content",
+    "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q2/documents/transcripts/earningscall.pdf: Mismatched reporting quarter: mentions q2 instead of q3",
+    "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q1/documents/transcripts/earningscall.pdf: Mismatched reporting quarter: mentions q1 instead of q3",
+    "https://www.infosys.com/investors/reports-filings/quarterly-results/2025-2026/q2/documents/transcripts/earningscall.pdf: Mismatched reporting quarter: mentions q2 instead of q3",
+    "https://www.infosys.com/investors/reports-filings/quarterly-results.html: Does not indicate transcript or earnings call content",
+    "Extraction failed for https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q3/documents/transcripts/earningscall.pdf: HTTP 403 while downloading PDF",
+    "Extraction failed for https://www.infosys.com/investors/reports-filings/quarterly-results/2025-2026/q3/documents/transcripts/earningscall.pdf: HTTP 403 while downloading PDF",
+    "Extraction failed for https://www.bseindia.com/xml-data/corpfiling/AttachLive/95f8af86-dc92-49dc-a7cf-ecce287f8cce.pdf: HTTP 404 while downloading PDF"
+  ],
+  "official_sources_checked": [
+    "infosys.com",
+    "nseindia.com",
+    "bseindia.com"
+  ],
+  "status": "not_found",
+  "checked_at": "2026-10-29T00:33:31Z"
+}

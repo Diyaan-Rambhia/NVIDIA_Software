@@ -1,0 +1,15 @@
+{
+  "company": "Reliance Industries Limited",
+  "nse_symbol": "RELIANCE",
+  "quarter": "Q3",
+  "fiscal_year": "FY25",
+  "call_date": "",
+  "source_type": "official_ir",
+  "source_url": "https://www.ril.com/sites/default/files/2025-01/16012025-Media_Release-RIL_Q3_FY2024-25Financial_and_Operational_Performance.pdf",
+  "pdf_url": "https://www.ril.com/sites/default/files/2025-01/16012025-Media_Release-RIL_Q3_FY2024-25Financial_and_Operational_Performance.pdf",
+  "retrieved_at": "2026-10-29T01:35:52Z",
+  "extraction_method": "pypdf",
+  "word_count": 10020,
+  "validation_status": "passed",
+  "notes": "Official RIL Q3 FY2024-25 Financial and Operational Performance Disclosure with Chairman Mukesh Ambani commentary"
+}

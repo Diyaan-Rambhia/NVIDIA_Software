@@ -1,0 +1,15 @@
+{
+  "company": "Infosys Limited",
+  "nse_symbol": "INFY",
+  "quarter": "Q3",
+  "fiscal_year": "FY25",
+  "call_date": "",
+  "source_type": "official_ir",
+  "source_url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q3/documents/transcripts/earningscall.pdf",
+  "pdf_url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q3/documents/transcripts/earningscall.pdf",
+  "retrieved_at": "2026-10-29T00:34:40Z",
+  "extraction_method": "pypdf",
+  "word_count": 8501,
+  "validation_status": "passed",
+  "notes": "Retrieved via official_ir priority score 45"
+}

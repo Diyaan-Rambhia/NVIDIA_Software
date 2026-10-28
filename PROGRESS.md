@@ -193,7 +193,7 @@ X7, X8, X9 → X10 (agent) → X11 (payments) → X12 (precompute, deploy, submi
 ## X9: Feature 3 on real logs (both scopes)
 
 - [x] **X9.1 Parser and `fast` column mapper with confirmation** (FR-F3-001/002) on real broker exports.
-- [ ] **X9.2 Corporate-action adjustment** (FR-F3-003) from real action records.
+- [x] **X9.2 Corporate-action adjustment** (FR-F3-003) from real action records.
 - [x] **X9.3 Position ledger and XIRR on real logs** (FR-F3-004). *Accept:* XIRR matches an independent reference on the real log.
 - [x] **X9.4 Benchmark replay** against real index and total-return series and an Indian short-term rate (FR-F3-005).
 - [x] **X9.5 Process metrics** (FR-F3-006).
@@ -207,15 +207,15 @@ X7, X8, X9 → X10 (agent) → X11 (payments) → X12 (precompute, deploy, submi
 - [x] **X10.1 Tool registry** (FR-AGT-001/002) over the real feature code; tools hidden from segments that cannot use them.
 - [x] **X10.2 Entitlement-aware execution** (FR-ENT-006). *Accept (live):* a `demo-retail` agent session cannot reach F1; a `demo-institutional` session reaches F2 only within retail-free quotas.
 - [x] **X10.3 Orchestrator loop** on `mid` (FR-AGT-003) using the mechanism chosen in X3.7, with refusal for advice-seeking questions.
-- [ ] **X10.4 SSE step streaming** (FR-AGT-004) and ops-console agent trace (FR-UI-008).
+- [x] **X10.4 SSE step streaming** (FR-AGT-004) and ops-console agent trace (FR-UI-008).
 - [ ] **X10.5 Portfolio linkage** from F3 into F1 exposure (optional) and F2 company lists.
 - [x] **X10.6 Route** `POST /agent/ask` with rate limits.
 
 ## X11: Payments
 
-- [ ] **X11.1 Gateway integration** (FR-PAY-001/002) in test mode: plan listing by segment, monthly order or subscription creation, and institutional purchase blocked until admin approval of the registration number (FR-AUTH-006).
-- [ ] **X11.2 Webhook endpoint** (FR-PAY-003/004) with signature verification and idempotency. *Accept (live, test mode):* a real successful payment upgrades the plan; a failed payment does not; a replayed webhook changes nothing; a bad signature is rejected.
-- [ ] **X11.3 Payment records** (FR-PAY-005) and segment-restricted purchasing (FR-PAY-006).
+- [x] **X11.1 Gateway integration** (FR-PAY-001/002) in test mode: plan listing by segment, monthly order or subscription creation, and institutional purchase blocked until admin approval of the registration number (FR-AUTH-006).
+- [x] **X11.2 Webhook endpoint** (FR-PAY-003/004) with signature verification and idempotency. *Accept (live, test mode):* a real successful payment upgrades the plan; a failed payment does not; a replayed webhook changes nothing; a bad signature is rejected.
+- [x] **X11.3 Payment records** (FR-PAY-005) and segment-restricted purchasing (FR-PAY-006).
 - [ ] **X11.4 Lapse and downgrade handling** (FR-PAY-007, D-08) and monthly-only billing (FR-PAY-011).
 - [ ] **X11.5 GST and invoice handling** per advisor (FR-PAY-008).
 - [ ] **X11.6 Confirm judges and demo accounts never need payment** (FR-PAY-010).
@@ -272,6 +272,13 @@ X1 (accounts, keys, feasibility decisions, real logs, advisor engagement), X5.3 
 | 20 | Bug A & Bug B Remediation | n/a | Mapped provider/ledger failures to explicit status codes (502 PROVIDER_ERROR, 500 LEDGER_ERROR, 502 MODEL_OUTPUT_INVALID), eliminated bare 500s from /agent/ask, enforced real management announcement quotes for R0-R7, guarded against comparing filed metrics to themselves, excluded unsupported financial companies with 422, rendered real XBRL units and periods without '-- = --', and refreshed documentation and OpenAPI schema (D-85). |
 | 21 | DB Connection Lifecycle & Closed Connection Resilience | n/a | Enforced short-lived database connection architecture across /agent/ask, /llm/runtime_call, /f1/scan, /f2/lookup, /files/extract, entitlements, and auth routes; added closed-connection detection and automatic retry to record_llm_call and increment_quota_atomic with loud 500 LEDGER_ERROR on double failure; reported model call completion success on ledger error without leaking keys or prompts (D-86). |
 | 22 | Agent Live Tools, Contagion News TTL & Trade Log Help | n/a | Rewired agent tools (filings_check, market_scan, market_news, trade_review) to live code with plan checks; enforced 502 MODEL_TOOL_CALL_FAILED on failed tool calls; implemented Contagion scan TTL caching and 4 deterministic news states; added Trade Log CSV format guidance and row-numbered errors; validated with two-row XIRR benchmark (D-87). |
+| 23 | Operational Routes, Live SSE Streaming, Corporate Actions, Filings Commentary, Institutional Flows, and Razorpay Payments | n/a | Implemented GET /api/admin/verifications & GET /llm/tiers operational endpoints; live agent SSE streaming at POST /agent/ask/stream; stock splits, bonus, dividend lot adjustments for portfolio ledger; filings management guidance commentary extraction and XBRL auditing; FPI/DII institutional net flow ingestion & macro sector attribution; Razorpay payment order generation and HMAC-SHA256 signature-verified webhook handling. |
+| 24 | Contagion Interactive Controls & Institutional Flows, Filings Automated Concall Auditing & Verbatim Claims, Agent Discrepancy Reporting Fix, and make_demo_trade_log Script | n/a | Added interactive baseline/shock window controls, sector universe filtering, and FPI/DII institutional flow attribution card to /contagion; implemented automated Tavily concall and earnings release commentary search with character-level verbatim extraction and optional custom transcript audit on /filings; corrected filings_check tool mapping and multi-company discrepancy reporting in agent orchestrator; restored scripts/make_demo_trade_log.py; synchronized contract JSON schemas and OpenAPI specification. |
+| 25 | Script & Configuration Resolution | n/a | Anchored CLI utility scripts (make_demo_trade_log.py, export_openapi_schema.py, export_contract_schemas.py) to repository root and enhanced backend/app/config/loader.py to automatically fallback to repository root config directory, enabling seamless execution from root or scripts/ subdirectories. |
+| 26 | Conference-Call Transcript Retrieval Agent | n/a | Built end-to-end transcript retrieval agent in backend/app/features/f2_filings/transcript_retriever.py and CLI tool scripts/retrieve_transcript.py using Tavily Search & Extract and pypdf; enforced source hierarchy (official_ir -> official_nse -> official_bse -> aggregator), header title verification, and structured local archiving; exposed POST /f2/transcript and agent retrieve_transcript tool (D-90). |
+| 27 | Filings Dynamic Transcript Integration & UI | n/a | Integrated TranscriptRetrievalAgent directly into perform_f2_lookup, replacing legacy demo data with live/archived conference-call transcripts (official IR, BSE/NSE filings, aggregators) and dynamic claim evaluation; refined header verification with word boundaries to prevent substring collision; added transcript_info card with verified source badge, word count, and direct PDF document links to /filings UI. |
+| 28 | Multi-Line Concall Extraction, Crores Formatting, Rule Alignment & Executive Highlights | n/a | Resolved extractor newline truncation across wrapped PDF text; extracted 23 authentic executive statements; aligned frontend rule titles with canonical backend rules (R2 = Growth Magnitude Verification, R4 = Profitability & Margin Discipline); scaled raw INR metrics to standard Crores; mapped authentic claims across R0-R7; surfaced Executive Disclosures panel in /filings UI; updated agent discrepancy reporting with verbatim call quotes. |
+
 
 
 

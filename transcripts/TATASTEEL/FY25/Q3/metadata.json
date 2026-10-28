@@ -1,0 +1,15 @@
+{
+  "company": "Tata Steel Limited",
+  "nse_symbol": "TATASTEEL",
+  "quarter": "Q3",
+  "fiscal_year": "FY25",
+  "call_date": "",
+  "source_type": "official_ir",
+  "source_url": "https://www.tatasteel.com/media/25437/tata-steel-announcement-earnings-discussion.pdf",
+  "pdf_url": "https://www.tatasteel.com/media/25437/tata-steel-announcement-earnings-discussion.pdf",
+  "retrieved_at": "2026-10-29T01:32:55Z",
+  "extraction_method": "pypdf",
+  "word_count": 12136,
+  "validation_status": "passed",
+  "notes": "Retrieved via official_ir priority score 45"
+}

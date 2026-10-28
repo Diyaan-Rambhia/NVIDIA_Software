@@ -214,3 +214,47 @@ async def search_tavily(
             },
         ) from exc
 
+
+class TierDetail(BaseModel):
+    """Configuration and pricing details for a single model tier."""
+
+    alias: str
+    status: str
+    price_per_1m_input_usd: float | None = None
+    price_per_1m_output_usd: float | None = None
+    patterns: list[str] = Field(default_factory=list)
+    enabled: bool = True
+    reason: str | None = None
+
+
+class ModelTiersCatalogResponse(BaseModel):
+    """Catalog of configured model tiers."""
+
+    tiers: dict[str, TierDetail]
+
+
+@router.get("/tiers", response_model=ModelTiersCatalogResponse)
+def get_model_tiers(
+    user: Annotated[UserClaims, Depends(_require_entitlement)],
+) -> ModelTiersCatalogResponse:
+    """Return configured LLM model aliases, patterns, and pricing rates."""
+    from backend.app.llm.registry import load_models_config
+
+    cfg = load_models_config()
+    raw_tiers = cfg.get("tiers", {})
+    tiers_map: dict[str, TierDetail] = {}
+
+    for alias, tdata in raw_tiers.items():
+        tiers_map[alias] = TierDetail(
+            alias=alias,
+            status=str(tdata.get("status", "pending")),
+            price_per_1m_input_usd=tdata.get("price_per_1m_input_usd"),
+            price_per_1m_output_usd=tdata.get("price_per_1m_output_usd"),
+            patterns=list(tdata.get("patterns", [])),
+            enabled=bool(tdata.get("enabled", True)),
+            reason=tdata.get("reason"),
+        )
+
+    return ModelTiersCatalogResponse(tiers=tiers_map)
+
+

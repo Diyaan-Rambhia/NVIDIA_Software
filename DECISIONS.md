@@ -670,3 +670,29 @@
   - Restrict Contagion news block to four deterministic states: `ready` (with evidence IDs), `empty` (with query), `not run: no search key`, or `error` (with HTTP status). Display explicit no-flag notice for empty hypotheses.
   - Add "Check your file" column guidance on the trade log upload view and ensure all parsing failures name the specific row number.
 
+### D-88: Cryptography library dependency for Supabase Auth JWT and JWKS signature verification
+- **Status:** Accepted
+- **Context:** Supabase Auth tokens are signed using ES256 (ECDSA using P-256 and SHA-256). Verifying token authenticity via the Supabase JWKS endpoint requires parsing elliptic curve public keys and verifying digital signatures against the token payload.
+- **Decision:** Declare `cryptography>=42.0.0` as an explicit dependency in `pyproject.toml` and `requirements.txt`. This enables `backend.app.auth.jwt` to decode JWKS EC keys and perform standard ES256 cryptographic verification without ad-hoc custom implementations.
+
+### D-89: Repository-root fallback resolution for configuration loading and CLI utility scripts
+- **Status:** Accepted
+- **Context:** Invoking CLI helper scripts such as `scripts/make_demo_trade_log.py`, `scripts/export_openapi_schema.py`, or `scripts/export_contract_schemas.py` directly from inside the `scripts/` directory previously raised `ConfigError: Configuration file not found` or `ConfigError: Configuration directory does not exist` because pathing defaulted to `Path("config")` relative to the current working directory.
+- **Decision:**
+  - Anchor file constants (`PARAMETERS_PATH`, `UNIVERSE_PATH`, `DATA_YFINANCE_DIR`, `OUTPUT_DIR`, etc.) in CLI utility scripts to `_REPO_ROOT = Path(__file__).resolve().parent.parent`.
+  - In `backend/app/config/loader.py`, introduce `_resolve_config_dir(config_dir: Path | None = None)` which checks if the specified path or default `Path("config")` exists in the current working directory; if not, it automatically falls back to `get_repo_root() / "config"`.
+  - In `load_config_file(file_path: Path, ...)`, if a relative path is passed and does not exist in the working directory, check `get_repo_root() / file_path` before failing.
+
+### D-90: Earnings-call transcript retrieval and archiving engine
+- **Status:** Accepted
+- **Context:** Financial research workflows require discovering, extracting, validating, and archiving authentic conference-call transcripts for NSE-listed companies without relying on synthetic stubs or third-party summaries.
+- **Decision:**
+  - Build `TranscriptRetrievalAgent` in `backend/app/features/f2_filings/transcript_retriever.py` utilizing Tavily Search with prioritized domain filtering (`company_domain`, `nseindia.com`, `bseindia.com`), Tavily Extract, and local `pypdf` extraction.
+  - Enforce source prioritization: `official_ir` -> `official_nse` -> `official_bse` -> `aggregator`.
+  - Enforce strict validation: document title and header (first 2,500 characters) must contain company identity, quarter, and fiscal year; body must contain standard structural markers ("Moderator", "Analyst", "Q&A") and word count >= 1000 words.
+  - Reject investor decks, pure press releases, news media summaries, audio files, and mismatched reporting periods.
+  - Expose via CLI script `scripts/retrieve_transcript.py`, REST endpoint `POST /f2/transcript`, and Agent tool `retrieve_transcript`.
+  - Archive successful extractions under `<output_dir>/<symbol>/<fy>/<quarter>/transcript.txt` and `metadata.json`, and diagnostic reports under `not_found.json` when unavailable.
+
+
+

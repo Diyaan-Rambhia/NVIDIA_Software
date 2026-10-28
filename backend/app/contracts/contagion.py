@@ -102,6 +102,16 @@ class ContagionHypothesis(StrictContractModel):
     evidence_ids: list[str] | None = None
 
 
+class InstitutionalFlowData(StrictContractModel):
+    """Institutional net flows summary and regime attribution."""
+
+    total_fpi_net_cr: float
+    total_dii_net_cr: float
+    net_institutional_liquidity_cr: float
+    fpi_dii_divergence_cr: float
+    primary_regime: str
+
+
 class CorrelationScan(StrictContractModel):
     """Output contract for Feature 1 correlation scan per PROJECT.md §5.7 and §5.8."""
 
@@ -121,5 +131,6 @@ class CorrelationScan(StrictContractModel):
     scan_duration_seconds: float = 0.0
     news: ContagionNews | None = None
     hypotheses: list[ContagionHypothesis] | None = None
+    institutional_flows: InstitutionalFlowData | None = None
 
 

@@ -6,10 +6,6 @@ import zipfile
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from typing import Any
 
-import docx
-import openpyxl
-import pypdf
-
 
 PROHIBITED_MACRO_EXTENSIONS = {".xlsm", ".xltm", ".xlam", ".docm", ".dotm"}
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".tiff", ".svg"}
@@ -84,6 +80,8 @@ def extract_file_content(
 
         if ext == ".xlsx":
             try:
+                import openpyxl
+
                 wb = openpyxl.load_workbook(
                     io.BytesIO(content),
                     data_only=True,
@@ -103,6 +101,8 @@ def extract_file_content(
                             lines.append(" | ".join(vals))
                 wb.close()
                 extracted = "\n".join(lines).strip()
+            except ImportError as exc:
+                raise ValueError(f"Excel extraction library not installed: {exc}") from exc
             except Exception as exc:
                 if isinstance(exc, ValueError):
                     raise
@@ -110,6 +110,8 @@ def extract_file_content(
 
         elif ext == ".docx":
             try:
+                import docx
+
                 doc = docx.Document(io.BytesIO(content))
                 lines = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
                 for table in doc.tables:
@@ -118,6 +120,8 @@ def extract_file_content(
                         if row_vals:
                             lines.append(" | ".join(row_vals))
                 extracted = "\n".join(lines).strip()
+            except ImportError as exc:
+                raise ValueError(f"Word extraction library not installed: {exc}") from exc
             except Exception as exc:
                 if isinstance(exc, ValueError):
                     raise
@@ -125,6 +129,8 @@ def extract_file_content(
 
         elif ext == ".pdf":
             try:
+                import pypdf
+
                 reader = pypdf.PdfReader(io.BytesIO(content))
                 if reader.is_encrypted:
                     raise ValueError("Encrypted PDF files are not supported.")
@@ -138,6 +144,8 @@ def extract_file_content(
                     if txt and txt.strip():
                         page_texts.append(txt.strip())
                 extracted = "\n\n".join(page_texts).strip()
+            except ImportError as exc:
+                raise ValueError(f"PDF extraction library not installed: {exc}") from exc
             except Exception as exc:
                 if isinstance(exc, ValueError):
                     raise

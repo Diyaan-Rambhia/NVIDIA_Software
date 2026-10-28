@@ -1,0 +1,140 @@
+{
+  "company": "Infosys Limited",
+  "nse_symbol": "INFY",
+  "quarter": "Q4",
+  "fiscal_year": "FY29",
+  "searches_attempted": [
+    "Infosys Limited Q4 FY29 conference call transcript",
+    "INFY Q4 FY29 earnings call transcript"
+  ],
+  "candidate_urls_evaluated": [
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/Attachhis/52186d75-ef6e-4fa0-9237-425c06ae3bd7.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    },
+    {
+      "url": "https://www.infosys.com/investors/investorpresentation/ir-presentation.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Investor presentation deck without call discussion"
+    },
+    {
+      "url": "https://www.infosys.com/newsroom/press-releases/documents/2025/q4-apr17-2025.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Mismatched reporting fiscal year: URL mentions ['25', '25'] instead of fy29"
+    },
+    {
+      "url": "https://www.infosys.com/investors.html",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    },
+    {
+      "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q4/documents/transcripts/earningscall.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Mismatched reporting fiscal year: URL mentions ['24', '25'] instead of fy29"
+    },
+    {
+      "url": "https://www.infosys.com/investors/reports-filings/quarterly-results.html",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    },
+    {
+      "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2025-2026/q4/documents/transcripts/earningscall.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Mismatched reporting fiscal year: URL mentions ['25', '26'] instead of fy29"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/MeghanaPhadnis_13052026221810_covertranscript_Signed.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Mismatched reporting fiscal year: URL mentions ['26'] instead of fy29"
+    },
+    {
+      "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2022-2023/q4/documents/transcripts/press-conference.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Mismatched reporting fiscal year: URL mentions ['22', '23'] instead of fy29"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/ALICON_25052024123135_Transcript_Intimation.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Mismatched reporting fiscal year: URL mentions ['24'] instead of fy29"
+    },
+    {
+      "url": "https://www.infosys.com/investors/reports-filings/quarterly-results/2023-2024/q4/documents/ifrs-inr-press-release.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Mismatched reporting fiscal year: URL mentions ['23', '24'] instead of fy29"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/BIRET_25062026174940_Annual_Report_of_Brookfield_India_Real_Estate_Trust_FY25-26.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Mismatched reporting fiscal year: URL mentions ['26', '25'] instead of fy29"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis//9939579a-80ce-412e-8bf1-0a7fdee37f98.pdf",
+      "source_type": "official_bse",
+      "acceptable": true,
+      "rejection_reason": ""
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/MINDSPACE_29042026180836_Outcome2_PRearningspresentationandsummary.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Mismatched reporting fiscal year: URL mentions ['26'] instead of fy29"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/VIRTUAL_06062026165728_Transcript_of_Earnings_Conference_Call.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Mismatched reporting fiscal year: URL mentions ['26'] instead of fy29"
+    },
+    {
+      "url": "https://www.bseindia.com/kannada/xml-data/corpfiling/attachhis/0884e44f-01ac-4a6c-8a62-90727fe88fdb.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    },
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/b0651893-51aa-45bb-9abc-6e5d2fa37b59.pdf",
+      "source_type": "",
+      "acceptable": false,
+      "rejection_reason": "Does not indicate transcript or earnings call content"
+    }
+  ],
+  "rejection_reasons": [
+    "https://www.bseindia.com/xml-data/corpfiling/Attachhis/52186d75-ef6e-4fa0-9237-425c06ae3bd7.pdf: Does not indicate transcript or earnings call content",
+    "https://www.infosys.com/investors/investorpresentation/ir-presentation.pdf: Investor presentation deck without call discussion",
+    "https://www.infosys.com/newsroom/press-releases/documents/2025/q4-apr17-2025.pdf: Mismatched reporting fiscal year: URL mentions ['25', '25'] instead of fy29",
+    "https://www.infosys.com/investors.html: Does not indicate transcript or earnings call content",
+    "https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q4/documents/transcripts/earningscall.pdf: Mismatched reporting fiscal year: URL mentions ['24', '25'] instead of fy29",
+    "https://www.infosys.com/investors/reports-filings/quarterly-results.html: Does not indicate transcript or earnings call content",
+    "https://www.infosys.com/investors/reports-filings/quarterly-results/2025-2026/q4/documents/transcripts/earningscall.pdf: Mismatched reporting fiscal year: URL mentions ['25', '26'] instead of fy29",
+    "https://nsearchives.nseindia.com/corporate/MeghanaPhadnis_13052026221810_covertranscript_Signed.pdf: Mismatched reporting fiscal year: URL mentions ['26'] instead of fy29",
+    "https://www.infosys.com/investors/reports-filings/quarterly-results/2022-2023/q4/documents/transcripts/press-conference.pdf: Mismatched reporting fiscal year: URL mentions ['22', '23'] instead of fy29",
+    "https://nsearchives.nseindia.com/corporate/ALICON_25052024123135_Transcript_Intimation.pdf: Mismatched reporting fiscal year: URL mentions ['24'] instead of fy29",
+    "https://www.infosys.com/investors/reports-filings/quarterly-results/2023-2024/q4/documents/ifrs-inr-press-release.pdf: Mismatched reporting fiscal year: URL mentions ['23', '24'] instead of fy29",
+    "https://nsearchives.nseindia.com/corporate/BIRET_25062026174940_Annual_Report_of_Brookfield_India_Real_Estate_Trust_FY25-26.pdf: Mismatched reporting fiscal year: URL mentions ['26', '25'] instead of fy29",
+    "https://nsearchives.nseindia.com/corporate/MINDSPACE_29042026180836_Outcome2_PRearningspresentationandsummary.pdf: Mismatched reporting fiscal year: URL mentions ['26'] instead of fy29",
+    "https://nsearchives.nseindia.com/corporate/VIRTUAL_06062026165728_Transcript_of_Earnings_Conference_Call.pdf: Mismatched reporting fiscal year: URL mentions ['26'] instead of fy29",
+    "https://www.bseindia.com/kannada/xml-data/corpfiling/attachhis/0884e44f-01ac-4a6c-8a62-90727fe88fdb.pdf: Does not indicate transcript or earnings call content",
+    "https://www.bseindia.com/xml-data/corpfiling/AttachHis/b0651893-51aa-45bb-9abc-6e5d2fa37b59.pdf: Does not indicate transcript or earnings call content",
+    "Extracted content from https://www.bseindia.com/xml-data/corpfiling/AttachHis//9939579a-80ce-412e-8bf1-0a7fdee37f98.pdf failed validation: Company identity 'INFY' / 'Infosys Limited' not found in call title / header section"
+  ],
+  "official_sources_checked": [
+    "infosys.com",
+    "nseindia.com",
+    "bseindia.com"
+  ],
+  "status": "not_found",
+  "checked_at": "2026-10-29T00:37:44Z"
+}

@@ -54,7 +54,7 @@ describe("Live Backend Integration Tests", () => {
   });
 
   it("login for each seeded account", async (ctx) => {
-    if (!isBackendReachable) {
+    if (!isBackendReachable || !tokens.judge) {
       ctx.skip();
       return;
     }

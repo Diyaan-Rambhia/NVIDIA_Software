@@ -97,6 +97,55 @@ def submit_verification(
     )
 
 
+@router.get("/admin/verifications", response_model=list[VerificationResponse])
+def list_verifications(
+    admin: Annotated[UserClaims, Depends(require_admin)],
+    request: Request,
+    status: Literal["pending", "approved", "rejected"] | None = None,
+) -> list[VerificationResponse]:
+    """List institutional verification requests with optional status filtering.
+
+    Accessible by administrators only.
+    """
+    settings = getattr(request.app.state, "settings", None) or load_settings()
+    conn = get_connection(settings)
+    try:
+        with conn.cursor() as cur:
+            if status:
+                cur.execute(
+                    """
+                    SELECT id, user_id, regulator, registration_number, status, rejection_reason
+                    FROM public.institutional_verifications
+                    WHERE status = %s
+                    ORDER BY id DESC;
+                    """,
+                    (status,),
+                )
+            else:
+                cur.execute(
+                    """
+                    SELECT id, user_id, regulator, registration_number, status, rejection_reason
+                    FROM public.institutional_verifications
+                    ORDER BY id DESC;
+                    """
+                )
+            rows = cur.fetchall() or []
+    finally:
+        conn.close()
+
+    return [
+        VerificationResponse(
+            id=row[0],
+            user_id=row[1],
+            regulator=row[2],
+            registration_number=row[3],
+            status=row[4],
+            review_notes=row[5],
+        )
+        for row in rows
+    ]
+
+
 @router.post("/admin/verifications/{verification_id}/review", response_model=VerificationResponse)
 def review_verification(
     verification_id: uuid.UUID,

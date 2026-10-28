@@ -189,3 +189,57 @@ async def ask_agent(
                 conn.close()
             except Exception:
                 pass
+
+
+@router.post("/ask/stream")
+async def ask_agent_stream(
+    req: AgentAskRequest,
+    request: Request,
+    user: Annotated[UserClaims, Depends(get_current_user)],
+):
+    """Execute multi-step agent query yielding live execution events via Server-Sent Events (SSE)."""
+    from fastapi.responses import StreamingResponse
+    from backend.app.agent.orchestrator import stream_agent_loop
+
+    settings = getattr(request.app.state, "settings", None) or load_settings()
+    all_config = getattr(request.app.state, "all_config", None) or load_all_config()
+
+    provider = getattr(request.app.state, "llm_provider", None)
+    if provider is None:
+        api_key = settings.get_var_value("NEBIUS_API_KEY")
+        if api_key:
+            from backend.app.llm.client import LLMClient
+            from backend.app.llm.registry import ModelRegistry
+
+            try:
+                registry = ModelRegistry(settings=settings)
+                registry.initialize()
+                provider = LLMClient(registry=registry, settings=settings)
+            except Exception as init_exc:
+                logger.warning("Could not initialize real LLMClient for streaming: %s", init_exc)
+
+    def event_generator():
+        for event in stream_agent_loop(
+            query=req.query,
+            user=user,
+            settings=settings,
+            all_config=all_config,
+            conn=None,
+            max_steps_override=req.max_steps,
+            budget_usd_override=req.budget_usd,
+            model_tier=req.model_tier,
+            attachment_text=req.attachment_text,
+            provider=provider,
+        ):
+            yield f"data: {json.dumps(event)}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+

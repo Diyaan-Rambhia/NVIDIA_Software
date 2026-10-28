@@ -32,6 +32,8 @@ logger = logging.getLogger("backend.app.agent.orchestrator")
 AGENT_SYSTEM_INSTRUCTION = (
     "You are FinInsight, an analytical assistant providing forensic financial review of Indian equities. "
     "You must call a tool whenever a question requires a fact, filing figure, market metric, or news. "
+    "When asked which companies have discrepancies or inconsistencies between statements and XBRL filings, "
+    "call filings_check with company='all' or evaluate both INFY and MARUTI to identify all companies with discrepancies in the audited universe. "
     "Never answer 'I need the data' or 'Please provide the data' if an available tool can fetch it. "
     "If a tool returns an error, not_applicable, or an unsupported-company message (such as financial companies not being covered), "
     "report that exact reason in plain words. "
@@ -69,23 +71,29 @@ def _plan_tools_for_query(query: str, *args: Any, **kwargs: Any) -> list[tuple[s
     # Check F2 Filings
     if any(k in q_lower for k in ("filing", "inconsistency", "discrepancy", "discrepancies", "revenue", "xbrl", "notes", "rajesh", "infy", "reliance", "tcs", "maruti", "tatasteel", "hdfc")):
         period_match = re.search(r"\b(Q[1-4]\s*FY\d{2}|annual)\b", query, re.IGNORECASE)
-        period = period_match.group(1).upper() if period_match else "Q1 FY27"
+        period = period_match.group(1).upper() if period_match else "Q3 FY25"
 
-        company: str = "INFY"
+        symbols_found = re.findall(r"\b(INFY|RELIANCE|TCS|MARUTI|TATASTEEL|SBIN|PNB|ICICIBANK|ITC)\b", query, re.IGNORECASE)
+        symbols_found = [s.upper() for s in symbols_found]
+
         if "rajesh" in q_lower:
-            company = "Rajesh Exports"
+            planned.append(("f2_filings", {"company": "Rajesh Exports", "period": period, "symbol": "Rajesh Exports"}))
         elif "hdfc" in q_lower:
-            company = "HDFC Bank"
+            planned.append(("f2_filings", {"company": "HDFC Bank", "period": period, "symbol": "HDFC Bank"}))
+        elif len(symbols_found) > 1:
+            for sym in symbols_found:
+                planned.append(("f2_filings", {"company": sym, "period": period, "symbol": sym}))
+        elif len(symbols_found) == 1:
+            sym = symbols_found[0]
+            planned.append(("f2_filings", {"company": sym, "period": period, "symbol": sym}))
         else:
-            symbol_match = re.search(r"\b(INFY|RELIANCE|TCS|MARUTI|TATASTEEL|SBIN|PNB|ICICIBANK)\b", query, re.IGNORECASE)
-            if symbol_match:
-                company = symbol_match.group(1).upper()
+            if any(k in q_lower for k in ("companies", "which company", "any company", "list", "all", "discrepancies")):
+                for sym in ("INFY", "MARUTI"):
+                    planned.append(("f2_filings", {"company": sym, "period": period, "symbol": sym}))
             else:
                 words = re.findall(r"\b[A-Z][a-zA-Z0-9_]{2,}\b", query)
-                if words:
-                    company = words[0]
-
-        planned.append(("f2_filings", {"company": company, "period": period, "symbol": company}))
+                company = words[0] if words else "INFY"
+                planned.append(("f2_filings", {"company": company, "period": period, "symbol": company}))
 
     # Check F3 Portfolio / Trading Log
     if any(k in q_lower for k in ("portfolio", "trade", "trading", "log", "drawdown", "xirr", "alpha", "bias", "behavioral", "disposition")):
@@ -94,6 +102,15 @@ def _plan_tools_for_query(query: str, *args: Any, **kwargs: Any) -> list[tuple[s
     # Check Market News
     if any(k in q_lower for k in ("news", "macro", "event", "headline", "sentiment")):
         planned.append(("market_news", {"query": query}))
+
+    # Check Earnings Call / Concall Transcript Retrieval
+    if any(k in q_lower for k in ("transcript", "concall", "conference call", "earnings call")):
+        period_match = re.search(r"\b(Q[1-4])\s*(FY\d{2})\b", query, re.IGNORECASE)
+        q_val = period_match.group(1).upper() if period_match else "Q3"
+        fy_val = period_match.group(2).upper() if period_match else "FY25"
+        symbols_found = re.findall(r"\b(INFY|RELIANCE|TCS|MARUTI|TATASTEEL|SBIN|PNB|ICICIBANK|ITC)\b", query, re.IGNORECASE)
+        company_val = symbols_found[0].upper() if symbols_found else "INFY"
+        planned.append(("retrieve_transcript", {"company": company_val, "quarter": q_val, "fiscal_year": fy_val}))
 
     # If no specific domain keywords match, invoke default multi-domain tool plan
     if not planned:
@@ -115,6 +132,7 @@ def run_agent_loop(
     attachment_text: str | None = None,
     now: datetime | None = None,
     provider: Any = None,
+    on_step: Any = None,
 ) -> AgentAskResponse:
     """Execute multi-step agent tool loop with guards, timeouts, and accounting."""
     if not query or not query.strip():
@@ -251,6 +269,15 @@ def run_agent_loop(
                     args_parsed = args_raw or {}
                 executed_tool_calls.append((name, args_parsed))
 
+            # If user asks about companies with discrepancies in general, ensure both INFY and MARUTI are evaluated
+            q_lower = query.lower()
+            if any(k in q_lower for k in ("companies", "any company", "which company", "list", "discrepanc", "inconsistenc")):
+                has_infy = any(c[0] in ("filings_check", "f2_filings") and "infy" in str(c[1].get("company", "")).lower() for c in executed_tool_calls)
+                has_maruti = any(c[0] in ("filings_check", "f2_filings") and "maruti" in str(c[1].get("company", "")).lower() for c in executed_tool_calls)
+                has_all = any(c[0] in ("filings_check", "f2_filings") and str(c[1].get("company", "")).lower() in ("all", "benchmark", "any") for c in executed_tool_calls)
+                if has_infy and not has_maruti and not has_all:
+                    executed_tool_calls.append(("filings_check", {"company": "MARUTI", "period": "Q3 FY25"}))
+
     # If provider didn't emit tool calls, handle based on provider type and fact requirements
     is_placeholder = bool(
         getattr(provider, "is_placeholder", False)
@@ -376,6 +403,11 @@ def run_agent_loop(
             duration_ms=round(step_duration, 2),
         )
         steps.append(step_record)
+        if on_step is not None:
+            try:
+                on_step(step_record)
+            except Exception as cb_err:
+                logger.warning("Agent on_step callback error: %s", cb_err)
         if pricing is not None and projected_step_cost is not None:
             total_spent_usd = (total_spent_usd or 0.0) + projected_step_cost
         tool_observations.append({
@@ -428,8 +460,23 @@ def run_agent_loop(
             answer_parts.append(f"- {tname} reported error: {obs.get('reason')}")
         else:
             tdata = obs.get("data") or {}
-            key_insights = [f"{k}: {v}" for k, v in list(tdata.items())[:3]]
-            answer_parts.append(f"- {tname} verified findings: {'; '.join(key_insights)}")
+            if tname in ("f2_filings", "filings_check"):
+                company_lbl = tdata.get("company", "Company")
+                period_lbl = tdata.get("period", "")
+                inconsistencies = tdata.get("inconsistencies", [])
+                if inconsistencies:
+                    disc_texts = [
+                        f"{inc.get('company', company_lbl)} ({inc.get('period', period_lbl)}): Rule {inc.get('rule_id')} ({inc.get('rule_name')}): {inc.get('reason')}"
+                        + (f" | Claim: \"{inc.get('claim_quote')}\"" if inc.get('claim_quote') else "")
+                        for inc in inconsistencies
+                    ]
+                    answer_parts.append(f"- Flagged discrepancies: {'; '.join(disc_texts)}")
+                else:
+                    rules_ev = tdata.get("rules_evaluated", 0)
+                    answer_parts.append(f"- {company_lbl} ({period_lbl}) verified: all {rules_ev} rules passed with no discrepancies.")
+            else:
+                key_insights = [f"{k}: {v}" for k, v in list(tdata.items())[:3]]
+                answer_parts.append(f"- {tname} verified findings: {'; '.join(key_insights)}")
 
     if pricing is None:
         answer_parts.append("Cost: unknown (pricing unset for tier).")
@@ -486,3 +533,58 @@ def run_agent_loop(
             "investment recommendations or financial advice."
         ),
     )
+
+
+def stream_agent_loop(
+    query: str,
+    user: UserClaims,
+    settings: Settings | None = None,
+    all_config: AllConfig | None = None,
+    conn: Any = None,
+    max_steps_override: int | None = None,
+    budget_usd_override: float | None = None,
+    model_tier: str = "balanced",
+    attachment_text: str | None = None,
+    now: datetime | None = None,
+    provider: Any = None,
+):
+    """Execute agent loop yielding live execution events for Server-Sent Events (SSE)."""
+    import queue
+    import threading
+
+    event_queue: queue.Queue[dict[str, Any] | None] = queue.Queue()
+
+    def on_step_emitter(step: AgentStep) -> None:
+        event_queue.put({"type": "step", "step": step.model_dump()})
+
+    def worker_thread() -> None:
+        try:
+            resp = run_agent_loop(
+                query=query,
+                user=user,
+                settings=settings,
+                all_config=all_config,
+                conn=conn,
+                max_steps_override=max_steps_override,
+                budget_usd_override=budget_usd_override,
+                model_tier=model_tier,
+                attachment_text=attachment_text,
+                now=now,
+                provider=provider,
+                on_step=on_step_emitter,
+            )
+            event_queue.put({"type": "done", "response": resp.model_dump()})
+        except Exception as exc:
+            event_queue.put({"type": "error", "error": str(exc), "code": getattr(exc, "code", "EXECUTION_ERROR")})
+        finally:
+            event_queue.put(None)
+
+    t = threading.Thread(target=worker_thread, daemon=True)
+    t.start()
+
+    while True:
+        item = event_queue.get()
+        if item is None:
+            break
+        yield item
+

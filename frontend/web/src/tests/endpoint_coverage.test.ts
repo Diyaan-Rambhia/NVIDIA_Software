@@ -16,7 +16,14 @@ describe("OpenAPI Endpoint Coverage Audit", () => {
     "/console/index.html",
     "/llm/runtime_call",
     "/llm/tavily_search",
+    "/llm/tiers",
+    "/agent/ask/stream",
+    "/api/billing/create-order",
+    "/api/billing/plans",
+    "/api/billing/verify",
+    "/api/billing/webhook",
     "/f2/companies", // Superseded on frontend by /f2/top50 and /f2/search (D-83)
+    "/f2/transcript", // Standalone retrieval agent and CLI tool (D-90)
   ]);
 
   // Read all production source code to check for endpoint references

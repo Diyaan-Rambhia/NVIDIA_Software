@@ -1,0 +1,22 @@
+# Core dependencies (defined in pyproject.toml)
+fastapi
+uvicorn[standard]
+pydantic>=2
+pydantic-settings>=2
+pyyaml
+numpy
+scipy
+scikit-learn
+psycopg[binary]>=3.2.0
+openpyxl>=3.1.5
+python-docx>=1.1.2
+pypdf>=5.0.0
+yfinance>=0.2.50
+cryptography>=42.0.0
+
+# Development and testing dependencies
+pytest
+httpx
+ruff
+mypy
+types-PyYAML

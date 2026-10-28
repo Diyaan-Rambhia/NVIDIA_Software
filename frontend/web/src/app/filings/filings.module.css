@@ -565,3 +565,193 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+.sourceLink {
+  color: var(--color-accent);
+  text-decoration: underline;
+  font-size: 11px;
+  display: block;
+  margin-top: 4px;
+}
+
+.customCommentaryBox {
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: var(--hairline);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.customCommentaryToggle {
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+  font-family: inherit;
+}
+
+.customTextarea {
+  width: 100%;
+  box-sizing: border-box;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  padding: 8px 12px;
+  color: var(--color-text);
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.transcriptCard {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-accent);
+  padding: var(--space-4);
+  border-radius: 2px;
+  margin-bottom: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.transcriptHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.transcriptBadgeRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.transcriptBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 2px;
+  letter-spacing: 0.5px;
+}
+
+.badgeOfficial {
+  background-color: rgba(0, 200, 150, 0.15);
+  color: #00c896;
+  border: 1px solid rgba(0, 200, 150, 0.3);
+}
+
+.badgeCustom {
+  background-color: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.badgeAggregator {
+  background-color: rgba(234, 179, 8, 0.15);
+  color: #eab308;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+.transcriptValidationBadge {
+  font-size: 10px;
+  padding: 3px 6px;
+  background-color: var(--color-surface-hover);
+  color: var(--color-muted);
+  border-radius: 2px;
+  border: 1px solid var(--color-border);
+}
+
+.transcriptPdfBtn {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-accent);
+  text-decoration: none;
+  background-color: var(--color-surface-hover);
+  border: 1px solid var(--color-border);
+  padding: 4px 10px;
+  border-radius: 2px;
+  transition: all 0.15s ease;
+}
+
+.transcriptPdfBtn:hover {
+  background-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.transcriptDetails {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+.transcriptDetailItem strong {
+  color: var(--color-text);
+  margin-right: 4px;
+}
+
+.transcriptNotFoundNote {
+  font-size: 13px;
+  color: var(--color-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.highlightsContainer {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.highlightsTitle {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  letter-spacing: 0.5px;
+}
+
+.highlightsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.highlightItem {
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.highlightCategory {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-accent);
+  text-transform: uppercase;
+}
+
+.highlightQuote {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+

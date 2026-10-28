@@ -6,7 +6,7 @@ from typing import Any
 import yaml
 from pydantic import ValidationError
 
-from backend.app.config.env import ConfigError
+from backend.app.config.env import ConfigError, get_repo_root
 from backend.app.config.models import (
     AllConfig,
     EpisodesConfig,
@@ -73,11 +73,34 @@ def _format_validation_error(exc: ValidationError, filename: str) -> ConfigError
     return ConfigError(f"Configuration validation failed in {filename}: {exc}")
 
 
+def _resolve_config_dir(config_dir: Path | None = None) -> Path:
+    """Resolve configuration directory, falling back to repository root config."""
+    if config_dir is not None:
+        if config_dir.is_dir():
+            return config_dir
+        repo_candidate = get_repo_root() / config_dir
+        if repo_candidate.is_dir():
+            return repo_candidate
+        raise ConfigError(f"Configuration directory does not exist: {config_dir}")
+
+    local_cfg = Path("config")
+    if local_cfg.is_dir():
+        return local_cfg
+    repo_cfg = get_repo_root() / "config"
+    if repo_cfg.is_dir():
+        return repo_cfg
+    raise ConfigError(f"Configuration directory does not exist: {local_cfg}")
+
+
 def load_config_file(
     file_path: Path,
     model_cls: type[Any],
 ) -> Any:
     """Load and validate a single configuration YAML file."""
+    if not file_path.is_file() and not file_path.is_absolute():
+        repo_file = get_repo_root() / file_path
+        if repo_file.is_file():
+            file_path = repo_file
     data = _load_yaml_file(file_path)
     try:
         return model_cls.model_validate(data)
@@ -87,12 +110,7 @@ def load_config_file(
 
 def load_all_config(config_dir: Path | None = None) -> AllConfig:
     """Load and validate all configuration files from the config directory."""
-    if config_dir is None:
-        # Default workspace config directory
-        config_dir = Path("config")
-
-    if not config_dir.is_dir():
-        raise ConfigError(f"Configuration directory does not exist: {config_dir}")
+    config_dir = _resolve_config_dir(config_dir)
 
     params = load_config_file(config_dir / "parameters.yaml", ParametersConfig)
     thresholds = load_config_file(config_dir / "thresholds.yaml", ThresholdsConfig)
@@ -125,8 +143,7 @@ def resolve_parameters(
     - wrong type (e.g. a bool supplied for int or float)
     """
     if base_params is None:
-        if config_dir is None:
-            config_dir = Path("config")
+        config_dir = _resolve_config_dir(config_dir)
         base_params = load_config_file(config_dir / "parameters.yaml", ParametersConfig)
 
     result: dict[str, Any] = {}
@@ -238,8 +255,7 @@ def get_risk_free_rate(
     missing or unknown.
     """
     if params_config is None:
-        if config_dir is None:
-            config_dir = Path("config")
+        config_dir = _resolve_config_dir(config_dir)
         params_config = load_config_file(config_dir / "parameters.yaml", ParametersConfig)
 
     rf = params_config.risk_free
@@ -279,8 +295,7 @@ def get_risk_free_rate_parameters(
     Raises ParameterError if the configured risk-free rate is null or unit is missing/unknown.
     """
     if params_config is None:
-        if config_dir is None:
-            config_dir = Path("config")
+        config_dir = _resolve_config_dir(config_dir)
         params_config = load_config_file(config_dir / "parameters.yaml", ParametersConfig)
 
     rf = params_config.risk_free
