@@ -93,9 +93,18 @@ def get_repo_root() -> Path:
 
 
 def verify_registry_against_example(example_path: Optional[Path] = None) -> None:
-    """Verify registry covers exactly the variables defined in .env.example."""
+    """Verify registry covers exactly the variables defined in .env.example.
+
+    When running in a managed cloud environment (RENDER=true or CI=true),
+    the .env.example file may not be present in the deployment bundle.
+    In that case the check is skipped because all required variables are
+    supplied directly via the platform's environment variable system.
+    """
+    import os as _os
     target_path = example_path if example_path is not None else get_repo_root() / ".env.example"
     if not target_path.exists():
+        if _os.environ.get("RENDER") or _os.environ.get("CI"):
+            return
         raise ConfigError(f"Environment template file not found: {target_path}")
 
     lines = target_path.read_text(encoding="utf-8").splitlines()
