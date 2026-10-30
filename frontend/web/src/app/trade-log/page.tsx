@@ -29,6 +29,72 @@ export default function TradeLogPage() {
   const [colPrice, setColPrice] = useState("price");
   const [colFees, setColFees] = useState("fees");
   const [consentGiven, setConsentGiven] = useState(false);
+  const [autoDetected, setAutoDetected] = useState(false);
+  const [showMapping, setShowMapping] = useState(false);
+  const [detectedSummary, setDetectedSummary] = useState<string | null>(null);
+
+  const autoDetectHeaders = async (file: File) => {
+    try {
+      const slice = file.slice(0, 4096);
+      const text = await slice.text();
+      const lines = text.split(/\r?\n/).map((l) => l.trim()).filter((l) => l && !l.startsWith("#"));
+      if (lines.length === 0) return;
+
+      const headerLine = lines[0];
+      const headers = headerLine.split(",").map((h) => h.replace(/^["']|["']$/g, "").trim());
+
+      const patterns: Record<string, RegExp[]> = {
+        date: [/^trade_?date$/i, /^order_?date$/i, /^trans(action)?_?date$/i, /^datetime$/i, /^timestamp$/i, /^date$/i, /^time$/i],
+        symbol: [/^tradingsymbol$/i, /^symbol$/i, /^ticker$/i, /^scrip$/i, /^stock$/i, /^security$/i, /^instrument$/i, /^asset$/i],
+        side: [/^trade_?type$/i, /^transaction_?type$/i, /^action$/i, /^buy[ _/]sell$/i, /^direction$/i, /^side$/i, /^type$/i],
+        qty: [/^executed_?qty$/i, /^traded_?qty$/i, /^quantity$/i, /^qty$/i, /^volume$/i, /^shares$/i, /^units$/i],
+        price: [/^execution_?price$/i, /^trade_?price$/i, /^avg_?price$/i, /^average_?price$/i, /^unit_?price$/i, /^exec_?price$/i, /^price$/i, /^rate$/i],
+        fees: [/^brokerage$/i, /^charges?$/i, /^total_?taxes?$/i, /^fees?$/i, /^commission$/i, /^stt$/i, /^taxes?$/i],
+      };
+
+      const matchHeader = (pats: RegExp[], fallbackKeyword?: string) => {
+        for (const pat of pats) {
+          const found = headers.find((h) => pat.test(h));
+          if (found) return found;
+        }
+        if (fallbackKeyword) {
+          const found = headers.find((h) => h.toLowerCase().includes(fallbackKeyword.toLowerCase()));
+          if (found) return found;
+        }
+        return null;
+      };
+
+      const mDate = matchHeader(patterns.date, "date");
+      const mSymbol = matchHeader(patterns.symbol, "symbol");
+      const mSide = matchHeader(patterns.side, "side");
+      const mQty = matchHeader(patterns.qty, "qty");
+      const mPrice = matchHeader(patterns.price, "price");
+      const mFees = matchHeader(patterns.fees, "fee");
+
+      if (mDate) setColDate(mDate);
+      if (mSymbol) setColSymbol(mSymbol);
+      if (mSide) setColSide(mSide);
+      if (mQty) setColQty(mQty);
+      if (mPrice) setColPrice(mPrice);
+      if (mFees) setColFees(mFees);
+
+      const matchedCount = [mDate, mSymbol, mSide, mQty, mPrice].filter(Boolean).length;
+      if (matchedCount >= 1) {
+        setAutoDetected(true);
+        const parts = [
+          mDate ? `Date: ${mDate}` : null,
+          mSymbol ? `Symbol: ${mSymbol}` : null,
+          mSide ? `Side: ${mSide}` : null,
+          mQty ? `Qty: ${mQty}` : null,
+          mPrice ? `Price: ${mPrice}` : null,
+          mFees ? `Fees: ${mFees}` : null,
+        ].filter(Boolean).join(" | ");
+        setDetectedSummary(parts);
+      }
+    } catch {
+      // Fallback to defaults
+    }
+  };
 
   useEffect(() => {
     if (sessionChecked && !isAuthenticated) {
@@ -128,7 +194,7 @@ export default function TradeLogPage() {
       <section className={styles.uploadSection}>
         <h2>Upload Execution Trade Log</h2>
         <p className={styles.formLead}>
-          Provide a CSV export from your broker. Explicitly map your file&apos;s header names to canonical schema fields.
+          Provide a CSV export from your broker. Column headers and date formats across Indian and international styles are detected automatically.
         </p>
 
         <div style={{
@@ -141,9 +207,9 @@ export default function TradeLogPage() {
           flexDirection: "column",
           gap: "var(--space-2)"
         }}>
-          <h3 style={{ fontSize: "14px", fontWeight: 600, color: "var(--color-foreground)" }}>Check your file</h3>
+          <h3 style={{ fontSize: "14px", fontWeight: 600, color: "var(--color-foreground)" }}>Automatic Broker Log Analysis</h3>
           <p style={{ margin: 0, color: "var(--color-muted)" }}>
-            Your CSV trade log must contain headers matching these required columns: <strong>date</strong> (YYYY-MM-DD), <strong>symbol</strong> (NSE equity ticker), <strong>side</strong> (BUY or SELL), <strong>quantity</strong> (positive number), and <strong>price</strong> (positive execution price).
+            Upload any standard CSV export from your broker. Headers for trade date (in any order or format), symbol, side (BUY/SELL), quantity, execution price, and fees are automatically resolved.
           </p>
           <p style={{ margin: 0, color: "var(--color-muted)" }}>
             Optional columns: <code>fees</code>, <code>charges</code>, <code>exchange</code>, <code>segment</code>, <code>marker</code>.
@@ -157,11 +223,69 @@ export default function TradeLogPage() {
               id="csv-file"
               type="file"
               accept=".csv,text/csv"
-              onChange={(e) => setCsvFile(e.target.files?.[0] || null)}
+              onChange={(e) => {
+                const f = e.target.files?.[0] || null;
+                setCsvFile(f);
+                if (f) {
+                  autoDetectHeaders(f);
+                }
+              }}
               disabled={submitting}
             />
           </div>
 
+          {!autoDetected && (
+            <div style={{ marginTop: "calc(-1 * var(--space-2))", marginBottom: "var(--space-2)" }}>
+              <button
+                type="button"
+                onClick={() => setShowMapping(!showMapping)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "var(--color-muted)",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                  textDecoration: "underline",
+                }}
+              >
+                {showMapping ? "Hide column configuration" : "Advanced: Configure column headers manually"}
+              </button>
+            </div>
+          )}
+
+          {autoDetected && (
+            <div style={{
+              padding: "var(--space-2) var(--space-3)",
+              backgroundColor: "rgba(16, 185, 129, 0.08)",
+              border: "1px solid rgba(16, 185, 129, 0.25)",
+              borderRadius: "4px",
+              fontSize: "13px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "var(--space-2)",
+              color: "var(--color-foreground)"
+            }}>
+              <span>✓ Auto-detected headers: <strong>{detectedSummary}</strong></span>
+              <button
+                type="button"
+                onClick={() => setShowMapping(!showMapping)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "var(--color-primary, #60a5fa)",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                  fontSize: "12px",
+                  whiteSpace: "nowrap"
+                }}
+              >
+                {showMapping ? "Hide column mapping" : "Customize column mapping"}
+              </button>
+            </div>
+          )}
+
+          {showMapping && (
           <div className={styles.mappingGrid}>
             <div className={styles.mapField}>
               <label htmlFor="col-date">Date Column Header</label>
@@ -234,6 +358,7 @@ export default function TradeLogPage() {
               />
             </div>
           </div>
+          )}
 
           <div className={styles.checkboxField}>
             <input
@@ -441,14 +566,6 @@ export default function TradeLogPage() {
             <h2>Qualitative Diagnostic Review</h2>
             <div className={styles.reviewText}>{review.review_text}</div>
             <div className={styles.disclaimerBox}>{review.disclaimer}</div>
-          </section>
-
-          {/* Parameters Used */}
-          <section className={styles.cardSection}>
-            <h3>Parameters Used in Review</h3>
-            <pre className={styles.paramsBox} data-mono>
-              {JSON.stringify(review.parameters_used || {}, null, 2)}
-            </pre>
           </section>
         </div>
       )}

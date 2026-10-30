@@ -1,9 +1,9 @@
 {
   "components": {
     "schemas": {
-      "AgentAskRequest": {
+      "AgentAskPayload": {
         "additionalProperties": false,
-        "description": "Request payload for POST /agent/ask.",
+        "description": "Extended request payload supporting client in-memory conversation history.",
         "properties": {
           "attachment_text": {
             "anyOf": [
@@ -26,6 +26,23 @@
               }
             ],
             "title": "Budget Usd"
+          },
+          "history": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "History"
           },
           "max_steps": {
             "anyOf": [
@@ -57,7 +74,7 @@
         "required": [
           "query"
         ],
-        "title": "AgentAskRequest",
+        "title": "AgentAskPayload",
         "type": "object"
       },
       "AgentAskResponse": {
@@ -1860,7 +1877,7 @@
   },
   "info": {
     "title": "FinInsight",
-    "version": "071b025"
+    "version": "f5426ed"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -1906,7 +1923,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AgentAskRequest"
+                "$ref": "#/components/schemas/AgentAskPayload"
               }
             }
           },
@@ -1966,7 +1983,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AgentAskRequest"
+                "$ref": "#/components/schemas/AgentAskPayload"
               }
             }
           },

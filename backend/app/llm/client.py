@@ -112,8 +112,8 @@ class LLMClient:
             params = cfg.parameters.parameters if cfg else {}
             p_daily = params.get("llm_per_user_daily_token_limit")
             p_call = params.get("llm_per_call_max_tokens")
-            daily_token_limit = int(p_daily.default) if p_daily else 50000
-            call_max_tokens = int(p_call.default) if p_call else 4000
+            daily_token_limit = int(p_daily.default) if p_daily else 0
+            call_max_tokens = int(p_call.default) if p_call else 0
 
             guard_conn = None
             try:

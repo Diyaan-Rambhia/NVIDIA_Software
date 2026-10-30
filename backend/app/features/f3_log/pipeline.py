@@ -5,6 +5,7 @@ Per PROJECT.md §4.10, §5.11, and FR-F3-001..012.
 
 import csv
 import io
+import re
 from collections import defaultdict, deque
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -48,6 +49,68 @@ PARAMETERS_FILE = Path("config") / "parameters.yaml"
 PRIVATE_LOGS_DIR = Path("private") / "logs"
 
 
+def parse_trade_date_flexible(val: str) -> str:
+    """Parse trade execution date string across varied international and Indian formats.
+
+    Supports ISO, day-first, month-first, dots, slashes, dashes, and timestamps.
+    """
+    cleaned = val.strip()
+    if not cleaned:
+        raise ValueError("Empty date value")
+
+    date_part = cleaned
+    if "T" in date_part:
+        date_part = date_part.split("T")[0].strip()
+    elif " " in date_part:
+        date_part = re.sub(
+            r"\s+\d{1,2}:\d{2}(:\d{2})?(\s*(AM|PM|am|pm))?$", "", date_part
+        ).strip()
+
+    try:
+        return date.fromisoformat(date_part).isoformat()
+    except ValueError:
+        pass
+
+    formats_to_try = [
+        "%d-%m-%Y",
+        "%d/%m/%Y",
+        "%d.%m.%Y",
+        "%Y/%m/%d",
+        "%Y.%m.%d",
+        "%m/%d/%Y",
+        "%m-%d-%Y",
+        "%d-%b-%Y",
+        "%d/%b/%Y",
+        "%d %b %Y",
+        "%d-%B-%Y",
+        "%d %B %Y",
+        "%b %d, %Y",
+        "%b %d %Y",
+        "%B %d, %Y",
+        "%B %d %Y",
+        "%Y%m%d",
+        "%d-%m-%y",
+        "%d/%m/%y",
+        "%m/%d/%y",
+        "%y-%m-%d",
+    ]
+    for fmt in formats_to_try:
+        try:
+            return datetime.strptime(date_part, fmt).date().isoformat()
+        except ValueError:
+            continue
+
+    try:
+        from dateutil import parser as dt_parser
+
+        parsed = dt_parser.parse(cleaned, dayfirst=True)
+        return parsed.date().isoformat()
+    except Exception:
+        pass
+
+    raise ValueError(f"Unable to parse date '{val}': unrecognized format or order")
+
+
 def parse_trade_log_csv(
     csv_text: str,
     mapping: ColumnMapping,
@@ -74,6 +137,95 @@ def parse_trade_log_csv(
         raise ValueError("Empty CSV file or missing header row")
 
     fieldnames = set(reader.fieldnames)
+    effective_date = mapping.date
+    effective_symbol = mapping.symbol
+    effective_side = mapping.side
+    effective_quantity = mapping.quantity
+    effective_price = mapping.price
+    effective_fees = mapping.fees
+
+    col_patterns = {
+        "date": [
+            r"^trade_?date$", r"^order_?date$", r"^trans(action)?_?date$",
+            r"^date$", r"^timestamp$", r"^time$", r"^datetime$",
+            r"^execution_?date$", r"^trade_?time$", r"^order_?time$",
+        ],
+        "symbol": [
+            r"^tradingsymbol$", r"^symbol$", r"^ticker$", r"^scrip$",
+            r"^stock$", r"^security$", r"^instrument$", r"^company$",
+            r"^name$", r"^scrip_?name$", r"^stock_?name$",
+        ],
+        "side": [
+            r"^side$", r"^trade_?type$", r"^transaction_?type$",
+            r"^trans_?type$", r"^action$", r"^buy[ _/]sell$", r"^type$",
+            r"^order_?type$", r"^b/s$",
+        ],
+        "quantity": [
+            r"^executed_?qty$", r"^traded_?qty$", r"^quantity$",
+            r"^qty$", r"^volume$", r"^shares$", r"^units$",
+            r"^total_?qty$", r"^no_?of_?shares$", r"^net_?qty$",
+        ],
+        "price": [
+            r"^execution_?price$", r"^trade_?price$", r"^price$",
+            r"^avg_?price$", r"^average_?price$", r"^rate$",
+            r"^unit_?price$", r"^trade_?rate$", r"^net_?rate$",
+        ],
+        "fees": [
+            r"^fees?$", r"^brokerage$", r"^charges?$", r"^total_?taxes?$",
+            r"^commission$", r"^stt$", r"^tax$", r"^stamp_?duty$",
+            r"^other_?charges?$", r"^exchange_?turnover_?charge$",
+        ],
+    }
+
+    fallback_keywords = {
+        "date": ["date", "time"],
+        "symbol": ["symbol", "ticker", "scrip", "stock", "instrument"],
+        "side": ["side", "action", "buy", "sell", "type"],
+        "quantity": ["qty", "quant", "vol", "share", "unit"],
+        "price": ["price", "rate", "avg"],
+        "fees": ["fee", "brokerage", "charge", "tax", "stt", "commission"],
+    }
+
+    def _auto_match(key: str) -> str | None:
+        raw_names = list(reader.fieldnames or [])
+        for pat in col_patterns.get(key, []):
+            for fn in raw_names:
+                if re.search(pat, fn.strip(), re.IGNORECASE):
+                    return fn
+        for kw in fallback_keywords.get(key, []):
+            for fn in raw_names:
+                if kw in fn.strip().lower():
+                    return fn
+        return None
+
+    if not effective_date or effective_date not in fieldnames:
+        effective_date = _auto_match("date") or effective_date
+    if not effective_symbol or effective_symbol not in fieldnames:
+        effective_symbol = _auto_match("symbol") or effective_symbol
+    if not effective_side or effective_side not in fieldnames:
+        effective_side = _auto_match("side") or effective_side
+    if not effective_quantity or effective_quantity not in fieldnames:
+        effective_quantity = _auto_match("quantity") or effective_quantity
+    if not effective_price or effective_price not in fieldnames:
+        effective_price = _auto_match("price") or effective_price
+    if effective_fees and effective_fees not in fieldnames:
+        effective_fees = _auto_match("fees")
+    elif not effective_fees:
+        effective_fees = _auto_match("fees")
+
+    mapping = ColumnMapping(
+        date=effective_date,
+        symbol=effective_symbol,
+        side=effective_side,
+        quantity=effective_quantity,
+        price=effective_price,
+        fees=effective_fees,
+        charges=mapping.charges,
+        exchange=mapping.exchange,
+        segment=mapping.segment,
+        marker=mapping.marker,
+    )
+
     required_mappings = {
         "date": mapping.date,
         "symbol": mapping.symbol,
@@ -97,12 +249,11 @@ def parse_trade_log_csv(
             raise ValueError(f"Row {row_idx}: missing date value in mapped column '{mapping.date}'")
 
         try:
-            parsed_date = date.fromisoformat(date_raw)
-            date_clean = parsed_date.isoformat()
+            date_clean = parse_trade_date_flexible(date_raw)
         except ValueError as exc:
             raise ValueError(
                 f"Row {row_idx}: invalid date format '{date_raw}' in column "
-                f"'{mapping.date}'; expected YYYY-MM-DD"
+                f"'{mapping.date}'"
             ) from exc
 
         symbol_raw = (row.get(mapping.symbol) or "").strip().upper()
@@ -112,6 +263,10 @@ def parse_trade_log_csv(
             )
 
         side_raw = (row.get(mapping.side) or "").strip().upper()
+        if side_raw in ("B", "BUY"):
+            side_raw = "BUY"
+        elif side_raw in ("S", "SELL"):
+            side_raw = "SELL"
         if side_raw not in ("BUY", "SELL"):
             raise ValueError(
                 f"Row {row_idx}: invalid side '{side_raw}' in column "

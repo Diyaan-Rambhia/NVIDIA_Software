@@ -459,16 +459,16 @@ parameters:
     unit: "fiscal_year"
   llm_per_user_daily_token_limit:
     type: int
-    default: 50000
-    min: 1000
-    max: 10000000
+    default: 0
+    min: 0
+    max: 1000000000
     override_allowed: true
     unit: "tokens"
   llm_per_user_daily_token_limit_judge_all:
     type: int
-    default: 500000
-    min: 1000
-    max: 50000000
+    default: 0
+    min: 0
+    max: 1000000000
     override_allowed: true
     unit: "tokens"
   llm_per_call_max_tokens:
@@ -500,3 +500,41 @@ parameters:
 
 
 
+  agent_product_name:
+    type: str
+    default: "FinInsight"
+    override_allowed: false
+    unit: "name"
+  agent_decline_text:
+    type: str
+    default: "I can only assist with forensic financial analysis of Indian equity markets, company filings, trade logs, and FinInsight metrics."
+    override_allowed: false
+    unit: "text"
+  agent_history_max_messages:
+    type: int
+    default: 10
+    min: 1
+    max: 100
+    override_allowed: true
+    unit: "messages"
+  agent_history_max_chars:
+    type: int
+    default: 8000
+    min: 100
+    max: 100000
+    override_allowed: true
+    unit: "characters"
+  agent_grounding_number_limit:
+    type: float
+    default: 10.0
+    min: 0.0
+    max: 10000.0
+    override_allowed: true
+    unit: "threshold"
+  agent_stale_data_days:
+    type: int
+    default: 5
+    min: 1
+    max: 365
+    override_allowed: true
+    unit: "days"

@@ -1,3 +1,5 @@
+"""FastAPI route handlers for multi-step agent interaction with entitlement verification."""
+
 import json
 import logging
 from typing import Annotated
@@ -31,9 +33,15 @@ logger = logging.getLogger("backend.app.agent.router")
 router = APIRouter(prefix="/agent", tags=["agent"])
 
 
+class AgentAskPayload(AgentAskRequest):
+    """Extended request payload supporting client in-memory conversation history."""
+
+    history: list[dict[str, str]] | None = None
+
+
 @router.post("/ask", response_model=AgentAskResponse)
 async def ask_agent(
-    req: AgentAskRequest,
+    req: AgentAskPayload,
     request: Request,
     user: Annotated[UserClaims, Depends(get_current_user)],
 ) -> AgentAskResponse:
@@ -41,8 +49,6 @@ async def ask_agent(
     settings = getattr(request.app.state, "settings", None) or load_settings()
     all_config = getattr(request.app.state, "all_config", None) or load_all_config()
 
-    # Never hold an open database connection across the multi-step agent loop
-    # or across external LLM provider network calls. Each write uses a short connection.
     conn = None
 
     try:
@@ -83,6 +89,7 @@ async def ask_agent(
             budget_usd_override=req.budget_usd,
             model_tier=req.model_tier,
             attachment_text=req.attachment_text,
+            history=req.history,
             provider=provider,
         )
         return response
@@ -193,7 +200,7 @@ async def ask_agent(
 
 @router.post("/ask/stream")
 async def ask_agent_stream(
-    req: AgentAskRequest,
+    req: AgentAskPayload,
     request: Request,
     user: Annotated[UserClaims, Depends(get_current_user)],
 ):
@@ -229,6 +236,7 @@ async def ask_agent_stream(
             budget_usd_override=req.budget_usd,
             model_tier=req.model_tier,
             attachment_text=req.attachment_text,
+            history=req.history,
             provider=provider,
         ):
             yield f"data: {json.dumps(event)}\n\n"
@@ -242,4 +250,3 @@ async def ask_agent_stream(
             "X-Accel-Buffering": "no",
         },
     )
-

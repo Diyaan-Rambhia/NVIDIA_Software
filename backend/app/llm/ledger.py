@@ -84,7 +84,7 @@ def check_token_limit_guard(
     reset_iso = reset_dt.isoformat()
 
     # 1. Enforce per-call token limit
-    if projected_tokens > call_max_tokens:
+    if call_max_tokens > 0 and projected_tokens > call_max_tokens:
         raise TokenLimitExceededError(
             f"Per-call token limit of {call_max_tokens} exceeded with projected {projected_tokens} tokens.",
             reset_time=reset_iso,

@@ -210,6 +210,7 @@ X7, X8, X9 → X10 (agent) → X11 (payments) → X12 (precompute, deploy, submi
 - [x] **X10.4 SSE step streaming** (FR-AGT-004) and ops-console agent trace (FR-UI-008).
 - [ ] **X10.5 Portfolio linkage** from F3 into F1 exposure (optional) and F2 company lists.
 - [x] **X10.6 Route** `POST /agent/ask` with rate limits.
+- [x] **X10.7 Hardened agent tool calling and verification** (items 1-11: model-driven tools market_scan/filings_check/market_news, removed keyword router, provider reply guards, clock system prompt, grounding validation, memory history & persistent attachment piping, verification script, unit tests).
 
 ## X11: Payments
 

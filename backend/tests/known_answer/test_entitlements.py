@@ -71,10 +71,10 @@ def test_calculate_reset_time_rejects_unknown_rule(sample_now):
         ("institutional_paid", "feature1_contagion", 200, "full", True),
         ("institutional_paid", "feature2_filings", 200, "limited", True),
         ("institutional_paid", "feature3_forensic", 200, "limited", True),
-        # Judge All (finite provisional limits from config)
-        ("judge_all", "feature1_contagion", 200, "limited", True),
-        ("judge_all", "feature2_filings", 200, "limited", True),
-        ("judge_all", "feature3_forensic", 200, "limited", True),
+        # Judge All (unlimited access from config)
+        ("judge_all", "feature1_contagion", 200, "full", True),
+        ("judge_all", "feature2_filings", 200, "full", True),
+        ("judge_all", "feature3_forensic", 200, "full", True),
     ],
 )
 def test_all_plan_x_feature_combinations(
@@ -108,11 +108,11 @@ def test_all_plan_x_feature_combinations(
 
 def test_quota_boundaries_limit_minus_one_at_limit_over_limit(plans_config, sample_now):
     """Verify quota boundary arithmetic: limit minus one, at limit, and over limit."""
-    # retail_free on feature2_filings has daily quota 3
+    # retail_free on feature2_filings has daily quota 9
     plan = "retail_free"
     feature = "feature2_filings"
     quota = plans_config.plans[plan].features[feature].quota_per_day
-    assert quota == 3
+    assert quota == 9
 
     # Limit minus one (usage 2 of 3) -> allowed 200, remaining 1
     res_minus_one = decide(
@@ -196,14 +196,14 @@ def test_error_naive_datetime(plans_config):
 
 
 def test_institutional_paid_f3_quota_enforced(plans_config, sample_now):
-    """institutional_paid on feature3_forensic allows within daily quota 5 and rejects above."""
-    # Under quota (usage 0 out of 5)
+    """institutional_paid on feature3_forensic allows within daily quota 15 and rejects above."""
+    # Under quota (usage 0 out of 15)
     res_allowed = decide("institutional_paid", "feature3_forensic", 0, sample_now, plans_config)
     assert res_allowed.allowed is True
     assert res_allowed.status == 200
 
-    # At quota (usage 5 out of 5)
-    res_limited = decide("institutional_paid", "feature3_forensic", 5, sample_now, plans_config)
+    # At quota (usage 15 out of 15)
+    res_limited = decide("institutional_paid", "feature3_forensic", 15, sample_now, plans_config)
     assert res_limited.allowed is False
     assert res_limited.status == 429
 

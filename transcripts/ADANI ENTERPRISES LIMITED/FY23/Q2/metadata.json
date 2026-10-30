@@ -1,0 +1,15 @@
+{
+  "company": "Adani Enterprises Limited",
+  "nse_symbol": "ADANI ENTERPRISES LIMITED",
+  "quarter": "Q2",
+  "fiscal_year": "FY23",
+  "call_date": "",
+  "source_type": "official_bse",
+  "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/8efb4748-deb5-42a0-b8e4-73009328e454.pdf",
+  "pdf_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/8efb4748-deb5-42a0-b8e4-73009328e454.pdf",
+  "retrieved_at": "2026-10-29T22:50:15Z",
+  "extraction_method": "pypdf",
+  "word_count": 7010,
+  "validation_status": "passed",
+  "notes": "Retrieved via official_bse priority score 25"
+}

@@ -113,7 +113,7 @@ class FailingToolCallProvider:
                 {
                     "message": {
                         "role": "assistant",
-                        "content": "From my internal knowledge, the company reported good revenue.",
+                        "content": "From my internal knowledge, the company reported 500000 revenue.",
                     }
                 }
             ],
@@ -238,20 +238,16 @@ def test_financial_company_returns_unsupported_message_in_answer(
 def test_model_returns_no_tool_call_fails_with_502(
     judge_user: UserClaims, dev_settings: Settings
 ) -> None:
-    """If the model returns no valid tool call after retry limit, return 502 MODEL_TOOL_CALL_FAILED."""
+    """When model returns factual numbers without tool result or attachment, return data refusal."""
     all_cfg = load_all_config()
     provider = FailingToolCallProvider()
 
-    with pytest.raises(ModelToolCallFailedError) as exc_info:
-        run_agent_loop(
-            query="What are the reported revenues and filing discrepancies for INFY?",
-            user=judge_user,
-            settings=dev_settings,
-            all_config=all_cfg,
-            model_tier="balanced",
-            provider=provider,
-        )
-
-    assert exc_info.value.status_code == 502
-    assert exc_info.value.code == "MODEL_TOOL_CALL_FAILED"
-    assert exc_info.value.tier == "balanced"
+    resp = run_agent_loop(
+        query="What are the reported revenues and filing discrepancies for INFY?",
+        user=judge_user,
+        settings=dev_settings,
+        all_config=all_cfg,
+        model_tier="balanced",
+        provider=provider,
+    )
+    assert "could not retrieve data" in resp.answer.lower()

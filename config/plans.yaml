@@ -9,10 +9,10 @@ plans:
         access: none
       feature2_filings:
         access: limited
-        quota_per_day: 3
+        quota_per_day: 9
       feature3_forensic:
         access: limited
-        quota_per_day: 1
+        quota_per_day: 3
   retail_paid:
     segment: retail
     purchasable: true
@@ -34,10 +34,10 @@ plans:
         unlocks_with: institutional_paid
       feature2_filings:
         access: limited
-        quota_per_day: 3
+        quota_per_day: 9
       feature3_forensic:
         access: limited
-        quota_per_day: 1
+        quota_per_day: 3
   institutional_paid:
     segment: institutional
     purchasable: true
@@ -47,21 +47,18 @@ plans:
         access: full
       feature2_filings:
         access: limited
-        quota_per_day: 3
+        quota_per_day: 9
       feature3_forensic:
         access: limited
-        quota_per_day: 5
+        quota_per_day: 15
   judge_all:
     segment: internal
     purchasable: false
     price_inr_per_month: null
     features:
       feature1_contagion:
-        access: limited
-        quota_per_day: 1000
+        access: full
       feature2_filings:
-        access: limited
-        quota_per_day: 1000
+        access: full
       feature3_forensic:
-        access: limited
-        quota_per_day: 1000
+        access: full

@@ -696,3 +696,21 @@
 
 
 
+
+### D-91: Removal of agent keyword router and adoption of model-driven tool calling
+- **Status:** Accepted
+- **Context:** Agent previously employed keyword routing heuristics (_plan_tools_for_query) and separate scope checks (_query_requires_facts), causing brittle tool selection and divergent execution paths between testing and production.
+- **Decision:**
+  - Completely remove keyword routers, separate scope-check functions, general web-search tools, and placeholder/demo data imports from the agent codebase.
+  - Rely exclusively on model-driven tool selection through standard OpenAI-compatible tool specifications (market_scan, filings_check, market_news) passed in the tools parameter and returned via tool_calls (or clean text-JSON fallback execution).
+  - Enforce user plan entitlement evaluation inside each tool function, returning derived numbers only alongside as_of and fetched_at timestamps.
+  - Implement dynamic system prompt construction with real-time clock dates, grounding checks with single retry, fallback to deterministic data summaries, and plain-prose formatting enforcement.
+
+
+### D-92: Automated broker trade log column detection and multi-format date parsing
+- **Status:** Accepted
+- **Context:** Previously, users uploading broker trade logs were required to manually inspect CSV headers and enter explicit mapping strings into six form fields. In addition, date parsing was strictly constrained to ISO format, causing valid broker exports using Indian (day-first) or alternative date formats to fail.
+- **Decision:**
+  - Introduce `parse_trade_date_flexible` in `backend/app/features/f3_log/pipeline.py` supporting standard date orders (day-first, month-first, year-first, dots, slashes, dashes, spelled-out months) and timestamps while converting all inputs to canonical ISO date strings.
+  - Expand header matching heuristics in `backend/app/features/f3_log/pipeline.py` with comprehensive regex patterns and fallback keyword matching, enabling seamless ingestion of unmapped CSVs from Indian and international brokers.
+  - Simplify frontend upload UX in `frontend/web/src/app/trade-log/page.tsx` by eliminating required manual input fields from the default upload view. The interface automatically inspects selected CSVs, displays detected columns, and collapses manual customization behind an optional toggle.

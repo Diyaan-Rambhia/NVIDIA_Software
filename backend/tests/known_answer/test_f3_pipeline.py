@@ -289,3 +289,28 @@ def test_synthetic_log_rejected_under_real_consent_flag() -> None:
         match="Synthetic demo trade log cannot be accepted with real-log retention consent flag",
     ):
         parse_trade_log_csv(csv_text, mapping, consent_given=True)
+
+
+def test_parse_csv_any_date_order_and_auto_headers() -> None:
+    """Broker CSV with varied date orders and arbitrary headers parses automatically."""
+    base = date.today()
+    d1 = base
+    d2 = date.fromordinal(base.toordinal() + 5)
+    s1 = d1.strftime("%d-%m-%Y")
+    s2 = d2.strftime("%d/%m/%Y %H:%M:%S")
+
+    csv_text = (
+        f"Trade Date,Tradingsymbol,Type,Traded Qty,Execution Price,Brokerage\n"
+        f"{s1},TCS,B,20,3500.0,25.0\n"
+        f"{s2},TCS,S,10,3600.0,15.0\n"
+    )
+
+    mapping = ColumnMapping(date="", symbol="", side="", quantity="", price="")
+    log = parse_trade_log_csv(csv_text, mapping, consent_given=False)
+
+    assert log.total_trades == 2
+    assert log.symbols == ["TCS"]
+    assert log.trades[0].date == d1.isoformat()
+    assert log.trades[0].side == "BUY"
+    assert log.trades[1].date == d2.isoformat()
+    assert log.trades[1].side == "SELL"

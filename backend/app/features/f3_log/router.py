@@ -71,12 +71,26 @@ async def review_trade_log(
             detail={"code": "benchmark_data_error", "message": str(exc)},
         ) from exc
 
+    settings = getattr(request.app.state, "settings", None) or load_settings()
+
     # Record atomic usage
     try:
-        settings = getattr(request.app.state, "settings", None) or load_settings()
         conn = get_connection(settings)
         increment_quota_atomic(conn, user.user_id, "investment_log", max_quota=999999)
         conn.close()
+    except Exception:
+        pass
+
+    # Generate live LLM narrative review
+    try:
+        from backend.app.features.f3_log.review_llm import generate_decision_review_narrative
+        narrative = generate_decision_review_narrative(
+            review=review,
+            settings=settings,
+            user_id=user.user_id,
+        )
+        if narrative:
+            review = review.model_copy(update={"review_text": narrative})
     except Exception:
         pass
 

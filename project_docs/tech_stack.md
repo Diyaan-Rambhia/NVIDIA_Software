@@ -173,6 +173,7 @@ The backend exposes HTTP API endpoints documented in `docs/openapi.json`:
 |---|---|---|---|
 | `/` | `GET` | No | Root Redirect |
 | `/agent/ask` | `POST` | No | Ask Agent |
+| `/agent/ask/stream` | `POST` | No | Ask Agent Stream |
 | `/api/admin/verifications/{verification_id}/review` | `POST` | No | Review Verification |
 | `/api/auth/me` | `GET` | No | Get Me |
 | `/api/auth/refresh` | `POST` | No | Refresh Token |
@@ -269,13 +270,13 @@ The placeholder returns contract-compliant mock responses.
 The system prohibits placeholder initialization when `APP_ENV=production`.
 
 ### 9.5 Multi-Step Agent Loop
-The orchestrator in `backend/app/agent/orchestrator.py` runs multi-turn tool loops:
-1. Receives user query.
-2. Formulates tool-calling request to Nemotron model.
-3. Validates tool arguments against strict Pydantic schemas.
-4. Executes requested tool in local execution sandbox.
-5. Feeds tool execution results back to model.
-6. Terminates when model yields final answer or step limit is reached.
+The orchestrator in `backend/app/agent/orchestrator.py` runs multi-turn tool loops using model-driven tool calling without keyword routing:
+1. Receives user query, active conversation history up to `agent_history_max_messages` and `agent_history_max_chars`, and optional attachment text.
+2. Constructs system instructions using clock dates and configured application identity `agent_product_name` and decline response `agent_decline_text`.
+3. Passes standard tools (`market_scan`, `filings_check`, `market_news`) through the OpenAI tools parameter.
+4. Executes selected tools with in-tool plan entitlement checks, enforcing derived numbers only with as_of and fetched_at timestamps.
+5. Handles stale market scan data older than `agent_stale_data_days` with delayed data warnings.
+6. Enforces grounding verification for all numeric claims above `agent_grounding_number_limit` with a single retry before falling back to deterministic summaries.
 
 ### 9.6 Database Connection Lifecycle and Closed-Connection Resilience
 The backend enforces a short-lived database connection architecture:
@@ -504,6 +505,11 @@ The table below indexes all 63 decisions recorded in `DECISIONS.md`:
 | `DECISIONS.md D-85` | Strict verbatim filing claim verification, financial company exclusion, and error taxonomy mapping |
 | `DECISIONS.md D-86` | Short-lived database connection lifecycle, closed-connection retry, and model success logging |
 | `DECISIONS.md D-87` | Live agent tools, Contagion news TTL caching, and trade log file verification help |
+| `DECISIONS.md D-88` | Cryptography library dependency for Supabase Auth JWT and JWKS signature verification |
+| `DECISIONS.md D-89` | Repository-root fallback resolution for configuration loading and CLI utility scripts |
+| `DECISIONS.md D-90` | Earnings-call transcript retrieval and archiving engine |
+| `DECISIONS.md D-91` | Removal of agent keyword router and adoption of model-driven tool calling |
+| `DECISIONS.md D-92` | Automated broker trade log column detection and multi-format date parsing |
 
 
 ## 16. Technical Glossary

@@ -67,13 +67,31 @@ export default function AgentPage() {
       return;
     }
 
-    // Supported document formats: PDF, Excel, Word
+    // Support plain text files directly in-memory via file.text()
+    const isText = file.name.endsWith(".txt") || file.name.endsWith(".csv") || file.name.endsWith(".md") || file.name.endsWith(".json") || file.type.startsWith("text/");
+    if (isText) {
+      setExtractingFile(true);
+      try {
+        const textContent = await file.text();
+        setAttachedFile({
+          name: file.name,
+          text: textContent,
+        });
+      } catch (err: unknown) {
+        setFileError("Document text extraction failed.");
+      } finally {
+        setExtractingFile(false);
+      }
+      return;
+    }
+
+    // Supported document formats for server extraction: PDF, Excel, Word
     const isPdf = file.name.endsWith(".pdf") || file.type === "application/pdf";
     const isExcel = file.name.endsWith(".xlsx") || file.name.endsWith(".xls") || file.type.includes("spreadsheetml");
     const isWord = file.name.endsWith(".docx") || file.name.endsWith(".doc") || file.type.includes("wordprocessingml");
 
     if (!isPdf && !isExcel && !isWord) {
-      setFileError("Supported files: PDF, Excel (.xlsx), Word (.docx)");
+      setFileError("Supported files: text (.txt, .csv, .md), PDF, Excel (.xlsx), Word (.docx)");
       return;
     }
 
@@ -111,7 +129,10 @@ export default function AgentPage() {
   };
 
   const handleSend = async (queryToSend?: string) => {
-    const q = (queryToSend ?? inputQuery).trim();
+    let q = (queryToSend ?? inputQuery).trim();
+    if (!q && attachedFile) {
+      q = `Analyze the attached file: ${attachedFile.name}`;
+    }
     if (!q || running) return;
 
     const userMsgId = `user-${Date.now()}`;
@@ -129,7 +150,12 @@ export default function AgentPage() {
 
     const textToAttach = attachedFile?.text || null;
     const tierUsed = selectedTier;
-    setAttachedFile(null);
+    // Attachment chip remains active across turns until removed by user
+
+    const historyPayload = messages.slice(-10).map((m) => ({
+      role: m.sender === "user" ? "user" : "assistant",
+      content: m.text || m.answer || "",
+    }));
 
     const controller = new AbortController();
     abortControllerRef.current = controller;
@@ -141,6 +167,7 @@ export default function AgentPage() {
           query: q,
           model_tier: tierUsed,
           attachment_text: textToAttach,
+          history: historyPayload,
         }),
         signal: controller.signal,
       });
@@ -456,7 +483,7 @@ export default function AgentPage() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf,.xlsx,.docx,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
+                accept=".txt,.csv,.md,.json,text/*,.pdf,.xlsx,.docx,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
                 onChange={handleFileSelect}
                 disabled={running || extractingFile}
                 hidden
@@ -480,7 +507,7 @@ export default function AgentPage() {
               type="button"
               className={styles.sendBtn}
               onClick={() => handleSend()}
-              disabled={running || !inputQuery.trim()}
+              disabled={running || (!inputQuery.trim() && !attachedFile)}
             >
               Send
             </button>
