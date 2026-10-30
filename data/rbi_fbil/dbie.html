@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en" data-critters-container>
+<head>
+  <meta charset="utf-8">
+  <title>DBIE</title>
+  <base href="#">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="assets/images/Rbinote.png">
+  <script type="text/javascript">
+    let host = window && window.location && window.location.hostname
+    let ip = window.location.protocol + "//" + host + ":" + window.location.port
+    let node = document.createElement('script')
+    let url = `${ip}/advancedmaps/v1/6be418533ae43193658f04a69df3936a/map_load?v=1.5&plugin=cluster`
+    if (host == 'localhost')
+      node.src = 'https://apis.mapmyindia.com/advancedmaps/v1/11oj6ftmmejr8bg6sdqw3futymo5cmwc/map_load?v=1.5&plugin=cluster'
+    else
+      node.src = url      
+    node.async = false
+    document.getElementsByTagName('head')[0].appendChild(node)
+    // sessionStorage.setItem('mapLoaded',false)
+    sessionStorage.removeItem('mapLoaded')
+    // console.log('script loading started')
+    node.onload = () => {
+      sessionStorage.setItem('mapLoaded', true)
+      // console.log('script loaded')
+    }
+  </script>
+  <script language="JavaScript">
+    document.onkeypress = function (event) {
+      event = (event || window.event);
+      if (event.keyCode == 123) {
+       
+        return false;
+      }
+    }
+    document.onmousedown = function (event) {
+      event = (event || window.event);
+      if (event.keyCode == 123) {
+        
+        return false;
+      }
+    }
+    document.onkeydown = function (event) {
+      event = (event || window.event);
+      if (event.keyCode == 123) {
+        
+        return false;
+      }
+    }
+    function clickIE() { if (document.all) { (message); return false; } }
+    function clickNS(e) {
+      if
+        (document.layers || (document.getElementById && !document.all)) {
+        if (e.which == 2 || e.which == 3) { (message); return false; }
+      }
+    }
+    /

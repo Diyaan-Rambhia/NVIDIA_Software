@@ -22,6 +22,7 @@ RUN pip install --no-cache-dir .
 COPY backend ./backend
 COPY config ./config
 COPY frontend ./frontend
+COPY data ./data
 COPY Makefile ./
 
 # Expose default application port

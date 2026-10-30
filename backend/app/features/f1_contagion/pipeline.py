@@ -59,10 +59,18 @@ def load_price_series(
             cache_ttl_seconds=cache_ttl_seconds,
         )
 
+    target_set = None
+    if symbols:
+        target_set = {s.strip().upper() for s in symbols}
+        target_set.update({s.replace(".NS", "") for s in target_set})
+
     series_map: dict[str, dict[str, float]] = {}
 
     for file_path in DATA_YFINANCE_DIR.glob("*.json"):
         sym = file_path.stem
+        clean_stem = sym.replace(".NS", "").upper()
+        if target_set is not None and sym.upper() not in target_set and clean_stem not in target_set:
+            continue
         try:
             raw = json.loads(file_path.read_text(encoding="utf-8"))
             chart = raw.get("chart", {})

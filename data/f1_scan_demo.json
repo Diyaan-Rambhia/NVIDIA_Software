@@ -1,0 +1,270 @@
+{
+  "as_of": "2026-10-09",
+  "source_label": "unofficial source, demo only",
+  "parameters_used": {
+    "W": 60,
+    "B": 202,
+    "G": 16,
+    "C": 16,
+    "lambda": 0.94,
+    "seed": 42
+  },
+  "regime_flag": "critical",
+  "absorption_ratio": 1.0,
+  "ar_delta_std": 0.0,
+  "significant_pairs_count": 69,
+  "mean_correlation": 0.3208,
+  "top_shifted_pairs": [
+    {
+      "pair": [
+        "ABB.NS",
+        "AIAENG.NS"
+      ],
+      "baseline_corr": 0.2973,
+      "current_corr": 0.5532,
+      "fr_adjusted_corr": 0.5532,
+      "p_value": 0.5699,
+      "q_value": 0.5699
+    },
+    {
+      "pair": [
+        "ABB.NS",
+        "AMBER.NS"
+      ],
+      "baseline_corr": 0.2669,
+      "current_corr": 0.7181,
+      "fr_adjusted_corr": 0.7181,
+      "p_value": 0.1586,
+      "q_value": 0.1586
+    },
+    {
+      "pair": [
+        "ABB.NS",
+        "BAJAJ-AUTO.NS"
+      ],
+      "baseline_corr": 0.2855,
+      "current_corr": 0.0531,
+      "fr_adjusted_corr": 0.0531,
+      "p_value": 0.0439,
+      "q_value": 0.0439
+    },
+    {
+      "pair": [
+        "ABB.NS",
+        "BALKRISIND.NS"
+      ],
+      "baseline_corr": 0.2658,
+      "current_corr": 0.4313,
+      "fr_adjusted_corr": 0.4313,
+      "p_value": 0.2541,
+      "q_value": 0.2541
+    },
+    {
+      "pair": [
+        "ABB.NS",
+        "BATAINDIA.NS"
+      ],
+      "baseline_corr": 0.2473,
+      "current_corr": 0.5307,
+      "fr_adjusted_corr": 0.5307,
+      "p_value": 0.2297,
+      "q_value": 0.2297
+    },
+    {
+      "pair": [
+        "ABB.NS",
+        "BHEL.NS"
+      ],
+      "baseline_corr": 0.4784,
+      "current_corr": 0.7018,
+      "fr_adjusted_corr": 0.7018,
+      "p_value": 0.0918,
+      "q_value": 0.0918
+    },
+    {
+      "pair": [
+        "ABB.NS",
+        "BPCL.NS"
+      ],
+      "baseline_corr": 0.3361,
+      "current_corr": 0.5972,
+      "fr_adjusted_corr": 0.5972,
+      "p_value": 0.1937,
+      "q_value": 0.1937
+    },
+    {
+      "pair": [
+        "ADANIGREEN.NS",
+        "AIAENG.NS"
+      ],
+      "baseline_corr": 0.2627,
+      "current_corr": 0.4733,
+      "fr_adjusted_corr": 0.4733,
+      "p_value": 0.5655,
+      "q_value": 0.5655
+    },
+    {
+      "pair": [
+        "ADANIGREEN.NS",
+        "APLAPOLLO.NS"
+      ],
+      "baseline_corr": 0.3207,
+      "current_corr": 0.7266,
+      "fr_adjusted_corr": 0.7266,
+      "p_value": 0.4565,
+      "q_value": 0.4565
+    },
+    {
+      "pair": [
+        "ADANIGREEN.NS",
+        "ASHOKLEY.NS"
+      ],
+      "baseline_corr": 0.3437,
+      "current_corr": 0.5831,
+      "fr_adjusted_corr": 0.5831,
+      "p_value": 0.9375,
+      "q_value": 0.9375
+    },
+    {
+      "pair": [
+        "ADANIGREEN.NS",
+        "BATAINDIA.NS"
+      ],
+      "baseline_corr": 0.3634,
+      "current_corr": 0.5845,
+      "fr_adjusted_corr": 0.5845,
+      "p_value": 0.2571,
+      "q_value": 0.2571
+    },
+    {
+      "pair": [
+        "ADANIGREEN.NS",
+        "BHARATFORG.NS"
+      ],
+      "baseline_corr": 0.3616,
+      "current_corr": 0.5395,
+      "fr_adjusted_corr": 0.5395,
+      "p_value": 0.0487,
+      "q_value": 0.0487
+    },
+    {
+      "pair": [
+        "ADANIGREEN.NS",
+        "BHARTIARTL.NS"
+      ],
+      "baseline_corr": 0.1926,
+      "current_corr": 0.6388,
+      "fr_adjusted_corr": 0.6388,
+      "p_value": 0.1247,
+      "q_value": 0.1247
+    },
+    {
+      "pair": [
+        "ADANIGREEN.NS",
+        "BHEL.NS"
+      ],
+      "baseline_corr": 0.4757,
+      "current_corr": 0.6975,
+      "fr_adjusted_corr": 0.6975,
+      "p_value": 0.2372,
+      "q_value": 0.2372
+    },
+    {
+      "pair": [
+        "ADANIGREEN.NS",
+        "BLUESTARCO.NS"
+      ],
+      "baseline_corr": 0.3165,
+      "current_corr": 0.0104,
+      "fr_adjusted_corr": 0.0104,
+      "p_value": 0.8093,
+      "q_value": 0.8093
+    },
+    {
+      "pair": [
+        "ADANIGREEN.NS",
+        "BPCL.NS"
+      ],
+      "baseline_corr": 0.4095,
+      "current_corr": 0.7444,
+      "fr_adjusted_corr": 0.7444,
+      "p_value": 0.5426,
+      "q_value": 0.5426
+    },
+    {
+      "pair": [
+        "AIAENG.NS",
+        "AMBER.NS"
+      ],
+      "baseline_corr": 0.2786,
+      "current_corr": 0.5256,
+      "fr_adjusted_corr": 0.5256,
+      "p_value": 0.9571,
+      "q_value": 0.9571
+    },
+    {
+      "pair": [
+        "AIAENG.NS",
+        "APLAPOLLO.NS"
+      ],
+      "baseline_corr": 0.1835,
+      "current_corr": 0.4333,
+      "fr_adjusted_corr": 0.4333,
+      "p_value": 0.8488,
+      "q_value": 0.8488
+    },
+    {
+      "pair": [
+        "AIAENG.NS",
+        "ASHOKLEY.NS"
+      ],
+      "baseline_corr": 0.2337,
+      "current_corr": 0.6352,
+      "fr_adjusted_corr": 0.6352,
+      "p_value": 0.3306,
+      "q_value": 0.3306
+    },
+    {
+      "pair": [
+        "AIAENG.NS",
+        "BALKRISIND.NS"
+      ],
+      "baseline_corr": 0.1793,
+      "current_corr": 0.4292,
+      "fr_adjusted_corr": 0.4292,
+      "p_value": 0.0518,
+      "q_value": 0.0518
+    }
+  ],
+  "matrix_summary": {
+    "assets_count": 81,
+    "observations_count": 243,
+    "condition_number": 3.6017922625699236e18
+  },
+  "episodes_status": "pending_scan_full_history",
+  "seed": 42,
+  "code_version": "53e166d",
+  "scan_duration_seconds": 2.146,
+  "news": {
+    "state": "not_run",
+    "query": null,
+    "results": null,
+    "not_run_reason": "not run: no search key",
+    "error_status": null,
+    "error_message": null
+  },
+  "hypotheses": [
+    {
+      "id": "H-01",
+      "text": "Tightening systemic correlation detected across benchmark equities during critical regime.",
+      "evidence_ids": null
+    }
+  ],
+  "institutional_flows": {
+    "total_fpi_net_cr": -3786.67,
+    "total_dii_net_cr": 5866.67,
+    "net_institutional_liquidity_cr": 2080.0,
+    "fpi_dii_divergence_cr": 9653.34,
+    "primary_regime": "fpi_flight_dii_absorption"
+  }
+}

@@ -720,3 +720,10 @@
 - **Status:** Accepted
 - **Context:** `httpx` is used in production modules (including `backend/app/features/f2_filings/lookup.py` and search/filing utilities) for async and sync external HTTP communication. It was previously placed only in optional `dev` dependencies.
 - **Decision:** Declare `httpx>=0.27.0` as a core runtime dependency in `pyproject.toml` so container builds (`pip install .`) bundle it into production images.
+
+### D-94: Production market data and precomputed artifacts container availability
+- **Status:** Accepted
+- **Context:** In containerized cloud deployments, requests to /f1/scan resulted in HTTP 502 MARKET_DATA_ERROR: No price series loaded from data/yfinance/. The repository's data/ directory—which houses recorded historical market price series, institutional flow bulletins, and regulatory filing references—was excluded by .gitignore and .dockerignore, and omitted from Dockerfile image layers.
+- **Decision:**
+  - Remove data/ from .gitignore and .dockerignore, tracking the necessary market data files directly in the repository.
+  - Add COPY data ./data to Dockerfile to ensure cloud production images retain the precomputed artifacts and price series without shipping secrets or unredacted user logs (which remain confined to gitignored .env and private/).

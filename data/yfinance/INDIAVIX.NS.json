@@ -1,0 +1,68 @@
+{
+  "chart": {
+    "result": [
+      {
+        "meta": {
+          "currency": null,
+          "symbol": "INDIAVIX.NS",
+          "exchangeName": "NSI",
+          "fullExchangeName": "NSE",
+          "instrumentType": "INDEX",
+          "firstTradeDate": null,
+          "regularMarketTime": 0,
+          "hasPrePostMarketData": false,
+          "gmtoffset": 19800,
+          "timezone": "IST",
+          "exchangeTimezoneName": "Asia/Kolkata",
+          "regularMarketPrice": 18.53,
+          "regularMarketChangePercent": -0.523,
+          "fulldayPrice": 18.53,
+          "fulldayChange": -0.097,
+          "fulldayChangePercent": -0.523,
+          "fiftyTwoWeekHigh": 0.0,
+          "fiftyTwoWeekLow": 0.0,
+          "regularMarketDayHigh": 0.0,
+          "regularMarketDayLow": 0.0,
+          "regularMarketVolume": 0,
+          "chartPreviousClose": 18.53,
+          "priceHint": 2,
+          "currentTradingPeriod": {
+            "pre": {
+              "timezone": "IST",
+              "start": 1791863100,
+              "end": 1791863100,
+              "gmtoffset": 19800
+            },
+            "regular": {
+              "timezone": "IST",
+              "start": 1791863100,
+              "end": 1791885600,
+              "gmtoffset": 19800
+            },
+            "post": {
+              "timezone": "IST",
+              "start": 1791885600,
+              "end": 1791885600,
+              "gmtoffset": 19800
+            }
+          },
+          "dataGranularity": "1d",
+          "range": "1y",
+          "validRanges": [
+            "1d",
+            "5d"
+          ]
+        },
+        "indicators": {
+          "quote": [
+            {}
+          ],
+          "adjclose": [
+            {}
+          ]
+        }
+      }
+    ],
+    "error": null
+  }
+}

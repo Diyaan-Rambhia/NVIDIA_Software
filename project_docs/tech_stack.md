@@ -175,6 +175,10 @@ The backend exposes HTTP API endpoints documented in `docs/openapi.json`:
 | `/agent/ask` | `POST` | No | Ask Agent |
 | `/agent/ask/stream` | `POST` | No | Ask Agent Stream |
 | `/api/admin/verifications/{verification_id}/review` | `POST` | No | Review Verification |
+| /api/billing/create-order | POST | Yes | Create Razorpay Order |
+| /api/billing/plans | GET | No | List Available Plans |
+| /api/billing/verify | POST | Yes | Verify Payment Signature |
+| /api/billing/webhook | POST | No | Razorpay Payment Webhook |
 | `/api/auth/me` | `GET` | No | Get Me |
 | `/api/auth/refresh` | `POST` | No | Refresh Token |
 | `/api/auth/signup` | `POST` | No | Signup |
@@ -190,11 +194,13 @@ The backend exposes HTTP API endpoints documented in `docs/openapi.json`:
 | `/f2/lookup` | `GET` | Yes | Live Company Filing Lookup |
 | `/f2/search` | `GET` | Yes | Search NSE Equities |
 | `/f2/top50` | `GET` | Yes | Top 50 Nifty Constituents |
+| /f2/transcript | GET | Yes | Earnings Call Transcript Lookup |
 | `/f3/review` | `POST` | Yes | Review Trade Log |
 | `/files/extract` | `POST` | Yes | Safe Document Extraction |
 | `/health` | `GET` | No | Health |
 | `/llm/runtime_call` | `POST` | No | Call Nemotron Runtime |
 | `/llm/tavily_search` | `POST` | No | Search Tavily |
+| /llm/tiers | GET | No | LLM Model Tiers Catalog |
 | `/ops/activity/events` | `GET` | No | Get Ops Activity Events |
 | `/ops/activity/llm` | `GET` | No | Get Ops Activity Llm |
 | `/ops/config` | `GET` | No | Get Ops Config |
@@ -511,6 +517,7 @@ The table below indexes all 63 decisions recorded in `DECISIONS.md`:
 | `DECISIONS.md D-91` | Removal of agent keyword router and adoption of model-driven tool calling |
 | `DECISIONS.md D-92` | Automated broker trade log column detection and multi-format date parsing |
 | `DECISIONS.md D-93` | Promotion of httpx to core dependencies |
+| DECISIONS.md D-94 | Production market data and precomputed artifacts container availability |
 
 
 ## 16. Technical Glossary
