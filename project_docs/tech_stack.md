@@ -510,6 +510,7 @@ The table below indexes all 63 decisions recorded in `DECISIONS.md`:
 | `DECISIONS.md D-90` | Earnings-call transcript retrieval and archiving engine |
 | `DECISIONS.md D-91` | Removal of agent keyword router and adoption of model-driven tool calling |
 | `DECISIONS.md D-92` | Automated broker trade log column detection and multi-format date parsing |
+| `DECISIONS.md D-93` | Promotion of httpx to core dependencies |
 
 
 ## 16. Technical Glossary

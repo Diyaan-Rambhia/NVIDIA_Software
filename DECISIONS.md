@@ -714,3 +714,9 @@
   - Introduce `parse_trade_date_flexible` in `backend/app/features/f3_log/pipeline.py` supporting standard date orders (day-first, month-first, year-first, dots, slashes, dashes, spelled-out months) and timestamps while converting all inputs to canonical ISO date strings.
   - Expand header matching heuristics in `backend/app/features/f3_log/pipeline.py` with comprehensive regex patterns and fallback keyword matching, enabling seamless ingestion of unmapped CSVs from Indian and international brokers.
   - Simplify frontend upload UX in `frontend/web/src/app/trade-log/page.tsx` by eliminating required manual input fields from the default upload view. The interface automatically inspects selected CSVs, displays detected columns, and collapses manual customization behind an optional toggle.
+
+
+### D-93: Promotion of httpx to core dependencies
+- **Status:** Accepted
+- **Context:** `httpx` is used in production modules (including `backend/app/features/f2_filings/lookup.py` and search/filing utilities) for async and sync external HTTP communication. It was previously placed only in optional `dev` dependencies.
+- **Decision:** Declare `httpx>=0.27.0` as a core runtime dependency in `pyproject.toml` so container builds (`pip install .`) bundle it into production images.
