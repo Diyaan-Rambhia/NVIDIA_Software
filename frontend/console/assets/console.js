@@ -337,7 +337,7 @@ async function refreshIndex() {
           var tdLOut = document.createElement("td");
           tdLOut.textContent = String(row.output_tokens || 0);
           var tdLCost = document.createElement("td");
-          tdLCost.textContent = row.est_cost_usd !== undefined ? "$" + row.est_cost_usd.toFixed(6) : "-";
+          tdLCost.textContent = (row.est_cost_usd !== undefined && row.est_cost_usd !== null) ? "$" + Number(row.est_cost_usd).toFixed(6) : "-";
           var tdLHit = document.createElement("td");
           tdLHit.textContent = row.cache_hit ? "HIT" : "MISS";
 
